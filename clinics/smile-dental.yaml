@@ -1,0 +1,103 @@
+# Smile Dental Care — demo / harness clinic. Synthetic: not a real clinic.
+# Validated by BusinessConfig in packages/shared. Loaded by the API, served to the agent.
+
+id: smile-dental
+tenantId: smile-dental
+vertical: clinic
+name: Smile Dental Care
+spokenName:
+  en: Smile Dental Care
+  hi: स्माइल डेंटल केयर
+  hinglish: Smile Dental Care
+timezone: Asia/Kolkata
+phone: '9800000001'
+humanHandoffNumber: '9800000002'
+languages: [en, hi, hinglish]
+greetingLanguage: hinglish
+schedulingMode: slots
+
+hours:
+  mon: &two-sessions
+    - { start: '10:00', end: '13:00' }
+    - { start: '17:00', end: '20:30' }
+  tue: *two-sessions
+  wed: *two-sessions
+  thu: *two-sessions
+  fri: *two-sessions
+  sat:
+    - { start: '10:00', end: '14:00' }
+  sun: []
+
+closedDates:
+  - '2026-10-20' # Diwali
+  - '2026-10-21'
+
+resources:
+  - id: dr-mehta
+    name: Dr. Mehta
+    kind: doctor
+    services: [consultation, cleaning, filling, root-canal]
+    hours:
+      mon: *two-sessions
+      tue: *two-sessions
+      thu: *two-sessions
+      fri: *two-sessions
+      sat:
+        - { start: '10:00', end: '14:00' }
+  - id: dr-rao
+    name: Dr. Rao
+    kind: doctor
+    services: [consultation, cleaning, braces-review]
+    hours:
+      mon:
+        - { start: '17:00', end: '20:30' }
+      wed: *two-sessions
+      fri:
+        - { start: '17:00', end: '20:30' }
+
+services:
+  - id: consultation
+    name: Consultation
+    spoken: { en: consultation, hi: परामर्श, hinglish: consultation }
+    durationMin: 15
+  - id: cleaning
+    name: Cleaning
+    spoken: { en: cleaning, hi: सफ़ाई, hinglish: cleaning }
+    durationMin: 30
+  - id: filling
+    name: Filling
+    spoken: { en: filling, hi: फिलिंग, hinglish: filling }
+    durationMin: 30
+  - id: root-canal
+    name: Root canal (one sitting)
+    spoken: { en: root canal sitting, hi: रूट कैनाल, hinglish: root canal sitting }
+    durationMin: 45
+  - id: braces-review
+    name: Braces review
+    spoken: { en: braces review, hi: ब्रेसेस चेकअप, hinglish: braces review }
+    durationMin: 15
+
+booking:
+  slotStepMin: 15
+  minNoticeMin: 60
+  maxDaysAhead: 30
+
+faq:
+  - id: timings
+    question: What are the clinic timings?
+    answer: >-
+      Monday to Friday, 10 am to 1 pm and 5 to 8:30 pm. Saturday 10 am to 2 pm. Closed on Sunday.
+  - id: address
+    question: Where is the clinic?
+    answer: >-
+      [CLINIC ADDRESS — synthetic demo clinic]
+  - id: fees
+    question: How much is a consultation?
+    answer: A consultation is 500 rupees. Cleaning starts at 1,200 rupees.
+  - id: insurance
+    question: Do you take insurance or cashless?
+    answer: '' # left blank on purpose: Myna takes a message instead of guessing
+
+callbackPromiseHours: 2
+recordCalls: false
+killSwitch: false

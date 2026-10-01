@@ -1,0 +1,1067 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://myna.local/contracts.json",
+  "title": "MynaContracts",
+  "description": "Generated from packages/shared (Zod). Do not edit by hand.",
+  "$defs": {
+    "Appointment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "patientId": {
+          "type": "string"
+        },
+        "resourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "resourceName": {
+          "type": "string"
+        },
+        "serviceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "serviceName": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$"
+        },
+        "end": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "confirmed",
+            "pending",
+            "cancelled"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "patientId",
+        "resourceId",
+        "resourceName",
+        "serviceId",
+        "serviceName",
+        "start",
+        "end",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "BookInput": {
+      "type": "object",
+      "properties": {
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "callId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verificationId": {
+          "type": "string",
+          "minLength": 8
+        },
+        "newPatient": {
+          "$ref": "#/$defs/NewPatient"
+        },
+        "serviceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "resourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "start": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$"
+        }
+      },
+      "required": [
+        "idempotencyKey",
+        "callId",
+        "serviceId",
+        "resourceId",
+        "start"
+      ]
+    },
+    "BookOutput": {
+      "type": "object",
+      "properties": {
+        "appointment": {
+          "$ref": "#/$defs/Appointment"
+        }
+      },
+      "required": [
+        "appointment"
+      ],
+      "additionalProperties": false
+    },
+    "BusinessConfig": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "tenantId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "vertical": {
+          "type": "string",
+          "const": "clinic"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spokenName": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "en",
+              "hi",
+              "hinglish"
+            ]
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "timezone": {
+          "default": "Asia/Kolkata",
+          "type": "string"
+        },
+        "phone": {
+          "type": "string",
+          "pattern": "^(91)?[6-9]\\d{9}$"
+        },
+        "humanHandoffNumber": {
+          "type": "string",
+          "pattern": "^(91)?[6-9]\\d{9}$"
+        },
+        "languages": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "en",
+              "hi",
+              "hinglish"
+            ]
+          }
+        },
+        "greetingLanguage": {
+          "type": "string",
+          "enum": [
+            "en",
+            "hi",
+            "hinglish"
+          ]
+        },
+        "schedulingMode": {
+          "default": "slots",
+          "type": "string",
+          "enum": [
+            "slots",
+            "tokens",
+            "hybrid"
+          ]
+        },
+        "hours": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "mon",
+              "tue",
+              "wed",
+              "thu",
+              "fri",
+              "sat",
+              "sun"
+            ]
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                },
+                "end": {
+                  "type": "string",
+                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "closedDates": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          }
+        },
+        "resources": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "default": "doctor",
+                "type": "string",
+                "minLength": 1
+              },
+              "services": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+                }
+              },
+              "hours": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "enum": [
+                    "mon",
+                    "tue",
+                    "wed",
+                    "thu",
+                    "fri",
+                    "sat",
+                    "sun"
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      },
+                      "end": {
+                        "type": "string",
+                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "kind",
+              "services",
+              "hours"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "services": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "spoken": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "enum": [
+                    "en",
+                    "hi",
+                    "hinglish"
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "durationMin": {
+                "type": "integer",
+                "minimum": 5,
+                "maximum": 480
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "spoken",
+              "durationMin"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "booking": {
+          "default": {
+            "slotStepMin": 15,
+            "minNoticeMin": 60,
+            "maxDaysAhead": 30
+          },
+          "type": "object",
+          "properties": {
+            "slotStepMin": {
+              "default": 15,
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 60
+            },
+            "minNoticeMin": {
+              "default": 60,
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "maxDaysAhead": {
+              "default": 30,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 180
+            }
+          },
+          "required": [
+            "slotStepMin",
+            "minNoticeMin",
+            "maxDaysAhead"
+          ],
+          "additionalProperties": false
+        },
+        "faq": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+              },
+              "question": {
+                "type": "string",
+                "minLength": 1
+              },
+              "answer": {
+                "default": "",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "question",
+              "answer"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "callbackPromiseHours": {
+          "default": 2,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 48
+        },
+        "recordCalls": {
+          "default": false,
+          "type": "boolean"
+        },
+        "killSwitch": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "tenantId",
+        "vertical",
+        "name",
+        "spokenName",
+        "timezone",
+        "phone",
+        "humanHandoffNumber",
+        "languages",
+        "greetingLanguage",
+        "schedulingMode",
+        "hours",
+        "closedDates",
+        "resources",
+        "services",
+        "booking",
+        "faq",
+        "callbackPromiseHours",
+        "recordCalls",
+        "killSwitch"
+      ],
+      "additionalProperties": false
+    },
+    "CallEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "turn"
+            },
+            "speaker": {
+              "type": "string",
+              "enum": [
+                "agent",
+                "caller"
+              ]
+            },
+            "text": {
+              "type": "string"
+            },
+            "language": {
+              "type": "string",
+              "enum": [
+                "en",
+                "hi",
+                "hinglish"
+              ]
+            },
+            "state": {
+              "type": "string"
+            },
+            "latencyMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "type",
+            "speaker",
+            "text",
+            "state"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "tool_call"
+            },
+            "tool": {
+              "type": "string"
+            },
+            "ok": {
+              "type": "boolean"
+            },
+            "errorCode": {
+              "type": "string"
+            },
+            "latencyMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "type",
+            "tool",
+            "ok",
+            "latencyMs"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "end"
+            },
+            "outcome": {
+              "type": "string"
+            },
+            "handoffReason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "outcome"
+          ]
+        }
+      ]
+    },
+    "CancelInput": {
+      "type": "object",
+      "properties": {
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "verificationId": {
+          "type": "string",
+          "minLength": 8
+        },
+        "appointmentId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "idempotencyKey",
+        "verificationId",
+        "appointmentId"
+      ]
+    },
+    "CancelOutput": {
+      "type": "object",
+      "properties": {
+        "appointment": {
+          "$ref": "#/$defs/Appointment"
+        }
+      },
+      "required": [
+        "appointment"
+      ],
+      "additionalProperties": false
+    },
+    "CreateStaffTaskInput": {
+      "type": "object",
+      "properties": {
+        "callId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verificationId": {
+          "type": "string",
+          "minLength": 8
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "report_status",
+            "medicine_refill_request",
+            "billing_question",
+            "doctor_callback",
+            "directions_timings",
+            "other"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "urgency": {
+          "type": "string",
+          "enum": [
+            "urgent",
+            "today",
+            "routine"
+          ]
+        },
+        "callbackNumber": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "callId",
+        "category",
+        "summary",
+        "urgency",
+        "callbackNumber"
+      ]
+    },
+    "CreateStaffTaskOutput": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string"
+        },
+        "callbackBy": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$"
+        }
+      },
+      "required": [
+        "taskId",
+        "callbackBy"
+      ],
+      "additionalProperties": false
+    },
+    "FindPatientInput": {
+      "type": "object",
+      "properties": {
+        "callId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2
+        },
+        "dob": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+        },
+        "phone": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "callId",
+        "name"
+      ]
+    },
+    "FindPatientOutput": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "verified"
+            },
+            "verificationId": {
+              "type": "string",
+              "minLength": 8
+            },
+            "patient": {
+              "$ref": "#/$defs/PatientSummary"
+            }
+          },
+          "required": [
+            "status",
+            "verificationId",
+            "patient"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "not_verified"
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "FindSlotsInput": {
+      "type": "object",
+      "properties": {
+        "serviceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "resourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "dateFrom": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+        },
+        "dateTo": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+        },
+        "partOfDay": {
+          "type": "string",
+          "enum": [
+            "morning",
+            "afternoon",
+            "evening"
+          ]
+        },
+        "limit": {
+          "default": 5,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        }
+      },
+      "required": [
+        "serviceId",
+        "dateFrom",
+        "dateTo"
+      ]
+    },
+    "FindSlotsOutput": {
+      "type": "object",
+      "properties": {
+        "slots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Slot"
+          }
+        }
+      },
+      "required": [
+        "slots"
+      ],
+      "additionalProperties": false
+    },
+    "HandoffToHumanInput": {
+      "type": "object",
+      "properties": {
+        "callId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "emergency",
+            "medical_question",
+            "low_confidence",
+            "frustrated",
+            "repeated_misunderstanding",
+            "caller_asked",
+            "kill_switch",
+            "tool_failure"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 500
+        }
+      },
+      "required": [
+        "callId",
+        "reason",
+        "summary"
+      ]
+    },
+    "HandoffToHumanOutput": {
+      "type": "object",
+      "properties": {
+        "transferTo": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "transferTo"
+      ],
+      "additionalProperties": false
+    },
+    "ListAppointmentsInput": {
+      "type": "object",
+      "properties": {
+        "verificationId": {
+          "type": "string",
+          "minLength": 8
+        }
+      },
+      "required": [
+        "verificationId"
+      ]
+    },
+    "ListAppointmentsOutput": {
+      "type": "object",
+      "properties": {
+        "appointments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Appointment"
+          }
+        }
+      },
+      "required": [
+        "appointments"
+      ],
+      "additionalProperties": false
+    },
+    "MarkReminderOutcomeInput": {
+      "type": "object",
+      "properties": {
+        "callId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "appointmentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "confirmed",
+            "rescheduled",
+            "cancelled",
+            "wrong_number",
+            "no_answer",
+            "voicemail",
+            "opted_out"
+          ]
+        }
+      },
+      "required": [
+        "callId",
+        "appointmentId",
+        "outcome"
+      ]
+    },
+    "MarkReminderOutcomeOutput": {
+      "type": "object",
+      "properties": {
+        "recorded": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "recorded"
+      ],
+      "additionalProperties": false
+    },
+    "NewPatient": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2
+        },
+        "phone": {
+          "type": "string"
+        },
+        "dob": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+        }
+      },
+      "required": [
+        "name",
+        "phone"
+      ]
+    },
+    "PatientSummary": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "RescheduleInput": {
+      "type": "object",
+      "properties": {
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "verificationId": {
+          "type": "string",
+          "minLength": 8
+        },
+        "appointmentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "newStart": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$"
+        },
+        "newResourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        }
+      },
+      "required": [
+        "idempotencyKey",
+        "verificationId",
+        "appointmentId",
+        "newStart"
+      ]
+    },
+    "RescheduleOutput": {
+      "type": "object",
+      "properties": {
+        "appointment": {
+          "$ref": "#/$defs/Appointment"
+        }
+      },
+      "required": [
+        "appointment"
+      ],
+      "additionalProperties": false
+    },
+    "SendSmsConfirmationInput": {
+      "type": "object",
+      "properties": {
+        "verificationId": {
+          "type": "string",
+          "minLength": 8
+        },
+        "appointmentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "language": {
+          "type": "string",
+          "enum": [
+            "en",
+            "hi",
+            "hinglish"
+          ]
+        }
+      },
+      "required": [
+        "verificationId",
+        "appointmentId",
+        "language"
+      ]
+    },
+    "SendSmsConfirmationOutput": {
+      "type": "object",
+      "properties": {
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "queued"
+      ],
+      "additionalProperties": false
+    },
+    "Slot": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$"
+        },
+        "end": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$"
+        },
+        "resourceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "resourceName": {
+          "type": "string"
+        },
+        "serviceId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "resourceId",
+        "resourceName",
+        "serviceId"
+      ],
+      "additionalProperties": false
+    },
+    "StartCallInput": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "default": "inbound",
+          "type": "string",
+          "enum": [
+            "inbound",
+            "outbound"
+          ]
+        },
+        "source": {
+          "default": "patient",
+          "type": "string",
+          "enum": [
+            "patient",
+            "manual_test",
+            "hawk"
+          ]
+        },
+        "callerPhone": {
+          "type": "string"
+        }
+      }
+    },
+    "StartCallOutput": {
+      "type": "object",
+      "properties": {
+        "callId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "callId"
+      ],
+      "additionalProperties": false
+    },
+    "ToolError": {
+      "$ref": "#/$defs/ToolError"
+    }
+  }
+}
