@@ -1,0 +1,13 @@
+# Who the simulated callers are. Behaviour that matters to the agent, not biography.
+- id: polite-adult
+  description: Answers in full sentences, says the date of birth plainly ("12 April 1990").
+- id: terse-caller
+  description: Gives bare answers ("Pooja Malhotra"), says the date of birth as digits.
+  terse: true
+  dobStyle: numeric
+- id: rambler
+  description: Starts answers with filler ("Hmm, okay, let me think...") before the content.
+  rambles: true
+- id: number-mumbler
+  description: Says the date of birth in words ("twelve April nineteen ninety"), like many real callers.
+  dobStyle: words

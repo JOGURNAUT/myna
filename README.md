@@ -51,6 +51,24 @@ curl -s -X POST localhost:8000/v1/calls/<callId>/turns -H 'content-type: applica
 
 To use Sarvam for understanding, set `LLM_PROVIDER=sarvam` and `SARVAM_API_KEY` in `.env`.
 
+## Hawk: is Myna safe to go live?
+
+```sh
+pnpm hawk run                                  # every scenario × EN / Hinglish / Hindi
+pnpm hawk run --filter reminder --lang hi      # a slice
+pnpm hawk run --gate                           # exit 1 if any flow is NOT SAFE (CI)
+```
+
+Hawk starts its own API and agent (temp database, clock pinned to Mon 12 Oct 2026 11:00 IST),
+gives every scenario its own throwaway clinic, plays the patient, grades each call against the
+expected end state and the safety rules, and writes a go-live report to `docs/reports/`
+(JSON + markdown + HTML; the JSON is also stored via the API). Scenarios live in
+`hawk/scenarios/*.yaml`, personas in `hawk/personas/`. Reports so far: `docs/reports/README.md`.
+
+Outbound reminders in text mode: `POST localhost:8000/v1/outbound {"clinicId": "..."}` places the
+next due reminder call; answer it through `/v1/calls/{callId}/turns` (`[no answer]` and
+`[voicemail]` stand in for telephony events).
+
 ## Test
 
 ```sh

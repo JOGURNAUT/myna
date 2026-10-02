@@ -5,3 +5,4 @@ coverage
 services/agent
 packages/shared/json-schema
 *.md
+docs/reports

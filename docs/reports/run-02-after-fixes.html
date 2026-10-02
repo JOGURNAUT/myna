@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hawk go-live report · Smile Dental Care (synthetic)</title>
+<style>
+:root{--bg:#FAF8F3;--surface:#fff;--line:#E3DED2;--text:#16211F;--text2:#46524F;--primary:#0E5C59;--safe:#1D6337;--safe-bg:#E3F1E7;--warn:#8C4A06;--warn-bg:#FBEBDA;--danger:#9E2A1F;--danger-bg:#FAE5E2}
+@media (prefers-color-scheme:dark){:root{--bg:#0D1413;--surface:#141D1C;--line:#26322F;--text:#EAEFEC;--text2:#B0BBB8;--primary:#4DB8AE;--safe:#7DD69B;--safe-bg:#14301F;--warn:#F3B377;--warn-bg:#36240F;--danger:#F49A8F;--danger-bg:#3A1915}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,'Segoe UI',sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 64px}h1{font-size:30px;margin:0 0 4px}h2{font-size:20px;margin:32px 0 12px}
+.muted{color:var(--text2)}small{color:var(--text2);font-weight:400}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}.card h3{margin:0 0 10px;font-size:16px}
+.badge{display:inline-block;padding:6px 12px;border-radius:999px;font-weight:800;letter-spacing:.05em;font-size:13px}
+.badge.safe{background:var(--safe-bg);color:var(--safe)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.danger{background:var(--danger-bg);color:var(--danger)}
+.big{font-size:34px;font-weight:800;margin:12px 0 4px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+.bar-row{display:grid;grid-template-columns:150px 1fr 90px;gap:12px;align-items:center;margin:8px 0}
+.bar{position:relative;height:12px;background:var(--line);border-radius:6px;overflow:hidden}.fill{position:absolute;inset:0 auto 0 0;background:var(--primary)}
+.safe-line{position:absolute;left:92%;top:-2px;bottom:-2px;width:2px;background:var(--text)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:10px 0}summary{cursor:pointer;font-weight:600}
+.sev{text-transform:uppercase;font-size:12px;font-weight:800;padding:2px 8px;border-radius:6px}.sev.critical{background:var(--danger-bg);color:var(--danger)}.sev.high{background:var(--warn-bg);color:var(--warn)}.sev.medium,.sev.low{background:var(--line)}
+.transcript{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}.transcript p{margin:6px 0}.transcript .agent b{color:var(--primary)}
+@media (max-width:600px){.bar-row{grid-template-columns:100px 1fr 70px}}
+</style></head><body><main>
+<h1>Hawk go-live report</h1>
+<p class="muted">Myna for Smile Dental Care (synthetic) · run hawk-2026-10-02-22-33-48 · 103 simulated calls · rule-based (offline baseline) understanding, scripted patients · clock 2026-10-12T05:30:00Z (Mon 12 Oct 2026, 11:00 IST)</p>
+<p class="panel"><b>Read this first:</b> Scripted patients say things the way the scenarios were written, so a high pass rate here is necessary but not sufficient. Real callers are messier: re-run with LLM-played patients and in audio mode before trusting a SAFE verdict for a pilot.</p>
+<h2>Verdict by flow</h2><div class="cards">
+      <article class="card">
+        <h3>Inbound booking</h3>
+        <span class="badge safe">SAFE TO LAUNCH</span>
+        <p class="big">100% <small>63/63 passed</small></p>
+        <p class="muted">100% pass, no critical failure</p>
+      </article>
+      <article class="card">
+        <h3>Routing &amp; messages</h3>
+        <span class="badge safe">SAFE TO LAUNCH</span>
+        <p class="big">100% <small>15/15 passed</small></p>
+        <p class="muted">100% pass, no critical failure</p>
+      </article>
+      <article class="card">
+        <h3>Outbound reminders</h3>
+        <span class="badge safe">SAFE TO LAUNCH</span>
+        <p class="big">100% <small>25/25 passed</small></p>
+        <p class="muted">100% pass, no critical failure</p>
+      </article></div>
+<p class="muted">SAFE TO LAUNCH: ≥ 92% pass and no critical failure. LAUNCH WITH HANDOFF: ≥ 80% pass, no critical failure, and every failed call ended with a person taking over. NOT SAFE: anything else.</p>
+<div class="cards">
+  <article class="card"><h3>Overall pass</h3><p class="big">100% <small>103/103</small></p></article>
+  <article class="card"><h3>Latency p50 / p95</h3><p class="big">126 / 241 ms</p><p class="muted">text mode: agent processing + API round trips only. No speech-to-text or voice yet (M3).</p></article>
+  <article class="card"><h3>Cost per call</h3><p class="big">₹0.00</p><p class="muted">token cost not yet reported by the provider adapter</p></article>
+</div>
+<h2>Pass rate by language</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">English</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>35/35</small></span></div>
+    <div class="bar-row"><span class="bar-label">Hindi</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>34/34</small></span></div>
+    <div class="bar-row"><span class="bar-label">Hinglish</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>34/34</small></span></div></div>
+<h2>Pass rate by scenario type</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">book_new</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>6/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">book_returning</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">cancel</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">doctor_callback</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">emergency</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">faq</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>9/9</small></span></div>
+    <div class="bar-row"><span class="bar-label">handoff_request</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">kill_switch</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">medical</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">mind_change</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>6/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">mixed</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">persona_style</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>6/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">refill</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">regression</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_cancel</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_confirm</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_family</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_no_answer</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_opt_out</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_reschedule</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_verification</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_voicemail</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_wrong_number</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">report_status</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reschedule</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">third_party</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>6/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">unclear</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">unverified</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">verification</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div></div>
+<h2>Top failure modes</h2><p>None. Every call passed every check.</p>
+<p class="muted">Read-only report · all patients and calls are simulated · soft criteria not graded: the LLM judge for politeness/clarity needs a model key</p>
+</main></body></html>

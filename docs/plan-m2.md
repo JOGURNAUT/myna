@@ -1,6 +1,22 @@
 # Plan — Milestone 2: routing + messages, outbound reminders, Hawk text mode, first go-live report
 
-Status: **draft, waiting for OK**
+Status: **done (2026-10-03).**
+- Flows (b) and (c) work end to end in text mode, with e2e tests on the final state (16 new agent
+  e2e tests; API tests for tasks, reminders, opt-out, Hawk tenants, reports).
+- `pnpm hawk run` runs 35 scenarios × 3 languages = 103 calls and writes the go-live report.
+  **First report (run 01): NOT SAFE on all three flows** — six findings, all fixed
+  (`docs/findings.md`). **Run 02: SAFE TO LAUNCH on all three, 100% in EN / Hinglish / HI**, with
+  the caveat printed on the report: scripted patients, rule-based understanding, text only.
+- All six M1 findings are regression scenarios or tests.
+- Totals: 133 TS tests, 184 Python tests, Hawk gate in `Dockerfile.ci`.
+
+Not done / deviations: no Sarvam key, so no LLM-played patients and no LLM judge (reported as
+"not graded"); cost per call is ₹0 because the rule-based baseline has no token cost. Decisions in
+`docs/decisions.md`.
+
+---
+
+Original plan:
 
 ## Done when
 - Flow (b) and flow (c) work in text mode end to end, with e2e tests asserting the final state

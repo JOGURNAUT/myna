@@ -19,6 +19,7 @@ read-back and an explicit yes.
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -38,6 +39,52 @@ log = logging.getLogger("myna.conversation")
 
 MAX_FAILED_UNDERSTANDING = 2
 MAX_OFFERS = 3
+
+# Evidence that a caller is speaking English rather than giving a bare name, date or number.
+_ENGLISH_FUNCTION_WORDS = frozenset(
+    [
+        "i",
+        "i'm",
+        "i'd",
+        "my",
+        "me",
+        "you",
+        "your",
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "to",
+        "for",
+        "of",
+        "and",
+        "on",
+        "at",
+        "in",
+        "it",
+        "can",
+        "could",
+        "would",
+        "want",
+        "need",
+        "like",
+        "please",
+        "what",
+        "which",
+        "when",
+        "where",
+        "how",
+        "do",
+        "does",
+        "not",
+        "no",
+        "yes",
+        "this",
+        "that",
+    ]
+)
 
 
 class State(StrEnum):
@@ -1222,12 +1269,15 @@ class Conversation:
         return self._now().date()
 
     def _update_language(self, text: str, candidate: str) -> None:
-        """Follow the caller's language, but a short answer ("Pooja Malhotra", "yes") in
-        Latin script is not a switch to English."""
+        """Follow the caller's language. A switch to English needs English words: a name, a
+        date ("15 March 1992") or a number is Latin script but no language at all.
+        (Findings: M1 #1 for names; Hawk run 2 for dates of birth.)"""
         if candidate not in self._allowed_languages() or candidate == self.lang:
             return
-        if candidate == "en" and len(text.split()) < 3:
-            return
+        if candidate == "en":
+            words = set(re.findall(r"[a-z']+", text.lower()))
+            if len(words) < 3 or not words & _ENGLISH_FUNCTION_WORDS:
+                return
         self.lang = candidate  # type: ignore[assignment]
 
     def _allowed_languages(self) -> set[str]:

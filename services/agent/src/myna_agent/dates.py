@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass
 from datetime import date, timedelta
 
+from .numbers import words_to_digits
 from .text import normalize
 
 WEEKDAYS: dict[str, int] = {}
@@ -397,8 +398,9 @@ _DOB_WORDS_US = re.compile(rf"{_B}({_MONTH_ALT})\s+{_NUM},?\s+(\d{{4}}){_E}")
 
 
 def parse_dob(text: str) -> date | None:
-    """A full date of birth with a four-digit year; None if any part is missing."""
-    t = normalize(text)
+    """A full date of birth with a four-digit year; None if any part is missing.
+    Accepts number words ("twelve April nineteen ninety", "baarah April unnees sau nabbe")."""
+    t = normalize(words_to_digits(text))
     try:
         if m := _DOB_PATTERNS[0].search(t):
             return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))

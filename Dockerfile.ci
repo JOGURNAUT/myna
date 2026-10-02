@@ -12,6 +12,7 @@ WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json packages/shared/
 COPY services/api/package.json services/api/
+COPY hawk/package.json hawk/
 RUN pnpm install --frozen-lockfile
 
 COPY services/agent/pyproject.toml services/agent/uv.lock services/agent/.python-version services/agent/
@@ -20,4 +21,4 @@ RUN cd services/agent && uv sync --frozen --no-install-project
 COPY . .
 RUN cd services/agent && uv sync --frozen
 
-CMD ["sh", "-c", "set -e; pnpm lint; pnpm format:check; pnpm typecheck; pnpm test; cd services/agent; uv run ruff check src tests scripts; uv run ruff format --check src tests scripts; uv run pytest -q"]
+CMD ["sh", "-c", "set -e; pnpm lint; pnpm format:check; pnpm typecheck; pnpm test; cd services/agent; uv run ruff check src tests scripts; uv run ruff format --check src tests scripts; uv run pytest -q; cd /repo; pnpm hawk run --gate --out /tmp/hawk-reports"]

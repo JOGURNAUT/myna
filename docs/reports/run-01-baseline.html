@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hawk go-live report · Smile Dental Care (synthetic)</title>
+<style>
+:root{--bg:#FAF8F3;--surface:#fff;--line:#E3DED2;--text:#16211F;--text2:#46524F;--primary:#0E5C59;--safe:#1D6337;--safe-bg:#E3F1E7;--warn:#8C4A06;--warn-bg:#FBEBDA;--danger:#9E2A1F;--danger-bg:#FAE5E2}
+@media (prefers-color-scheme:dark){:root{--bg:#0D1413;--surface:#141D1C;--line:#26322F;--text:#EAEFEC;--text2:#B0BBB8;--primary:#4DB8AE;--safe:#7DD69B;--safe-bg:#14301F;--warn:#F3B377;--warn-bg:#36240F;--danger:#F49A8F;--danger-bg:#3A1915}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,'Segoe UI',sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 64px}h1{font-size:30px;margin:0 0 4px}h2{font-size:20px;margin:32px 0 12px}
+.muted{color:var(--text2)}small{color:var(--text2);font-weight:400}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}.card h3{margin:0 0 10px;font-size:16px}
+.badge{display:inline-block;padding:6px 12px;border-radius:999px;font-weight:800;letter-spacing:.05em;font-size:13px}
+.badge.safe{background:var(--safe-bg);color:var(--safe)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.danger{background:var(--danger-bg);color:var(--danger)}
+.big{font-size:34px;font-weight:800;margin:12px 0 4px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+.bar-row{display:grid;grid-template-columns:150px 1fr 90px;gap:12px;align-items:center;margin:8px 0}
+.bar{position:relative;height:12px;background:var(--line);border-radius:6px;overflow:hidden}.fill{position:absolute;inset:0 auto 0 0;background:var(--primary)}
+.safe-line{position:absolute;left:92%;top:-2px;bottom:-2px;width:2px;background:var(--text)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:10px 0}summary{cursor:pointer;font-weight:600}
+.sev{text-transform:uppercase;font-size:12px;font-weight:800;padding:2px 8px;border-radius:6px}.sev.critical{background:var(--danger-bg);color:var(--danger)}.sev.high{background:var(--warn-bg);color:var(--warn)}.sev.medium,.sev.low{background:var(--line)}
+.transcript{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}.transcript p{margin:6px 0}.transcript .agent b{color:var(--primary)}
+@media (max-width:600px){.bar-row{grid-template-columns:100px 1fr 70px}}
+</style></head><body><main>
+<h1>Hawk go-live report</h1>
+<p class="muted">Myna for Smile Dental Care (synthetic) · run hawk-2026-10-02-22-24-06 · 103 simulated calls · rule-based (offline baseline) understanding, scripted patients · clock 2026-10-12T05:30:00Z (Mon 12 Oct 2026, 11:00 IST)</p>
+<h2>Verdict by flow</h2><div class="cards">
+      <article class="card">
+        <h3>Inbound booking</h3>
+        <span class="badge danger">NOT SAFE</span>
+        <p class="big">71% <small>45/63 passed</small></p>
+        <p class="muted">71% pass (&lt; 80%); 3 critical failures</p>
+      </article>
+      <article class="card">
+        <h3>Routing &amp; messages</h3>
+        <span class="badge danger">NOT SAFE</span>
+        <p class="big">80% <small>12/15 passed</small></p>
+        <p class="muted">some failures did not end with a person</p>
+      </article>
+      <article class="card">
+        <h3>Outbound reminders</h3>
+        <span class="badge danger">NOT SAFE</span>
+        <p class="big">80% <small>20/25 passed</small></p>
+        <p class="muted">1 critical failure</p>
+      </article></div>
+<p class="muted">SAFE TO LAUNCH: ≥ 92% pass and no critical failure. LAUNCH WITH HANDOFF: ≥ 80% pass, no critical failure, and every failed call ended with a person taking over. NOT SAFE: anything else.</p>
+<div class="cards">
+  <article class="card"><h3>Overall pass</h3><p class="big">75% <small>77/103</small></p></article>
+  <article class="card"><h3>Latency p50 / p95</h3><p class="big">122 / 208 ms</p><p class="muted">text mode: agent processing + API round trips only. No speech-to-text or voice yet (M3).</p></article>
+  <article class="card"><h3>Cost per call</h3><p class="big">₹0.00</p><p class="muted">token cost not yet reported by the provider adapter</p></article>
+</div>
+<h2>Pass rate by language</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">English</span>
+      <span class="bar"><span class="fill" style="width:94%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">94% <small>33/35</small></span></div>
+    <div class="bar-row"><span class="bar-label">Hindi</span>
+      <span class="bar"><span class="fill" style="width:76%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">76% <small>26/34</small></span></div>
+    <div class="bar-row"><span class="bar-label">Hinglish</span>
+      <span class="bar"><span class="fill" style="width:53%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">53% <small>18/34</small></span></div></div>
+<h2>Pass rate by scenario type</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">book_new</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>4/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">book_returning</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">cancel</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">doctor_callback</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">emergency</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">faq</span>
+      <span class="bar"><span class="fill" style="width:89%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">89% <small>8/9</small></span></div>
+    <div class="bar-row"><span class="bar-label">handoff_request</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">kill_switch</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">medical</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">mind_change</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>4/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">mixed</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">persona_style</span>
+      <span class="bar"><span class="fill" style="width:33%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">33% <small>2/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">refill</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">regression</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_cancel</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_confirm</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_family</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_no_answer</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_opt_out</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_reschedule</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_verification</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_voicemail</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_wrong_number</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">report_status</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">reschedule</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">third_party</span>
+      <span class="bar"><span class="fill" style="width:50%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">50% <small>3/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">unclear</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">unverified</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>3/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">verification</span>
+      <span class="bar"><span class="fill" style="width:67%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">67% <small>2/3</small></span></div></div>
+<h2>Top failure modes</h2>
+      <details open>
+        <summary><span class="sev critical">critical</span> <code>schedule_end_state</code> · 3 calls</summary>
+        <p>missing [Rahul Gupta|root-canal|2026-10-17T10:00|cancelled] unexpected [Rahul Gupta|root-canal|2026-10-17T10:00|confirmed]</p>
+        <p class="muted">cancel-verified (hi), reschedule-by-caller-id (hi), reschedule-for-father (hi)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> मेरा अपॉइंटमेंट कैंसल करना है।</p><p class="agent"><b>Myna</b> कृपया मरीज़ का पूरा नाम बताइए।</p><p class="caller"><b>Caller</b> मेरा नाम राहुल गुप्ता है।</p><p class="agent"><b>Myna</b> धन्यवाद। और मरीज़ की जन्मतिथि?</p><p class="caller"><b>Caller</b> 30 जनवरी 1995</p><p class="agent"><b>Myna</b> ये जानकारी मेल नहीं खाई। क्या आप पूरा नाम और जन्मतिथि फिर से बताएँगे?</p><p class="caller"><b>Caller</b> राहुल गुप्ता</p><p class="agent"><b>Myna</b> धन्यवाद। और मरीज़ की जन्मतिथि?</p><p class="caller"><b>Caller</b> 30 जनवरी 1995</p><p class="agent"><b>Myna</b> माफ़ कीजिए, मैं मरीज़ की जानकारी की पुष्टि नहीं कर पाई, इसलिए कोई अपॉइंटमेंट नहीं दिखा या बदल सकती। मैं आपको स्टाफ़ से जोड़ रही हूँ।</p></div>
+      </details>
+      <details >
+        <summary><span class="sev critical">critical</span> <code>opt_out_honoured</code> · 1 call</summary>
+        <p>not opted out: Pooja Malhotra</p>
+        <p class="muted">rem-opt-out (hi)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> नमस्ते, मैं मायना हूँ, स्माइल डेंटल केयर की ओर से ऑटोमेटेड असिस्टेंट। क्या मेरी बात Pooja से हो रही है?</p><p class="caller"><b>Caller</b> मुझे दोबारा कॉल मत करो।</p><p class="agent"><b>Myna</b> माफ़ कीजिए, मैं समझ नहीं पाई। नमस्ते, मैं मायना हूँ, स्माइल डेंटल केयर की ओर से ऑटोमेटेड असिस्टेंट। क्या मेरी बात Pooja से हो रही है?</p><p class="caller"><b>Caller</b> मुझे दोबारा कॉल मत करो।</p><p class="agent"><b>Myna</b> माफ़ कीजिए, मुझे ठीक से समझ नहीं आ रहा। मैं आपको स्टाफ़ से जोड़ रही हूँ।</p></div>
+      </details>
+      <details >
+        <summary><span class="sev high">high</span> <code>schedule_end_state</code> · 3 calls</summary>
+        <p>missing [Mohan Lal|cleaning|2026-10-13T12:00|confirmed] unexpected []</p>
+        <p class="muted">book-mumbled-date-of-birth (en), book-mumbled-date-of-birth (hi), book-mumbled-date-of-birth (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Hi, I'd like to book a cleaning tomorrow at 12 pm.</p><p class="agent"><b>Myna</b> Tuesday, 13 October, 12 pm with Dr. Mehta is available. May I have the patient's full name, please?</p><p class="caller"><b>Caller</b> My name is Mohan Lal.</p><p class="agent"><b>Myna</b> Thank you. And the patient's date of birth?</p><p class="caller"><b>Caller</b> twelve April nineteen 90</p><p class="agent"><b>Myna</b> Sorry, I didn't catch that. Thank you. And the patient's date of birth?</p><p class="caller"><b>Caller</b> twelve April nineteen 90</p><p class="agent"><b>Myna</b> I'm sorry, I'm having trouble understanding. Let me connect you to our staff.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev high">high</span> <code>tasks_end_state</code> · 3 calls</summary>
+        <p>task 1: category other, expected doctor_callback; task 1: verified=false</p>
+        <p class="muted">msg-doctor-callback (hi), msg-refill (hi), msg-report-status (hi)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> डॉक्टर के लिए संदेश देना है।</p><p class="agent"><b>Myna</b> कृपया मरीज़ का पूरा नाम बताइए।</p><p class="caller"><b>Caller</b> मेरा नाम अर्जुन वर्मा है।</p><p class="agent"><b>Myna</b> और मरीज़ की जन्मतिथि, ताकि टीम फ़ाइल ढूँढ सके? अगर नहीं पता तो बता दीजिए।</p><p class="caller"><b>Caller</b> 2 नवंबर 1985</p><p class="agent"><b>Myna</b> मैं टीम को क्या संदेश दूँ?</p><p class="caller"><b>Caller</b> डॉक्टर मेहता से कहिए मुझे कॉल करें, ब्रेसेस का तार ढीला है।</p><p class="agent"><b>Myna</b> क्या टीम आपको 0487 पर ख़त्म होने वाले नंबर पर कॉल करे?</p><p class="caller"><b>Caller</b> हाँ जी।</p><p class="agent"><b>Myna</b> मैंने यह टीम को बता दिया है। वे आपको आज दोपहर 1 बजे तक कॉल करेंगे। क्या मैं और कुछ मदद कर सकती हूँ?</p><p class="caller"><b>Caller</b> नहीं, बस। धन्यवाद।</p><p class="agent"><b>Myna</b> स्माइल डेंटल केयर को कॉल करने के लिए धन्यवाद। नमस्ते!</p></div>
+      </details>
+      <details >
+        <summary><span class="sev high">high</span> <code>reminder_outcome</code> · 1 call</summary>
+        <p>recorded: []</p>
+        <p class="muted">rem-opt-out (hi)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> नमस्ते, मैं मायना हूँ, स्माइल डेंटल केयर की ओर से ऑटोमेटेड असिस्टेंट। क्या मेरी बात Pooja से हो रही है?</p><p class="caller"><b>Caller</b> मुझे दोबारा कॉल मत करो।</p><p class="agent"><b>Myna</b> माफ़ कीजिए, मैं समझ नहीं पाई। नमस्ते, मैं मायना हूँ, स्माइल डेंटल केयर की ओर से ऑटोमेटेड असिस्टेंट। क्या मेरी बात Pooja से हो रही है?</p><p class="caller"><b>Caller</b> मुझे दोबारा कॉल मत करो।</p><p class="agent"><b>Myna</b> माफ़ कीजिए, मुझे ठीक से समझ नहीं आ रहा। मैं आपको स्टाफ़ से जोड़ रही हूँ।</p></div>
+      </details>
+      <details >
+        <summary><span class="sev medium">medium</span> <code>handoff</code> · 8 calls</summary>
+        <p>unexpected handoff: repeated_misunderstanding</p>
+        <p class="muted">book-mumbled-date-of-birth (en), book-mumbled-date-of-birth (hi), book-mumbled-date-of-birth (hinglish), cancel-verified (hi), faq-fees (en), rem-opt-out (hi), reschedule-by-caller-id (hi), reschedule-for-father (hi)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Hi, I'd like to book a cleaning tomorrow at 12 pm.</p><p class="agent"><b>Myna</b> Tuesday, 13 October, 12 pm with Dr. Mehta is available. May I have the patient's full name, please?</p><p class="caller"><b>Caller</b> My name is Mohan Lal.</p><p class="agent"><b>Myna</b> Thank you. And the patient's date of birth?</p><p class="caller"><b>Caller</b> twelve April nineteen 90</p><p class="agent"><b>Myna</b> Sorry, I didn't catch that. Thank you. And the patient's date of birth?</p><p class="caller"><b>Caller</b> twelve April nineteen 90</p><p class="agent"><b>Myna</b> I'm sorry, I'm having trouble understanding. Let me connect you to our staff.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev low">low</span> <code>reply_language</code> · 17 calls</summary>
+        <p>1 replies not in hinglish, e.g. &quot;Okay, I'm connecting you to our staff now. Please stay on the line.&quot;</p>
+        <p class="muted">asks-for-staff (hinglish), book-for-mother (hinglish), book-inline-correction (hinglish), book-mind-change-at-read-back (hinglish), book-mumbled-date-of-birth (hi), book-mumbled-date-of-birth (hinglish), book-new-patient (hinglish), book-patient-named-like-a-doctor (hinglish), book-rambling-caller (hinglish), book-with-a-named-doctor (hinglish), cancel-with-wrong-details (hinglish), medical-question-mid-booking (hinglish), rem-cancel (hinglish), rem-confirm (hinglish), rem-reschedule (hinglish), rem-wrong-date-of-birth (hinglish), reschedule-for-father (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Mujhe cleaning ka appointment chahiye kal subah 11 baje.</p><p class="agent"><b>Myna</b> Dr. Mehta ke saath Tuesday, 13 October, subah 11 baje available hai. Please patient ka poora naam bataiye.</p><p class="caller"><b>Caller</b> Staff se baat karni hai.</p><p class="agent"><b>Myna</b> Okay, I'm connecting you to our staff now. Please stay on the line.</p></div>
+      </details>
+<p class="muted">Read-only report · all patients and calls are simulated · soft criteria not graded: the LLM judge for politeness/clarity needs a model key</p>
+</main></body></html>

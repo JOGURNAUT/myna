@@ -1,0 +1,124 @@
+# Flow (c): outbound reminder calls for tomorrow's appointments. Clock: Monday 12 Oct 2026,
+# 11:00 IST (inside the 10:00–18:00 window). The clinic calls in the scenario's language.
+# Nothing about the visit may be said before name + full date of birth are confirmed.
+
+- id: rem-confirm
+  title: Patient confirms she will come
+  flow: reminders
+  type: reminder_confirm
+  direction: outbound
+  caller: { name: Pooja Malhotra, nameHi: पूजा मल्होत्रा, dob: '1990-04-12' }
+  seed: &pooja-tomorrow
+    config: { outboundReminders: { enabled: true } }
+    patients: [{ key: pooja, name: Pooja Malhotra, phone: '9811100733', dob: '1990-04-12' }]
+    appointments:
+      - {
+          key: a1,
+          patient: pooja,
+          serviceId: cleaning,
+          resourceId: dr-mehta,
+          start: 2026-10-13T10:00,
+        }
+  goal: { intent: confirm_attendance }
+  expect:
+    reminderOutcome: confirmed
+    appointments:
+      - { patient: Pooja Malhotra, service: cleaning, start: 2026-10-13T10:00 }
+
+- id: rem-family-answers
+  title: Her mother answers; no details are shared
+  flow: reminders
+  type: reminder_family
+  direction: outbound
+  caller: { name: Pooja Malhotra, nameHi: पूजा मल्होत्रा, dob: '1990-04-12' }
+  seed: *pooja-tomorrow
+  goal: { intent: family_answers }
+  expect:
+    reminderOutcome: reached_family
+    neverSay: [Mehta, 13 October, 13 अक्टूबर, cleaning, सफ़ाई]
+
+- id: rem-wrong-number
+  title: Wrong number
+  flow: reminders
+  type: reminder_wrong_number
+  direction: outbound
+  caller: { name: Pooja Malhotra }
+  seed: *pooja-tomorrow
+  goal: { intent: wrong_number }
+  expect:
+    reminderOutcome: wrong_number
+    neverSay: [Mehta, 13 October, 13 अक्टूबर]
+
+- id: rem-opt-out
+  title: Asks never to be called again
+  flow: reminders
+  type: reminder_opt_out
+  direction: outbound
+  caller: { name: Pooja Malhotra }
+  seed: *pooja-tomorrow
+  goal: { intent: opt_out }
+  expect:
+    reminderOutcome: opted_out
+    doNotCall: [Pooja Malhotra]
+
+- id: rem-reschedule
+  title: Can't make it; moves to Thursday 11 am during the reminder
+  flow: reminders
+  type: reminder_reschedule
+  direction: outbound
+  caller: { name: Pooja Malhotra, nameHi: पूजा मल्होत्रा, dob: '1990-04-12' }
+  seed: *pooja-tomorrow
+  goal: { intent: move_from_reminder, when: { day: thursday, time: '11:00' } }
+  expect:
+    reminderOutcome: rescheduled
+    appointments:
+      - { patient: Pooja Malhotra, service: cleaning, start: 2026-10-15T11:00 }
+
+- id: rem-cancel
+  title: Cancels during the reminder; the slot is released
+  flow: reminders
+  type: reminder_cancel
+  direction: outbound
+  caller: { name: Pooja Malhotra, nameHi: पूजा मल्होत्रा, dob: '1990-04-12' }
+  seed: *pooja-tomorrow
+  goal: { intent: cancel_from_reminder }
+  expect:
+    reminderOutcome: cancelled
+    appointments:
+      - { patient: Pooja Malhotra, service: cleaning, start: 2026-10-13T10:00, status: cancelled }
+
+- id: rem-wrong-date-of-birth
+  title: The person can't confirm the date of birth
+  flow: reminders
+  type: reminder_verification
+  direction: outbound
+  caller: { name: Pooja Malhotra, nameHi: पूजा मल्होत्रा, dob: '1990-04-12' }
+  seed: *pooja-tomorrow
+  goal: { intent: confirm_attendance }
+  events: [{ do: wrong_dob, dob: '1991-01-01' }]
+  expect:
+    reminderOutcome: not_verified
+    neverSay: [Mehta, 13 October, 13 अक्टूबर, cleaning, सफ़ाई]
+
+- id: rem-no-answer
+  title: Nobody picks up
+  flow: reminders
+  type: reminder_no_answer
+  direction: outbound
+  languages: [en]
+  caller: { name: Pooja Malhotra }
+  seed: *pooja-tomorrow
+  goal: { intent: no_answer }
+  expect: { reminderOutcome: no_answer }
+
+- id: rem-voicemail
+  title: Voicemail; the message says nothing about the visit
+  flow: reminders
+  type: reminder_voicemail
+  direction: outbound
+  caller: { name: Pooja Malhotra }
+  seed: *pooja-tomorrow
+  goal: { intent: voicemail }
+  expect:
+    reminderOutcome: voicemail
+    neverSay: [Mehta, 13 October, 13 अक्टूबर, cleaning, सफ़ाई]

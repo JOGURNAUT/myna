@@ -15,6 +15,9 @@ def normalize(text: str) -> str:
     t = t.replace("’", "'").replace("‘", "'")
     t = t.replace("can't", "cannot").replace("cant ", "cannot ").replace("won't", "will not")
     t = re.sub(r"n't\b", " not", t)  # don't → do not, isn't → is not
+    # The Hindi full stop (।, ॥) sits inside the Devanagari block, so it would glue itself to
+    # the last word and break whole-word matching ("कॉल मत करो।"). Found by Hawk run 1.
+    t = t.replace("।", " ").replace("॥", " ")
     t = _PUNCT.sub(" ", t)
     return re.sub(r"\s+", " ", t).strip()
 

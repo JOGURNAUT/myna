@@ -240,7 +240,19 @@ _FAQ: dict[str, tuple[str, ...]] = {
         "कब खुलता",
     ),
     "address": ("address", "where is", "location", "kahan hai", "kaha hai", "पता", "कहाँ"),
-    "fees": ("fee", "fees", "charges", "cost", "price", "kitna lagega", "kitne paise", "फीस"),
+    "fees": (
+        "fee",
+        "fees",
+        "charges",
+        "cost",
+        "price",
+        "how much",
+        "kitna lagega",
+        "kitne paise",
+        "kitni hai",
+        "फीस",
+        "कितना लगेगा",
+    ),
     "insurance": ("insurance", "cashless", "mediclaim", "बीमा", "इंश्योरेंस"),
 }
 # Flow (b): what a message for staff is about. Order matters: first match wins.
@@ -297,6 +309,10 @@ _CATEGORIES: dict[TaskCategory, tuple[str, ...]] = {
         "to call me",
         "mujhe call kare",
         "डॉक्टर से बात",
+        "मुझे कॉल करें",
+        "मुझे कॉल करे",
+        "कॉल करें",
+        "से कहिए",
     ),
     # A message with no topic yet: Myna asks what to pass on.
     "other": (
@@ -531,8 +547,8 @@ _FILLER = {
 def detect_language(text: str) -> Lang:
     if has_devanagari(text):
         return "hi"
-    t = normalize(text)
-    words = set(t.split())
+    # Word tokens, not whitespace splits: "hai." must count as "hai" (Hawk run 1).
+    words = set(re.findall(r"[a-z]+", normalize(text)))
     return "hinglish" if any(m in words for m in _HINGLISH_MARKERS) else "en"
 
 

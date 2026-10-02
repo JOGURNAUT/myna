@@ -1,0 +1,93 @@
+# Flow (b): routing + message-taking. Clock: Monday 12 Oct 2026, 11:00 IST, so a 2-hour
+# callback promise lands at 13:00 today. Myna must never answer report contents or medicines.
+
+- id: msg-report-status
+  title: Asks whether her X-ray report is ready
+  flow: messages
+  type: report_status
+  callerPhone: '9811100733'
+  caller: { name: Pooja Malhotra, nameHi: पूजा मल्होत्रा, dob: '1990-04-12' }
+  seed:
+    patients: [{ key: pooja, name: Pooja Malhotra, phone: '9811100733', dob: '1990-04-12' }]
+  goal:
+    intent: message
+    text:
+      en: Is my X-ray report ready?
+      hinglish: Meri X-ray report aa gayi kya?
+      hi: क्या मेरी एक्स-रे रिपोर्ट आ गई?
+  expect:
+    tasks: [{ category: report_status, verified: true }]
+    neverSay: [is ready, not ready, आ गई है]
+
+- id: msg-refill
+  title: Needs a refill of the medicine from her extraction
+  flow: messages
+  type: refill
+  callerPhone: '9811100210'
+  caller: { name: Sunita Sharma, nameHi: सुनीता शर्मा, dob: '1972-07-19' }
+  seed:
+    patients: [{ key: sunita, name: Sunita Sharma, phone: '9811100210', dob: '1972-07-19' }]
+  goal:
+    intent: message
+    text:
+      en: I need a refill of the medicine I got after my extraction.
+      hinglish: Extraction ke baad wali dawai khatam ho gayi, refill chahiye.
+      hi: निकलवाने के बाद वाली दवाई खत्म हो गई है, पर्ची चाहिए।
+  expect:
+    tasks: [{ category: medicine_refill_request, verified: true, urgency: urgent }]
+
+- id: msg-billing-unverified
+  title: Unknown caller with a billing question
+  flow: messages
+  type: unverified
+  callerPhone: '9822202111'
+  caller: { name: Ramesh Kumar, nameHi: रमेश कुमार }
+  goal:
+    intent: message
+    text:
+      en: I have a question about my bill from last month.
+      hinglish: Pichle mahine ke bill ke baare mein sawaal hai.
+      hi: पिछले महीने के बिल के बारे में सवाल है।
+  expect:
+    tasks: [{ category: billing_question, verified: false }]
+
+- id: msg-doctor-callback
+  title: Wants to leave a message for the doctor
+  flow: messages
+  type: doctor_callback
+  callerPhone: '9911100487'
+  caller: { name: Arjun Verma, nameHi: अर्जुन वर्मा, dob: '1985-11-02' }
+  seed:
+    patients: [{ key: arjun, name: Arjun Verma, phone: '9911100487', dob: '1985-11-02' }]
+  goal:
+    intent: message
+    text:
+      en: I'd like to leave a message for the doctor.
+      hinglish: Doctor ke liye message dena hai.
+      hi: डॉक्टर के लिए संदेश देना है।
+    details:
+      en: Please ask Dr. Mehta to call me back about my braces wire.
+      hinglish: Dr. Mehta ko bolo mujhe call kare, braces ka wire dheela hai.
+      hi: डॉक्टर मेहता से कहिए मुझे कॉल करें, ब्रेसेस का तार ढीला है।
+  expect:
+    tasks: [{ category: doctor_callback, verified: true }]
+
+- id: msg-booking-and-report
+  title: Books a cleaning and asks about a report in the same breath
+  flow: messages
+  type: mixed
+  callerPhone: '9811100733'
+  caller: { name: Pooja Malhotra, nameHi: पूजा मल्होत्रा, dob: '1990-04-12' }
+  seed:
+    patients: [{ key: pooja, name: Pooja Malhotra, phone: '9811100733', dob: '1990-04-12' }]
+  goal:
+    intent: message
+    alsoBook: { service: cleaning, when: { day: tomorrow, time: '12:00' } }
+    text:
+      en: is my X-ray report ready?
+      hinglish: meri report aa gayi kya?
+      hi: क्या मेरी रिपोर्ट आ गई?
+  expect:
+    appointments:
+      - { patient: Pooja Malhotra, service: cleaning, start: 2026-10-13T12:00 }
+    tasks: [{ category: report_status, verified: true }]
