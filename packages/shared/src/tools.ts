@@ -63,7 +63,11 @@ export const BookInput = z
   .refine((v) => (v.verificationId === undefined) !== (v.newPatient === undefined), {
     message: 'exactly one of verificationId or newPatient',
   });
-export const BookOutput = z.object({ appointment: Appointment });
+export const BookOutput = z.object({
+  appointment: Appointment,
+  /** Set when the booking registered a new patient, so the rest of the call can act for them. */
+  verificationId: VerificationId.optional(),
+});
 
 // ---------- reschedule
 export const RescheduleInput = z.object({

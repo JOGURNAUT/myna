@@ -13,6 +13,12 @@ Newest first. Each entry: what, why, and what would make us revisit it.
   with no upper bound, but its native dependencies lag new Python releases; 3.12 is the safe
   middle. Revisit at M3 when Pipecat is actually installed.
 - **Zod 4.** Built-in `z.toJSONSchema` exports the contracts for Python, so no extra converter.
+- **SQLite via `@libsql/client`, not `better-sqlite3`.** better-sqlite3 13 had no prebuilt
+  binary that installed here, and the source build needs the Windows SDK (not installed).
+  Node 24's built-in `node:sqlite` would be ideal, but Drizzle only supports it in the 1.0
+  betas. libsql ships prebuilt binaries, works with Drizzle 0.45 (`drizzle-orm/libsql`), and
+  supports in-memory databases for tests. Its API is async, which matches Postgres later.
+  Revisit when Drizzle 1.0 is stable (`node:sqlite` driver).
 
 ## 2026-10-02 — Schedule times are business-local wall-clock strings
 All schedule times on the wire and in the DB are `YYYY-MM-DDTHH:mm` in the clinic's time zone,
