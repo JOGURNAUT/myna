@@ -1,0 +1,48 @@
+[project]
+name = "myna-agent"
+version = "0.1.0"
+description = "Myna: conversation state machine and text endpoint (voice in M3)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "pydantic>=2.9",
+  "httpx>=0.27",
+  "fastapi>=0.115",
+  "uvicorn>=0.32",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "ruff>=0.7",
+  "datamodel-code-generator>=0.26",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/myna_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["api: needs Node to start the real API (skipped if unavailable)"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["src/myna_agent/contracts.py"]
+force-exclude = true
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # Devanagari and typographic quotes are intentional
+
+[tool.ruff.lint.per-file-ignores]
+# Reply templates and keyword regexes read best unbroken.
+"src/myna_agent/i18n.py" = ["E501"]
+"src/myna_agent/nlu.py" = ["E501"]
+"src/myna_agent/dates.py" = ["E501"]

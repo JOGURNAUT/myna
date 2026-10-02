@@ -97,6 +97,8 @@ export const HandoffReason = z.enum([
   'caller_asked',
   'kill_switch',
   'tool_failure',
+  'verification_failed',
+  'unanswered_question',
 ]);
 export type HandoffReason = z.infer<typeof HandoffReason>;
 export const HandoffInput = z.object({

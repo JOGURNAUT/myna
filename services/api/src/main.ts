@@ -7,14 +7,26 @@ import { seedDemo } from './seed.js';
 loadDotEnv();
 
 const env = readEnv();
+
+/**
+ * Tests and Hawk pin the clock so runs are reproducible: MYNA_FAKE_NOW=2026-10-12T03:30:00Z.
+ * Never honoured in production.
+ */
+const fakeNow = process.env.MYNA_FAKE_NOW;
+if (fakeNow && process.env.NODE_ENV === 'production') {
+  throw new Error('MYNA_FAKE_NOW is not allowed in production');
+}
+const pinned = fakeNow ? new Date(fakeNow) : null;
+if (pinned && Number.isNaN(pinned.getTime())) throw new Error(`bad MYNA_FAKE_NOW: ${fakeNow}`);
+const clock = () => pinned ?? new Date();
 const { db, close } = await openDb(env.databaseUrl);
 const clinics = await loadClinics(env.clinicsDir);
 await registerClinics(db, clinics.values());
 if (process.env.SEED_DEMO === '1') {
-  for (const cfg of clinics.values()) await seedDemo(db, cfg);
+  for (const cfg of clinics.values()) await seedDemo(db, cfg, clock());
 }
 
-const app = await buildApp({ db, clinics, agentToken: env.AGENT_API_TOKEN, logger: true });
+const app = await buildApp({ db, clinics, agentToken: env.AGENT_API_TOKEN, logger: true, clock });
 
 const shutdown = async () => {
   await app.close();
