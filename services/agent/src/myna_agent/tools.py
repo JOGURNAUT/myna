@@ -72,6 +72,13 @@ class ApiClient:
     async def call_events(self, call_id: str) -> list[dict[str, Any]]:
         return (await self._request("GET", f"/calls/{call_id}/events"))["events"]
 
+    async def due_reminders(self) -> list[c.DueReminder]:
+        return c.DueRemindersOutput.model_validate(await self._request("GET", "/reminders/due")).due
+
+    async def tasks(self, status: str | None = None) -> list[c.StaffTask]:
+        query = f"?status={status}" if status else ""
+        return c.ListTasksOutput.model_validate(await self._request("GET", f"/tasks{query}")).tasks
+
     # ------------------------------------------------------------ tools
 
     async def tool(

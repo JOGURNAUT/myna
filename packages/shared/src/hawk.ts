@@ -29,6 +29,8 @@ export const HawkConfigOverrides = z
   .object({
     killSwitch: z.boolean(),
     recordCalls: z.boolean(),
+    /** Run the same scenario as a clinic that greets (and calls out) in another language. */
+    greetingLanguage: z.enum(['en', 'hi', 'hinglish']),
     callbackPromiseHours: z.number().int(),
     outboundReminders: z.record(z.string(), z.unknown()),
   })

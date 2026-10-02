@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Appointment, NewPatient, PatientSummary, Slot } from './domain.js';
+import { Appointment, DueReminder, NewPatient, PatientSummary, Slot, StaffTask } from './domain.js';
 import { ToolError } from './errors.js';
 import { Language, LocalDate, LocalDateTime, Slug } from './primitives.js';
 
@@ -181,6 +181,13 @@ export type ToolName = keyof typeof TOOLS;
 export type ToolInput<T extends ToolName> = z.input<(typeof TOOLS)[T]['input']>;
 export type ToolArgs<T extends ToolName> = z.output<(typeof TOOLS)[T]['input']>;
 export type ToolOutput<T extends ToolName> = z.output<(typeof TOOLS)[T]['output']>;
+
+/** GET /clinics/:id/reminders/due */
+export const DueRemindersOutput = z.object({ due: z.array(DueReminder) });
+/** GET /clinics/:id/tasks */
+export const ListTasksOutput = z.object({ tasks: z.array(StaffTask) });
+/** The body of every failed API response. */
+export const ErrorEnvelope = z.object({ ok: z.literal(false), error: ToolError });
 
 /** HTTP envelope for every tool response. */
 export const toolResponse = <T extends z.ZodType>(data: T) =>

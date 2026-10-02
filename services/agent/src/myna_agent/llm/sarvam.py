@@ -32,10 +32,19 @@ Doctors (use these ids for resource_id): {doctors}
 FAQ topics (use these ids for faq_id): {faqs}
 
 Rules:
-- intent: book | reschedule | cancel | faq | other_request (reports, refills, bills, call-backs) |
-  talk_to_human | emergency (any medical emergency, self-harm, accident, heavy bleeding, chest pain,
-  breathing trouble, unconsciousness) | medical_question (asks for advice, diagnosis or medicines) |
-  yes | no | provide_info (answers Myna's question) | goodbye | unclear.
+- intent: book | reschedule | cancel | faq | other_request (reports, refills, bills, call-backs,
+  a message for the doctor) | talk_to_human | emergency (any medical emergency, self-harm, accident,
+  heavy bleeding, chest pain, breathing trouble, unconsciousness) | medical_question (asks for
+  advice, diagnosis or how to take medicines; a REFILL request is other_request, not this) |
+  yes | no | provide_info (answers Myna's question) | goodbye | wrong_number | opt_out (does not
+  want calls any more) | unclear.
+- task_category (for other_request): report_status | medicine_refill_request | billing_question |
+  doctor_callback | directions_timings | other. secondary_category: set it when the caller books,
+  reschedules or cancels AND also asks something for staff in the same breath.
+- summary: for other_request, or when Myna asked what to pass on: one short line in English for
+  clinic staff, faithful to what the caller said. Never add advice or answers.
+- family_member: on a reminder call, true when the person who answered says they are not the
+  patient (a relative, "not at home").
 - language: "hi" if Devanagari, "hinglish" if Hindi words in Latin script, else "en".
 - Copy the caller's exact words for the day into date_text and for the time into time_text; do not
   convert them. Only set dob when a full date of birth with a year was said.
@@ -56,6 +65,10 @@ _EXPECTING = {
     "choice": "which of the offered times the caller wants",
     "appointment": "which existing appointment the caller means",
     "confirm": "yes or no to confirm the read-back",
+    "message": "what to pass on to clinic staff (take the whole utterance as the message)",
+    "callback_confirm": "whether the team may call back on the number Myna read out",
+    "identity_who": "whether Myna is speaking to the patient (a reminder call)",
+    "attendance": "whether the patient will come to the appointment, or wants to move/cancel it",
 }
 
 _JSON_OBJECT = re.compile(r"\{.*\}", re.S)

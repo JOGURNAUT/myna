@@ -1,7 +1,10 @@
 """The call as an explicit state machine (CLAUDE.md, Part 1).
 
-Inbound: GREETING → IDENTIFY_INTENT → VERIFY_PATIENT → (BOOK | RESCHEDULE | CANCEL | FAQ | HANDOFF)
-         → CONFIRM → CLOSE   (ANYTHING_ELSE loops back to IDENTIFY_INTENT)
+Inbound:  GREETING → IDENTIFY_INTENT → VERIFY_PATIENT
+          → (BOOK | RESCHEDULE | CANCEL | FAQ | TAKE_MESSAGE | HANDOFF) → CONFIRM → CLOSE
+          (ANYTHING_ELSE loops back to IDENTIFY_INTENT)
+Outbound: DIAL → IDENTITY_CHECK → REMIND
+          → (CONFIRM_ATTENDANCE | RESCHEDULE | CANCEL | NO_ANSWER / VOICEMAIL) → CLOSE
 
 Per caller turn, in this order:
   1. hard safety checks in code (emergency → 112/108 + handoff; "staff" → handoff)
@@ -22,6 +25,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from enum import StrEnum
 from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
 from . import contracts as c
 from . import i18n, safety
@@ -44,13 +48,25 @@ class State(StrEnum):
     RESCHEDULE = "RESCHEDULE"
     CANCEL = "CANCEL"
     FAQ = "FAQ"
+    TAKE_MESSAGE = "TAKE_MESSAGE"
     CONFIRM = "CONFIRM"
     ANYTHING_ELSE = "ANYTHING_ELSE"
     HANDOFF = "HANDOFF"
     CLOSE = "CLOSE"
+    # outbound reminders
+    DIAL = "DIAL"
+    IDENTITY_CHECK = "IDENTITY_CHECK"
+    REMIND = "REMIND"
+    CONFIRM_ATTENDANCE = "CONFIRM_ATTENDANCE"
+    NO_ANSWER = "NO_ANSWER"
+    VOICEMAIL = "VOICEMAIL"
 
 
 Goal = Literal["book", "reschedule", "cancel"]
+
+# Text-mode stand-ins for telephony events on reminder calls (Hawk sends these).
+NO_ANSWER_MARKER = "[no answer]"
+VOICEMAIL_MARKER = "[voicemail]"
 
 
 @dataclass
@@ -60,6 +76,19 @@ class Reply:
     language: Lang
     ended: bool = False
     handoff_to: str | None = None
+    #: What Myna is waiting for. Hawk's scripted patients use it; the UI can too.
+    expecting: str = "intent"
+
+
+@dataclass
+class MessageDraft:
+    """Flow (b): a message for staff being collected."""
+
+    category: str = "other"
+    request: str | None = None
+    callback_number: str | None = None
+    number_confirmed: bool = False
+    asked_dob: bool = False
 
 
 @dataclass
@@ -117,7 +146,14 @@ class Conversation:
         self.config = config
         self.call_id = call_id
         self.caller_phone = caller_phone
-        self._now = now or datetime.now
+        zone = ZoneInfo(config.timezone)
+        # Clinic-local wall clock: the server may run in UTC, the clinic doesn't.
+        self._now = now or (lambda: datetime.now(zone).replace(tzinfo=None))
+        self.mode: Literal["inbound", "outbound"] = "inbound"
+        self.reminder: c.DueReminder | None = None
+        self.reminder_outcome: str | None = None
+        self.message: MessageDraft | None = None
+        self.pending_message: MessageDraft | None = None
         self.lang: Lang = config.greeting_language.value  # type: ignore[assignment]
         self.state = State.GREETING
         self.expecting: Expecting = "intent"
@@ -183,13 +219,25 @@ class Conversation:
         return await self._say(line("greeting", self.lang, clinic=clinic, recording=recording))
 
     async def _handle(self, text: str) -> Reply:
+        if self.mode == "outbound" and self.state == State.DIAL:
+            marker = text.strip().lower()
+            if marker == NO_ANSWER_MARKER:
+                return await self._end_reminder("no_answer", State.NO_ANSWER, "")
+            if marker == VOICEMAIL_MARKER:
+                return await self._end_reminder(
+                    "voicemail", State.VOICEMAIL, self._reminder_line("outbound_voicemail")
+                )
+        taking_message = self.expecting == "message"
+
         # 1. Hard rules, in code, before any model.
         flags = safety.check(text)
         self._update_language(text, detect_language(text))
         if flags.emergency:
             return await self._emergency(f"caller said: {flags.emergency}")
-        if flags.wants_human:
+        if flags.wants_human and not taking_message:
             return await self._handoff("caller_asked", line("handoff", self.lang))
+        if flags.opt_out and self.mode == "outbound":
+            return await self._end_reminder("opted_out", State.CLOSE, line("opted_out", self.lang))
 
         # 2. Understand.
         u = await self._understand(text)
@@ -199,17 +247,30 @@ class Conversation:
             self._update_language(text, u.language)
             if u.intent == Intent.emergency:
                 return await self._emergency("model flagged an emergency")
-            if u.intent == Intent.talk_to_human:
+            if u.intent == Intent.talk_to_human and not taking_message:
                 return await self._handoff("caller_asked", line("handoff", self.lang))
+            if u.intent == Intent.opt_out and self.mode == "outbound":
+                return await self._end_reminder(
+                    "opted_out", State.CLOSE, line("opted_out", self.lang)
+                )
             if u.frustrated:
                 return await self._handoff("frustrated", line("handoff", self.lang))
-        if flags.medical or (u is not None and u.intent == Intent.medical_question):
-            # Redirect, then carry on with whatever we were doing.
+        medical = flags.medical or (u is not None and u.intent == Intent.medical_question)
+        if medical and not taking_message:
+            # Redirect, then carry on. (While taking a message, Myna only writes it down:
+            # passing a question to the doctor is fine; answering it is not.)
             return await self._say(f"{line('medical', self.lang)} {self._reprompt()}")
 
-        # 4. Did we understand?
-        if u is None or u.intent == Intent.unclear or u.confidence < 0.5:
+        # 4. Did we understand? (The optional date of birth for a message takes any answer:
+        #    "I don't know it" is fine there.)
+        optional_answer = self.message is not None and self.expecting == "dob"
+        unclear = u is None or u.intent == Intent.unclear or u.confidence < 0.5
+        if unclear and not optional_answer:
             return await self._not_understood()
+        if u is None:  # only reachable for an optional answer: carry on without it
+            assert self.message is not None
+            self.message.asked_dob = True
+            return await self._advance_message()
         self.failed_understanding = 0
 
         # 5. Dispatch on what we asked.
@@ -218,6 +279,26 @@ class Conversation:
     # ================================================================ dispatch
 
     async def _dispatch(self, u: Understanding, text: str) -> Reply:
+        match self.expecting:
+            case "identity_who":
+                return await self._on_identity_who(u)
+            case "attendance":
+                return await self._on_attendance(u, text)
+            case "message":
+                return await self._on_message_text(u, text)
+            case "callback_confirm":
+                return await self._on_callback_confirm(u)
+        if self.mode == "outbound" and self.state == State.IDENTITY_CHECK:
+            return await self._outbound_verify(u)
+        if self.message is not None and self.expecting in ("name", "dob", "phone"):
+            if self.expecting == "phone":
+                if not u.phone:
+                    return await self._not_understood()
+                self.message.callback_number, self.message.number_confirmed = u.phone, False
+            self._absorb(u, text)
+            if self.expecting == "dob" and u.dob is None:
+                self.message.asked_dob = True  # "I don't know it" is a fine answer here
+            return await self._advance_message()
         if self.expecting in ("intent", "anything_else"):
             return await self._on_intent(u, text)
         if u.intent == Intent.goodbye and self.draft.goal is None:
@@ -249,7 +330,13 @@ class Conversation:
         if u.intent == Intent.faq:
             return await self._answer_faq(u.faq_id)
         if u.intent == Intent.other_request:
-            return await self._handoff("caller_asked", line("other_request", self.lang))
+            request = u.summary or text.strip()
+            return await self._start_message(u.task_category or "other", request)
+        if u.secondary_category:
+            # "Book a cleaning, and is my report ready?" — the question waits its turn.
+            self.pending_message = MessageDraft(
+                category=u.secondary_category, request=(u.summary or text.strip())[:200]
+            )
 
         goal: Goal | None = {
             Intent.book: "book",
@@ -351,7 +438,34 @@ class Conversation:
             key = "ask_name_third_party" if ident.third_party else "ask_name"
             return await self._ask("name", line(key, self.lang))
 
-        # Try what we have: name + caller ID, name + spoken phone, name + DOB.
+        if await self._try_verify():
+            return None
+
+        if ident.dob is None:
+            return await self._ask("dob", line("ask_dob", self.lang))
+
+        # Name + DOB didn't match anyone.
+        if allow_new_patient:
+            phone = ident.phone or self.caller_phone
+            if phone is None:
+                return await self._ask("phone", line("ask_phone", self.lang))
+            self.draft.new_patient = True
+            return None
+        ident.failed_attempts += 1
+        if ident.failed_attempts >= 2:
+            return await self._handoff(
+                "verification_failed", line("verify_failed_handoff", self.lang)
+            )
+        ident.name, ident.dob = None, None
+        return await self._ask("name", line("verify_failed_retry", self.lang))
+
+    async def _try_verify(self) -> bool:
+        """Try each factor we hold, once: name + caller ID, name + spoken phone, name + DOB."""
+        ident = self.identity
+        if ident.verified:
+            return True
+        if ident.name is None:
+            return False
         attempts: list[tuple[str, dict[str, Any]]] = []
         if self.caller_phone:
             attempts.append(("caller_phone", {"phone": self.caller_phone}))
@@ -372,25 +486,8 @@ class Conversation:
             if isinstance(result.root, c.FindPatientOutput1):
                 ident.verification_id = result.root.verification_id
                 ident.patient_name = result.root.patient.name
-                return None
-
-        if ident.dob is None:
-            return await self._ask("dob", line("ask_dob", self.lang))
-
-        # Name + DOB didn't match anyone.
-        if allow_new_patient:
-            phone = ident.phone or self.caller_phone
-            if phone is None:
-                return await self._ask("phone", line("ask_phone", self.lang))
-            self.draft.new_patient = True
-            return None
-        ident.failed_attempts += 1
-        if ident.failed_attempts >= 2:
-            return await self._handoff(
-                "verification_failed", line("verify_failed_handoff", self.lang)
-            )
-        ident.name, ident.dob = None, None
-        return await self._ask("name", line("verify_failed_retry", self.lang))
+                return True
+        return False
 
     # ================================================================ slots
 
@@ -619,6 +716,10 @@ class Conversation:
         if u.intent == Intent.yes:
             return await self._commit()
         if u.intent == Intent.no:
+            if d.goal == "cancel" and self.mode == "outbound" and d.target is not None:
+                target = d.target
+                self.draft = Draft(target=target)
+                return await self._ask("attendance", self._remind_text(target), state=State.REMIND)
             if d.goal == "cancel":
                 self.draft = Draft()
                 return await self._ask(
@@ -686,9 +787,7 @@ class Conversation:
             time=i18n.say_time(_hhmm(a.start), self.lang),
         )
         self.draft = Draft()
-        return await self._ask(
-            "anything_else", f"{done} {line('anything_else', self.lang)}", state=State.ANYTHING_ELSE
-        )
+        return await self._after_done(done)
 
     async def _commit_reschedule(self) -> Reply:
         d = self.draft
@@ -717,9 +816,7 @@ class Conversation:
             time=i18n.say_time(_hhmm(a.start), self.lang),
         )
         self.draft = Draft()
-        return await self._ask(
-            "anything_else", f"{done} {line('anything_else', self.lang)}", state=State.ANYTHING_ELSE
-        )
+        return await self._after_done(done)
 
     async def _commit_cancel(self) -> Reply:
         d = self.draft
@@ -735,11 +832,7 @@ class Conversation:
         )
         self.outcomes.append("cancelled")
         self.draft = Draft()
-        return await self._ask(
-            "anything_else",
-            f"{line('cancelled', self.lang)} {line('anything_else', self.lang)}",
-            state=State.ANYTHING_ELSE,
-        )
+        return await self._after_done(line("cancelled", self.lang))
 
     async def _sms(self, appointment_id: str) -> None:
         if not self.identity.verification_id:
@@ -757,6 +850,248 @@ class Conversation:
         except ToolError as e:  # an SMS failure must not undo a booking
             log.warning("sms not queued: %s", e)
 
+    async def _after_done(self, done: str) -> Reply:
+        """After a completed action: end a reminder call, take a pending message, or ask
+        whether there's anything else."""
+        if self.mode == "outbound":
+            outcome = self.outcomes[-1] if self.outcomes else "confirmed"
+            return await self._end_reminder(
+                outcome, State.CLOSE, f"{done} {line('outbound_confirmed', self.lang)}"
+            )
+        if self.pending_message is not None:
+            pending, self.pending_message = self.pending_message, None
+            reply = await self._start_message(pending.category, pending.request)
+            reply.text = f"{done} {line('also_message', self.lang)} {reply.text}"
+            return reply
+        return await self._ask(
+            "anything_else", f"{done} {line('anything_else', self.lang)}", state=State.ANYTHING_ELSE
+        )
+
+    # ================================================================ flow (b): messages
+
+    async def _start_message(self, category: str, request: str | None) -> Reply:
+        self.draft = Draft()
+        # "I want to leave a message" says nothing yet; "is my x-ray report ready?" does.
+        self.message = MessageDraft(
+            category=category, request=request if category != "other" else None
+        )
+        return await self._advance_message()
+
+    async def _advance_message(self) -> Reply:
+        m = self.message
+        assert m is not None
+        self.state = State.TAKE_MESSAGE
+        ident = self.identity
+        # 1. Who it's about. Verify if we can; an unverified caller still gets the message taken
+        #    (flagged for staff, linked to no one, nothing disclosed).
+        if not ident.verified:
+            if ident.name is None:
+                return await self._ask("name", line("ask_name", self.lang))
+            if not await self._try_verify() and ident.dob is None and not m.asked_dob:
+                m.asked_dob = True
+                return await self._ask("dob", line("ask_dob_message", self.lang))
+        # 2. What to pass on.
+        if not m.request:
+            return await self._ask("message", line("ask_message", self.lang))
+        # 3. Where to call back, read back before it's saved.
+        if m.callback_number is None:
+            m.callback_number = ident.phone or self.caller_phone
+        if m.callback_number is None:
+            return await self._ask("phone", line("ask_callback_number", self.lang))
+        if not m.number_confirmed:
+            return await self._ask(
+                "callback_confirm",
+                line("confirm_callback_number", self.lang, last4=m.callback_number[-4:]),
+            )
+        return await self._create_task()
+
+    async def _on_message_text(self, u: Understanding, text: str) -> Reply:
+        m = self.message
+        assert m is not None
+        m.request = (u.summary or text).strip()[:200]
+        if u.task_category and m.category == "other":
+            m.category = u.task_category
+        return await self._advance_message()
+
+    async def _on_callback_confirm(self, u: Understanding) -> Reply:
+        m = self.message
+        assert m is not None
+        if u.phone:  # "no, call 98111 00733 instead"
+            m.callback_number, m.number_confirmed = u.phone, False
+            return await self._advance_message()
+        if u.intent == Intent.yes:
+            m.number_confirmed = True
+            return await self._advance_message()
+        if u.intent == Intent.no:
+            m.callback_number = None
+            return await self._ask("phone", line("ask_callback_number", self.lang))
+        return await self._not_understood()
+
+    async def _create_task(self) -> Reply:
+        m, ident = self.message, self.identity
+        assert m is not None and m.request and m.callback_number
+        try:
+            out = await self._tool(
+                "create_staff_task",
+                c.CreateStaffTaskInput(
+                    call_id=self.call_id,
+                    verification_id=ident.verification_id,
+                    caller_name=None if ident.verified else ident.name,
+                    category=c.Category(m.category),
+                    summary=m.request,
+                    urgency=c.Urgency.today,
+                    callback_number=m.callback_number,
+                ),
+                c.CreateStaffTaskOutput,
+            )
+        except ToolError as e:
+            log.warning("task not created: %s", e)
+            return await self._handoff("tool_failure", line("handoff", self.lang))
+        self.message = None
+        self.outcomes.append("message_taken")
+        return await self._after_done(
+            line("message_taken", self.lang, when=self._callback_when(out.callback_by))
+        )
+
+    def _callback_when(self, local_dt: str) -> str:
+        day, time = _d(local_dt), i18n.say_time(_hhmm(local_dt), self.lang)
+        today = self._today()
+        if day == today:
+            return line("callback_today", self.lang, time=time)
+        if day == today + timedelta(days=1):
+            return line("callback_tomorrow", self.lang, time=time)
+        return line("callback_on", self.lang, date=i18n.say_date(day, self.lang), time=time)
+
+    # ================================================================ flow (c): reminder calls
+
+    async def start_outbound(self, reminder: c.DueReminder) -> Reply:
+        return await self._finish(await self._start_outbound(reminder))
+
+    async def _start_outbound(self, reminder: c.DueReminder) -> Reply:
+        self.mode = "outbound"
+        self.reminder = reminder
+        self.state = State.DIAL
+        self.expecting = "identity_who"
+        recording = line("recording_on", self.lang) if self.config.record_calls else ""
+        # The patient's first name is all that's said until identity is confirmed.
+        return await self._say(self._reminder_line("outbound_opening", recording=recording))
+
+    def _reminder_line(self, key: str, **extra: str) -> str:
+        first = (self.reminder.patient_name if self.reminder else "").split(" ")[0]
+        clinic = self.config.spoken_name.get(self.lang) or self.config.name
+        return line(
+            key,
+            self.lang,
+            clinic=clinic,
+            first_name=first,
+            phone=i18n.say_phone(self.config.phone),
+            **extra,
+        )
+
+    async def _on_identity_who(self, u: Understanding) -> Reply:
+        if u.intent == Intent.wrong_number:
+            return await self._end_reminder(
+                "wrong_number", State.CLOSE, line("outbound_wrong_number", self.lang)
+            )
+        if u.family_member or u.intent == Intent.no:
+            # Someone else answered: ask for a call back, and say nothing about the visit.
+            return await self._end_reminder(
+                "reached_family", State.CLOSE, self._reminder_line("outbound_family")
+            )
+        if u.intent == Intent.yes:
+            assert self.reminder is not None
+            self.state = State.IDENTITY_CHECK
+            self.identity.name = self.reminder.patient_name
+            return await self._ask("dob", line("outbound_ask_dob", self.lang))
+        return await self._not_understood()
+
+    async def _outbound_verify(self, u: Understanding) -> Reply:
+        """Name (confirmed) + full date of birth, checked by the API, before any detail."""
+        reminder, ident = self.reminder, self.identity
+        assert reminder is not None
+        if u.dob is None:
+            return await self._not_understood()
+        result = await self._tool(
+            "find_patient",
+            c.FindPatientInput(call_id=self.call_id, name=reminder.patient_name, dob=u.dob),
+            c.FindPatientOutput,
+        )
+        if not isinstance(result.root, c.FindPatientOutput1) or (
+            result.root.patient.id != reminder.patient_id
+        ):
+            ident.failed_attempts += 1
+            if ident.failed_attempts >= 2:
+                return await self._end_reminder(
+                    "not_verified", State.CLOSE, self._reminder_line("outbound_not_verified")
+                )
+            return await self._ask("dob", line("outbound_dob_retry", self.lang))
+
+        ident.verification_id = result.root.verification_id
+        ident.patient_name = result.root.patient.name
+        listed = await self._tool(
+            "list_appointments",
+            c.ListAppointmentsInput(verification_id=ident.verification_id),
+            c.ListAppointmentsOutput,
+        )
+        target = next((a for a in listed.appointments if a.id == reminder.appointment_id), None)
+        if target is None:  # cancelled or moved since the list was built: nothing to remind
+            return await self._close()
+        self.draft = Draft(target=target)
+        self.state = State.REMIND
+        return await self._ask("attendance", self._remind_text(target))
+
+    def _remind_text(self, a: c.Appointment) -> str:
+        return line(
+            "outbound_remind",
+            self.lang,
+            service=self._service_name(a.service_id),
+            doctor=a.resource_name,
+            date=i18n.say_date(_d(a.start), self.lang),
+            time=i18n.say_time(_hhmm(a.start), self.lang),
+        )
+
+    async def _on_attendance(self, u: Understanding, text: str) -> Reply:
+        target = self.draft.target
+        assert target is not None
+        if u.intent == Intent.yes:
+            return await self._end_reminder(
+                "confirmed", State.CONFIRM_ATTENDANCE, line("outbound_confirmed", self.lang)
+            )
+        # "Can't come, make it Thursday at 11" names a new time: that's a move, not a cancel.
+        moving = parse_date(text, self._today()) or parse_time(text)
+        if u.intent == Intent.reschedule or moving:
+            self.draft = Draft(goal="reschedule", target=target)
+            self._absorb(u, text)
+            return await self._advance()
+        if u.intent == Intent.cancel:
+            self.draft = Draft(goal="cancel", target=target)
+            return await self._advance()
+        if u.intent == Intent.no:
+            return await self._ask("attendance", line("outbound_move_or_cancel", self.lang))
+        return await self._not_understood()
+
+    async def _end_reminder(self, outcome: str, state: State, text: str) -> Reply:
+        if self.reminder is not None:
+            try:
+                await self._tool(
+                    "mark_reminder_outcome",
+                    c.MarkReminderOutcomeInput(
+                        call_id=self.call_id,
+                        appointment_id=self.reminder.appointment_id,
+                        outcome=c.Outcome(outcome),
+                    ),
+                    c.MarkReminderOutcomeOutput,
+                )
+            except ToolError as e:  # the call still ends politely; staff see the gap
+                log.error("reminder outcome not recorded: %s", e)
+        self.reminder_outcome = outcome
+        self.state = state
+        self.ended = True
+        if f"reminder:{outcome}" not in self.outcomes:
+            self.outcomes.append(f"reminder:{outcome}")
+        self._pending_end = ",".join(self.outcomes)
+        return Reply(text, state, self.lang, ended=True, expecting="")
+
     # ================================================================ FAQ, handoff, close
 
     async def _answer_faq(self, faq_id: str | None) -> Reply:
@@ -765,11 +1100,7 @@ class Conversation:
         if entry is None or not entry.answer.strip():
             # Blank on purpose in the config: never guess.
             return await self._handoff("unanswered_question", line("faq_unknown", self.lang))
-        return await self._ask(
-            "anything_else",
-            f"{entry.answer} {line('anything_else', self.lang)}",
-            state=State.ANYTHING_ELSE,
-        )
+        return await self._after_done(entry.answer)
 
     async def _emergency(self, summary: str) -> Reply:
         return await self._handoff("emergency", line("emergency", self.lang), summary=summary)
@@ -833,6 +1164,10 @@ class Conversation:
         match self.expecting:
             case "name":
                 return line("ask_name", self.lang)
+            case "dob" if self.mode == "outbound":
+                return line("outbound_ask_dob", self.lang)
+            case "dob" if self.message is not None:
+                return line("ask_dob_message", self.lang)
             case "dob":
                 return line("ask_dob", self.lang)
             case "phone":
@@ -850,6 +1185,20 @@ class Conversation:
                 return line("confirm_yes_no", self.lang)
             case "anything_else":
                 return line("anything_else", self.lang)
+            case "message":
+                return line("ask_message", self.lang)
+            case "callback_confirm" if self.message and self.message.callback_number:
+                return line(
+                    "confirm_callback_number",
+                    self.lang,
+                    last4=self.message.callback_number[-4:],
+                )
+            case "identity_who":
+                return self._reminder_line("outbound_opening", recording="")
+            case "attendance" if d.target is not None:
+                return self._remind_text(d.target)
+        if self.mode == "outbound" and self.state == State.IDENTITY_CHECK:
+            return line("outbound_ask_dob", self.lang)
         return line("ask_intent", self.lang)
 
     async def _ask(self, expecting: Expecting, text: str, state: State | None = None) -> Reply:
@@ -864,7 +1213,7 @@ class Conversation:
         return reply
 
     async def _say(self, text: str) -> Reply:
-        return Reply(text, self.state, self.lang)
+        return Reply(text, self.state, self.lang, expecting=self.expecting)
 
     async def _tool(self, name: str, body: Any, out: Any) -> Any:
         return await self.api.tool(name, body, out, log=self)

@@ -29,6 +29,8 @@ class Settings:
     sarvam_api_key: str | None
     sarvam_model: str
     port: int
+    #: Pinned clock for tests and Hawk (UTC ISO). Refused when APP_ENV=production.
+    fake_now: str | None = None
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -42,4 +44,12 @@ class Settings:
             sarvam_api_key=os.environ.get("SARVAM_API_KEY") or None,
             sarvam_model=os.environ.get("SARVAM_MODEL", "sarvam-105b"),
             port=int(os.environ.get("AGENT_PORT", "8000")),
+            fake_now=_fake_now(),
         )
+
+
+def _fake_now() -> str | None:
+    value = os.environ.get("MYNA_FAKE_NOW") or None
+    if value and os.environ.get("APP_ENV") == "production":
+        raise RuntimeError("MYNA_FAKE_NOW is not allowed in production")
+    return value

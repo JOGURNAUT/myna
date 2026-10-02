@@ -27,7 +27,7 @@ class Intent(StrEnum):
     reschedule = "reschedule"
     cancel = "cancel"
     faq = "faq"
-    other_request = "other_request"  # reports, refills, bills… → staff (flow b in M2)
+    other_request = "other_request"  # reports, refills, bills… → a message for staff (flow b)
     talk_to_human = "talk_to_human"
     emergency = "emergency"
     medical_question = "medical_question"
@@ -35,7 +35,19 @@ class Intent(StrEnum):
     no = "no"
     provide_info = "provide_info"
     goodbye = "goodbye"
+    wrong_number = "wrong_number"  # reminder calls (flow c)
+    opt_out = "opt_out"  # "don't call me again"
     unclear = "unclear"
+
+
+TaskCategory = Literal[
+    "report_status",
+    "medicine_refill_request",
+    "billing_question",
+    "doctor_callback",
+    "directions_timings",
+    "other",
+]
 
 
 class Understanding(BaseModel):
@@ -57,6 +69,19 @@ class Understanding(BaseModel):
         None, ge=1, le=10, description="which offered option, 1-based"
     )
     faq_id: str | None = Field(None, description="one of the clinic's FAQ ids")
+    task_category: TaskCategory | None = Field(
+        None, description="for other_request: what kind of message this is for staff"
+    )
+    secondary_category: TaskCategory | None = Field(
+        None,
+        description="if the caller ALSO asked something for staff besides booking/rescheduling/cancelling",
+    )
+    family_member: bool = Field(
+        False, description="on a reminder call: the person who answered is not the patient"
+    )
+    summary: str | None = Field(
+        None, max_length=200, description="one line for clinic staff, in English"
+    )
 
 
 Expecting = Literal[
@@ -70,6 +95,12 @@ Expecting = Literal[
     "appointment",
     "confirm",
     "anything_else",
+    # flow (b)
+    "message",
+    "callback_confirm",
+    # flow (c)
+    "identity_who",
+    "attendance",
 ]
 
 
@@ -212,18 +243,136 @@ _FAQ: dict[str, tuple[str, ...]] = {
     "fees": ("fee", "fees", "charges", "cost", "price", "kitna lagega", "kitne paise", "फीस"),
     "insurance": ("insurance", "cashless", "mediclaim", "बीमा", "इंश्योरेंस"),
 }
-_OTHER = (
-    "report",
-    "x-ray report",
-    "refill",
-    "bill",
-    "billing",
-    "invoice",
-    "callback",
-    "call back",
-    "रिपोर्ट",
-    "बिल",
+# Flow (b): what a message for staff is about. Order matters: first match wins.
+_CATEGORIES: dict[TaskCategory, tuple[str, ...]] = {
+    "medicine_refill_request": (
+        "refill",
+        "prescription",
+        "repeat my medicine",
+        "dawai khatam",
+        "dawa khatam",
+        "goli khatam",
+        "medicine khatam",
+        "dawai chahiye",
+        "parchi",
+        "दवा खत्म",
+        "दवाई खत्म",
+        "पर्ची",
+    ),
+    "report_status": (
+        "report",
+        "reports",
+        "x-ray report",
+        "xray",
+        "x-ray",
+        "opg",
+        "result",
+        "results",
+        "रिपोर्ट",
+    ),
+    "billing_question": (
+        "bill",
+        "billing",
+        "invoice",
+        "payment",
+        "refund",
+        "receipt",
+        "charged",
+        "paise",
+        "बिल",
+        "पेमेंट",
+    ),
+    "doctor_callback": (
+        "doctor se baat",
+        "talk to the doctor",
+        "speak to the doctor",
+        "doctor to call",
+        "doctor call me",
+        "doctor ko bolo",
+        "doctor se poochna",
+        "ask the doctor",
+        "call me back",
+        "callback",
+        "call back",
+        "to call me",
+        "mujhe call kare",
+        "डॉक्टर से बात",
+    ),
+    # A message with no topic yet: Myna asks what to pass on.
+    "other": (
+        "leave a message",
+        "take a message",
+        "a message for",
+        "message dena",
+        "message chhodna",
+        "message chodna",
+        "sandesh",
+        "संदेश",
+    ),
+}
+_WRONG_NUMBER = (
+    "wrong number",
+    "no one by that name",
+    "nobody by that name",
+    "galat number",
+    "koi nahi hai is naam",
+    "is naam ka koi nahi",
+    "गलत नंबर",
 )
+_OPT_OUT = (
+    "do not call",
+    "stop calling",
+    "never call",
+    "no more calls",
+    "remove my number",
+    "call mat karo",
+    "mat call karo",
+    "phone mat karo",
+    "dobara call mat",
+    "मत कॉल",
+    "कॉल मत करो",
+)
+# On a reminder call: the person who answered is not the patient.
+_FAMILY = (
+    "his wife",
+    "her husband",
+    "his mother",
+    "her mother",
+    "his father",
+    "her father",
+    "his son",
+    "her son",
+    "his daughter",
+    "her daughter",
+    "not here",
+    "not at home",
+    "not available",
+    "is out",
+    "he is out",
+    "she is out",
+    "main unki",
+    "main unka",
+    "unki beti",
+    "unka beta",
+    "unki wife",
+    "ghar pe nahi",
+    "ghar par nahi",
+    "bahar gaye",
+    "bahar gayi",
+    "abhi nahi hain",
+    "वो घर पर नहीं",
+    "मैं उनकी",
+    "मैं उनका",
+)
+
+
+def _category(t: str) -> TaskCategory | None:
+    for category, words in _CATEGORIES.items():
+        if any_phrase(t, words):
+            return category
+    return None
+
+
 _GOODBYE = (
     "bye",
     "goodbye",
@@ -427,6 +576,16 @@ class RuleBasedNLU:
     def parse(self, text: str, ctx: TurnContext) -> Understanding:
         t = normalize(text)
         lang = detect_language(text)
+        if ctx.expecting == "message":
+            # Whatever the caller says now IS the message; only its category is inferred.
+            return Understanding(
+                intent=Intent.provide_info,
+                language=lang,
+                confidence=0.9,
+                frustrated=any_phrase(t, _FRUSTRATED) is not None,
+                task_category=_category(t),
+                summary=text.strip()[:200],
+            )
         dob = parse_dob(text)
         # A date of birth is not an appointment date.
         when_text = text if dob is None else None
@@ -458,13 +617,17 @@ class RuleBasedNLU:
                 faq_id = fid
                 break
 
+        category = _category(t)
         intent = self._intent(
             t,
             ctx,
             faq_id,
+            category,
             has_info=any((name, dob, phone, service_id, resource_id, date_ref, time_ref, option)),
         )
         confidence = 0.3 if intent == Intent.unclear else 0.9
+        task_category = category if intent == Intent.other_request else None
+        secondary = category if intent in (Intent.book, Intent.reschedule, Intent.cancel) else None
         return Understanding(
             intent=intent,
             language=lang,
@@ -480,24 +643,50 @@ class RuleBasedNLU:
             time_text=text if time_ref else None,
             option_number=option,
             faq_id=faq_id,
+            task_category=task_category,
+            secondary_category=secondary,
+            family_member=ctx.expecting == "identity_who" and any_phrase(t, _FAMILY) is not None,
+            summary=text.strip()[:200] if intent == Intent.other_request else None,
         )
 
-    def _intent(self, t: str, ctx: TurnContext, faq_id: str | None, *, has_info: bool) -> Intent:
-        if any_phrase(t, _CANCEL) and ctx.expecting in ("intent", "anything_else"):
+    def _intent(
+        self,
+        t: str,
+        ctx: TurnContext,
+        faq_id: str | None,
+        category: TaskCategory | None,
+        *,
+        has_info: bool,
+    ) -> Intent:
+        if any_phrase(t, _OPT_OUT):
+            return Intent.opt_out
+        if ctx.expecting == "identity_who":
+            if any_phrase(t, _WRONG_NUMBER):
+                return Intent.wrong_number
+            if any_phrase(t, _FAMILY) or any_phrase(t, _NO) or t in _BARE_NO:
+                return Intent.no
+            if any_phrase(t, _YES) or any_phrase(
+                t, ("speaking", "bol raha", "bol rahi", "main hi")
+            ):
+                return Intent.yes
+        choosing = ("intent", "anything_else", "attendance")
+        if any_phrase(t, _CANCEL) and ctx.expecting in choosing:
             return Intent.cancel
-        if any_phrase(t, _RESCHEDULE) and ctx.expecting in ("intent", "anything_else"):
+        if any_phrase(t, _RESCHEDULE) and ctx.expecting in choosing:
             return Intent.reschedule
-        if ctx.expecting in ("confirm", "anything_else"):
+        if ctx.expecting in ("confirm", "anything_else", "callback_confirm", "attendance"):
             if any_phrase(t, _NO) or t in _BARE_NO:
                 return Intent.no
-            if any_phrase(t, _YES):
+            if any_phrase(t, _YES) or any_phrase(
+                t, ("will come", "aa jaunga", "aa jaungi", "aaunga", "aaungi", "आ जाऊँगा", "आ जाऊँगी")
+            ):
                 return Intent.yes
         if ctx.expecting in ("intent", "anything_else"):
             if any_phrase(t, _BOOK):
                 return Intent.book
             if faq_id:
                 return Intent.faq
-            if any_phrase(t, _OTHER):
+            if category is not None:
                 return Intent.other_request
         if any_phrase(t, _GOODBYE):
             return Intent.goodbye

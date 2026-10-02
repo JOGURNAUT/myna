@@ -44,7 +44,8 @@ class ApiServer:
 
 
 @pytest.fixture(scope="module")
-def api_server() -> Iterator[ApiServer]:
+def api_server(request: pytest.FixtureRequest) -> Iterator[ApiServer]:
+    """One API per test module. A module may pin its own clock with API_NOW_UTC."""
     node = shutil.which("node")
     if node is None:
         pytest.skip("node is not installed; skipping API-backed tests")
@@ -57,7 +58,8 @@ def api_server() -> Iterator[ApiServer]:
         "DATABASE_PATH": str(Path(tmp) / "test.db"),
         "AGENT_API_TOKEN": TOKEN,
         "SEED_DEMO": "1",
-        "MYNA_FAKE_NOW": NOW_UTC,
+        "MYNA_FAKE_NOW": getattr(request.module, "API_NOW_UTC", NOW_UTC),
+        "HAWK_ENABLED": "1",
         "NODE_ENV": "test",
     }
     log_path = Path(tmp) / "api.log"
@@ -123,15 +125,17 @@ class Call:
 
 
 @pytest.fixture
-async def make_call(api_server: ApiServer) -> AsyncIterator:
+async def make_call(api_server: ApiServer, request: pytest.FixtureRequest) -> AsyncIterator:
     clients: list[ApiClient] = []
+    now_local = getattr(request.module, "NOW_LOCAL", NOW_LOCAL)
 
     async def factory(
         caller_phone: str | None = None,
         nlu: NLU | None = None,
         config_patch: dict | None = None,
+        clinic_id: str = CLINIC,
     ) -> Call:
-        api = ApiClient(api_server.base_url, api_server.token, CLINIC)
+        api = ApiClient(api_server.base_url, api_server.token, clinic_id)
         clients.append(api)
         config = await api.config()
         if config_patch:
@@ -147,7 +151,7 @@ async def make_call(api_server: ApiServer) -> AsyncIterator:
             config=config,
             call_id=call_id,
             caller_phone=caller_phone,
-            now=lambda: NOW_LOCAL,
+            now=lambda: now_local,
         )
         return Call(conv, api)
 
@@ -161,3 +165,23 @@ async def api(api_server: ApiServer) -> AsyncIterator[ApiClient]:
     client = ApiClient(api_server.base_url, api_server.token, CLINIC)
     yield client
     await client.aclose()
+
+
+@pytest.fixture
+async def make_tenant(api_server: ApiServer) -> AsyncIterator:
+    """A throwaway Hawk tenant cloned from the demo clinic, seeded per test."""
+    async with httpx.AsyncClient(
+        base_url=api_server.base_url, headers={"Authorization": f"Bearer {api_server.token}"}
+    ) as http:
+
+        async def factory(**body: object) -> dict:
+            res = await http.post("/v1/hawk/tenants", json={"baseClinicId": CLINIC, **body})
+            assert res.status_code == 200, res.text
+            return res.json()["data"]
+
+        async def state(clinic_id: str) -> dict:
+            res = await http.get(f"/v1/hawk/tenants/{clinic_id}/state")
+            return res.json()["data"]
+
+        factory.state = state  # type: ignore[attr-defined]
+        yield factory

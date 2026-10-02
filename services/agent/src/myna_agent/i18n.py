@@ -303,12 +303,116 @@ LINES: dict[str, dict[Lang, str]] = {
         "hi": "{clinic} को कॉल करने के लिए धन्यवाद। नमस्ते!",
         "hinglish": "{clinic} ko call karne ke liye thank you. Namaste!",
     },
+    # --- flow (b): messages for staff
+    "ask_dob_message": {
+        "en": "And the patient's date of birth, so the team can find the file? If you don't know it, just say so.",
+        "hi": "और मरीज़ की जन्मतिथि, ताकि टीम फ़ाइल ढूँढ सके? अगर नहीं पता तो बता दीजिए।",
+        "hinglish": "Aur patient ki date of birth, taaki team file dhoondh sake? Agar nahi pata toh bata dijiye.",
+    },
+    "ask_message": {
+        "en": "What would you like me to pass on to the team?",
+        "hi": "मैं टीम को क्या संदेश दूँ?",
+        "hinglish": "Main team ko kya message doon?",
+    },
+    "confirm_callback_number": {
+        "en": "Shall the team call you back on the number ending {last4}?",
+        "hi": "क्या टीम आपको {last4} पर ख़त्म होने वाले नंबर पर कॉल करे?",
+        "hinglish": "Kya team aapko {last4} pe khatam hone wale number pe call kare?",
+    },
+    "ask_callback_number": {
+        "en": "Which number should the team call you back on?",
+        "hi": "टीम आपको किस नंबर पर कॉल करे?",
+        "hinglish": "Team aapko kis number pe call kare?",
+    },
+    "message_taken": {
+        "en": "I've passed this on to the team. They'll call you back {when}.",
+        "hi": "मैंने यह टीम को बता दिया है। वे आपको {when} कॉल करेंगे।",
+        "hinglish": "Maine yeh team ko bata diya hai. Woh aapko {when} call karenge.",
+    },
+    "callback_today": {"en": "today by {time}", "hi": "आज {time} तक", "hinglish": "aaj {time} tak"},
+    "callback_tomorrow": {
+        "en": "tomorrow by {time}",
+        "hi": "कल {time} तक",
+        "hinglish": "kal {time} tak",
+    },
+    "callback_on": {
+        "en": "on {date} by {time}",
+        "hi": "{date} को {time} तक",
+        "hinglish": "{date} ko {time} tak",
+    },
+    "also_message": {
+        "en": "You also had a question for the team. Let me take a message for that.",
+        "hi": "आपका टीम के लिए एक सवाल भी था। मैं उसका संदेश ले लेती हूँ।",
+        "hinglish": "Aapka team ke liye ek sawaal bhi tha. Main uska message le leti hoon.",
+    },
+    # --- flow (c): reminder calls
+    "outbound_opening": {
+        "en": "Hello, this is Myna, the automated assistant calling from {clinic}.{recording} Am I speaking with {first_name}?",
+        "hi": "नमस्ते, मैं मायना हूँ, {clinic} की ओर से ऑटोमेटेड असिस्टेंट।{recording} क्या मेरी बात {first_name} से हो रही है?",
+        "hinglish": "Namaste, main Myna hoon, {clinic} ki taraf se automated assistant.{recording} Kya meri baat {first_name} se ho rahi hai?",
+    },
+    "outbound_ask_dob": {
+        "en": "Thank you. For your privacy, could you please tell me your date of birth?",
+        "hi": "धन्यवाद। आपकी प्राइवेसी के लिए, कृपया अपनी जन्मतिथि बताइए।",
+        "hinglish": "Thank you. Aapki privacy ke liye, please apni date of birth bataiye.",
+    },
+    "outbound_dob_retry": {
+        "en": "Sorry, that doesn't match our records. Could you say your date of birth again?",
+        "hi": "माफ़ कीजिए, यह हमारे रिकॉर्ड से मेल नहीं खाता। क्या आप जन्मतिथि फिर से बताएँगे?",
+        "hinglish": "Sorry, yeh hamare record se match nahi hua. Kya aap date of birth phir se batayenge?",
+    },
+    "outbound_not_verified": {
+        "en": "I'm sorry, I can't share the details on this call. Please call {clinic} on {phone}. Goodbye.",
+        "hi": "माफ़ कीजिए, मैं इस कॉल पर जानकारी नहीं दे सकती। कृपया {clinic} को {phone} पर कॉल करें। नमस्ते।",
+        "hinglish": "Sorry, main is call pe details nahi de sakti. Please {clinic} ko {phone} pe call kariye. Namaste.",
+    },
+    "outbound_remind": {
+        "en": "You have a {service} with {doctor} on {date} at {time}. Will you be able to come?",
+        "hi": "{date} को {time} आपका {doctor} के साथ {service} है। क्या आप आ पाएँगे?",
+        "hinglish": "{date} ko {time} aapka {doctor} ke saath {service} hai. Kya aap aa payenge?",
+    },
+    "outbound_move_or_cancel": {
+        "en": "No problem. Would you like to move it to another day, or cancel it?",
+        "hi": "कोई बात नहीं। क्या आप इसे किसी और दिन रखना चाहेंगे, या कैंसल करना?",
+        "hinglish": "Koi baat nahi. Kya aap ise kisi aur din rakhna chahenge, ya cancel karna?",
+    },
+    "outbound_confirmed": {
+        "en": "Thank you, we'll see you then. Goodbye!",
+        "hi": "धन्यवाद, फिर मिलते हैं। नमस्ते!",
+        "hinglish": "Thank you, tab milte hain. Namaste!",
+    },
+    "outbound_family": {
+        "en": "No problem. Could you please ask {first_name} to call {clinic} on {phone}? Thank you, goodbye.",
+        "hi": "कोई बात नहीं। क्या आप {first_name} से {clinic} को {phone} पर कॉल करने को कहेंगे? धन्यवाद, नमस्ते।",
+        "hinglish": "Koi baat nahi. Kya aap {first_name} ko {clinic} ko {phone} pe call karne ko kahenge? Thank you, namaste.",
+    },
+    "outbound_wrong_number": {
+        "en": "Sorry for the trouble. Goodbye.",
+        "hi": "तकलीफ़ के लिए माफ़ कीजिए। नमस्ते।",
+        "hinglish": "Takleef ke liye sorry. Namaste.",
+    },
+    "outbound_voicemail": {
+        "en": "Hello, this is {clinic} calling for {first_name}. Please call us back on {phone}. Thank you.",
+        "hi": "नमस्ते, यह {clinic} से {first_name} के लिए कॉल है। कृपया हमें {phone} पर वापस कॉल करें। धन्यवाद।",
+        "hinglish": "Namaste, yeh {clinic} se {first_name} ke liye call hai. Please humein {phone} pe call back kariye. Thank you.",
+    },
+    "opted_out": {
+        "en": "Okay, we won't call this number for reminders again. Goodbye.",
+        "hi": "ठीक है, हम इस नंबर पर रिमाइंडर के लिए दोबारा कॉल नहीं करेंगे। नमस्ते।",
+        "hinglish": "Theek hai, hum is number pe reminder ke liye dobara call nahi karenge. Namaste.",
+    },
     "call_over": {
         "en": "This call has been passed to our staff.",
         "hi": "यह कॉल स्टाफ़ को दे दी गई है।",
         "hinglish": "Yeh call staff ko de di gayi hai.",
     },
 }
+
+
+def say_phone(phone: str) -> str:
+    """Digits grouped the way Indians read numbers aloud: 98000 00001."""
+    digits = "".join(ch for ch in phone if ch.isdigit())[-10:]
+    return f"{digits[:5]} {digits[5:]}" if len(digits) == 10 else digits
 
 
 def line(key: str, lang: Lang, **kwargs: str) -> str:

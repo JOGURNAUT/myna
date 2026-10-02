@@ -3,7 +3,7 @@ import { CallEvent, StartCallInput, StartCallOutput } from './calls.js';
 import { BusinessConfig } from './config.js';
 import { Appointment, DueReminder, NewPatient, PatientSummary, Slot, StaffTask } from './domain.js';
 import { ToolError } from './errors.js';
-import { TOOLS } from './tools.js';
+import { DueRemindersOutput, ErrorEnvelope, ListTasksOutput, TOOLS } from './tools.js';
 
 const pascal = (s: string) =>
   s
@@ -75,6 +75,9 @@ export function buildContractSchema(): Record<string, unknown> {
   add('StartCallInput', StartCallInput, 'input');
   add('StartCallOutput', StartCallOutput, 'output');
   add('CallEvent', CallEvent, 'input');
+  add('DueRemindersOutput', DueRemindersOutput, 'output');
+  add('ListTasksOutput', ListTasksOutput, 'output');
+  add('ErrorEnvelope', ErrorEnvelope, 'output');
 
   const sorted = stripDatePatterns(
     Object.fromEntries(Object.entries($defs).sort(([a], [b]) => a.localeCompare(b))),

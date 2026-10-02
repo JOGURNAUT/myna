@@ -181,20 +181,72 @@ HUMAN_PHRASES: tuple[str, ...] = (
 )
 
 
+# A refill request is a message for staff (flow b), not a request for advice: Myna passes it
+# on and says nothing about the medicine itself.
+REFILL_PHRASES: tuple[str, ...] = (
+    "refill",
+    "prescription",
+    "repeat my medicine",
+    "repeat the medicine",
+    "more of my medicine",
+    "dawai khatam",
+    "dawa khatam",
+    "davai khatam",
+    "goli khatam",
+    "medicine khatam",
+    "dawai chahiye",
+    "dawa chahiye",
+    "dawai mangwani",
+    "parchi",
+    "दवा खत्म",
+    "दवाई खत्म",
+    "पर्ची",
+    "दवाई चाहिए",
+)
+
+# "Don't call me again" — honoured on reminder calls (flow c) by marking the number.
+OPT_OUT_PHRASES: tuple[str, ...] = (
+    "do not call",
+    "don't call",
+    "dont call",
+    "stop calling",
+    "never call",
+    "no more calls",
+    "remove my number",
+    "unsubscribe",
+    "call mat karo",
+    "mat call karo",
+    "phone mat karo",
+    "dobara call mat",
+    "call band karo",
+    "मत कॉल",
+    "कॉल मत करो",
+    "कॉल मत कीजिए",
+    "फोन मत करो",
+)
+
+
 @dataclass(frozen=True)
 class SafetyFlags:
     emergency: str | None = None
     medical: str | None = None
     wants_human: str | None = None
+    refill: str | None = None
+    opt_out: str | None = None
 
 
 def check(text: str) -> SafetyFlags:
     t = normalize(text)
-    medical = any_phrase(t, ADVICE_PHRASES) or any_phrase(t, MEDICINE_WORDS)
+    refill = any_phrase(t, REFILL_PHRASES)
+    # Asking HOW to take something is advice; asking for MORE of it is a refill message.
+    advice = any_phrase(t, ADVICE_PHRASES)
+    medicine = None if refill else any_phrase(t, MEDICINE_WORDS)
     return SafetyFlags(
         emergency=any_phrase(t, EMERGENCY_PHRASES),
-        medical=medical,
+        medical=advice or medicine,
         wants_human=any_phrase(t, HUMAN_PHRASES),
+        refill=refill,
+        opt_out=any_phrase(t, OPT_OUT_PHRASES),
     )
 
 

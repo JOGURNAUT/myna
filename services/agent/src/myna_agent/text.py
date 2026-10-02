@@ -14,6 +14,7 @@ def normalize(text: str) -> str:
     t = unicodedata.normalize("NFC", text).lower()
     t = t.replace("’", "'").replace("‘", "'")
     t = t.replace("can't", "cannot").replace("cant ", "cannot ").replace("won't", "will not")
+    t = re.sub(r"n't\b", " not", t)  # don't → do not, isn't → is not
     t = _PUNCT.sub(" ", t)
     return re.sub(r"\s+", " ", t).strip()
 

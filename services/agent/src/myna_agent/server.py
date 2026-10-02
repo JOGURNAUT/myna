@@ -9,10 +9,12 @@ from __future__ import annotations
 import json
 import logging
 import time
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -35,6 +37,13 @@ class StartCall(BaseModel):
     source: Literal["patient", "manual_test", "hawk"] = "patient"
 
 
+class StartOutbound(BaseModel):
+    clinic_id: str = Field(alias="clinicId")
+    #: A specific due reminder; default: the first one due.
+    appointment_id: str | None = Field(None, alias="appointmentId")
+    source: Literal["patient", "manual_test", "hawk"] = "patient"
+
+
 class Turn(BaseModel):
     text: str = Field(min_length=1, max_length=2000)
 
@@ -45,6 +54,7 @@ class ReplyOut(BaseModel):
     language: str
     ended: bool
     handoff_to: str | None = Field(None, serialization_alias="handoffTo")
+    expecting: str
 
     @classmethod
     def of(cls, r: Reply) -> ReplyOut:
@@ -54,6 +64,7 @@ class ReplyOut(BaseModel):
             language=r.language,
             ended=r.ended,
             handoff_to=r.handoff_to,
+            expecting=r.expecting,
         )
 
 
@@ -82,7 +93,7 @@ def make_nlu(settings: Settings, clinic_name: str) -> NLU:
 def create_app(
     settings: Settings | None = None,
     nlu_factory: Callable[[str], NLU] | None = None,
-    now: Callable[[], object] | None = None,
+    now: Callable[[], datetime] | None = None,
 ) -> FastAPI:
     sessions: dict[str, Session] = {}
 
@@ -104,36 +115,86 @@ def create_app(
     async def health() -> dict[str, bool]:
         return {"ok": True}
 
-    @app.post("/v1/calls")
-    async def start_call(body: StartCall) -> dict[str, object]:
-        await sweep()
-        api = ApiClient(cfg.api_base_url, cfg.agent_api_token, body.clinic_id)
+    def clock_for(config: c.BusinessConfig) -> Callable[[], datetime] | None:
+        if now is not None:
+            return now
+        if cfg.fake_now is None:
+            return None  # Conversation's default: the clinic's real wall clock
+        pinned = datetime.fromisoformat(cfg.fake_now.replace("Z", "+00:00"))
+        local = pinned.astimezone(ZoneInfo(config.timezone)).replace(tzinfo=None)
+        return lambda: local
+
+    async def open_call(
+        clinic_id: str,
+        direction: c.Direction,
+        source: str,
+        phone: str | None,
+        pick: Callable[[ApiClient], Awaitable[c.DueReminder | None]] | None = None,
+    ) -> tuple[Conversation, ApiClient, c.DueReminder | None]:
+        api = ApiClient(cfg.api_base_url, cfg.agent_api_token, clinic_id)
         try:
             config = await api.config()
+            reminder = await pick(api) if pick else None
+            if pick and reminder is None:
+                raise HTTPException(404, "no reminder is due")
             call_id = await api.start_call(
                 c.StartCallInput(
-                    direction=c.Direction.inbound,
-                    source=c.Source(body.source),
-                    caller_phone=body.caller_phone,
+                    direction=direction,
+                    source=c.Source(source),
+                    caller_phone=reminder.phone if reminder else phone,
                 )
             )
         except ToolError as e:
             await api.aclose()
             raise HTTPException(404 if e.code == "NOT_FOUND" else 502, e.message) from e
+        except HTTPException:
+            await api.aclose()
+            raise
         nlu = nlu_factory(config.name) if nlu_factory else make_nlu(cfg, config.name)
+        clock = clock_for(config)
         conv = Conversation(
             api=api,
             nlu=nlu,
             config=config,
             call_id=call_id,
-            caller_phone=body.caller_phone,
-            **({"now": now} if now else {}),
+            caller_phone=reminder.phone if reminder else phone,
+            **({"now": clock} if clock else {}),
+        )
+        return conv, api, reminder
+
+    def keep(conv: Conversation, api: ApiClient, reply: Reply) -> dict[str, object]:
+        sessions[conv.call_id] = Session(conv, api, time.monotonic())
+        return {"callId": conv.call_id, "reply": ReplyOut.of(reply).model_dump(by_alias=True)}
+
+    @app.post("/v1/calls")
+    async def start_call(body: StartCall) -> dict[str, object]:
+        await sweep()
+        conv, api, _ = await open_call(
+            body.clinic_id, c.Direction.inbound, body.source, body.caller_phone
         )
         reply = await conv.start()
-        sessions[call_id] = Session(conv, api, time.monotonic())
+        out = keep(conv, api, reply)
         if reply.ended:
-            await sessions.pop(call_id).api.aclose()
-        return {"callId": call_id, "reply": ReplyOut.of(reply).model_dump(by_alias=True)}
+            await sessions.pop(conv.call_id).api.aclose()
+        return out
+
+    @app.post("/v1/outbound")
+    async def start_outbound(body: StartOutbound) -> dict[str, object]:
+        """Place a reminder call (text mode: the 'callee' answers via /turns)."""
+        await sweep()
+
+        async def pick(api: ApiClient) -> c.DueReminder | None:
+            due = await api.due_reminders()
+            if body.appointment_id is None:
+                return due[0] if due else None
+            return next((d for d in due if d.appointment_id == body.appointment_id), None)
+
+        conv, api, reminder = await open_call(
+            body.clinic_id, c.Direction.outbound, body.source, None, pick
+        )
+        assert reminder is not None
+        reply = await conv.start_outbound(reminder)
+        return keep(conv, api, reply)
 
     @app.post("/v1/calls/{call_id}/turns")
     async def turn(call_id: str, body: Turn) -> dict[str, object]:

@@ -124,6 +124,35 @@ class FaqItem(BaseModel):
     answer: str
 
 
+class StaffTasks(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    urgent_categories: Annotated[list[str], Field(alias="urgentCategories")]
+
+
+class CallWindow(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    start: Annotated[str, Field(pattern="^([01]\\d|2[0-3]):[0-5]\\d$")]
+    end: Annotated[str, Field(pattern="^([01]\\d|2[0-3]):[0-5]\\d$")]
+
+
+class OutboundReminders(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    enabled: bool
+    call_window: Annotated[CallWindow, Field(alias="callWindow")]
+    max_attempts: Annotated[int, Field(alias="maxAttempts", ge=1, le=3)]
+    retry_gap_min: Annotated[int, Field(alias="retryGapMin", ge=15, le=9007199254740991)]
+    days_before: Annotated[int, Field(alias="daysBefore", ge=1, le=3)]
+
+
 class BusinessConfig(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -149,6 +178,8 @@ class BusinessConfig(BaseModel):
     booking: Booking
     faq: list[FaqItem]
     callback_promise_hours: Annotated[int, Field(alias="callbackPromiseHours", ge=1, le=48)]
+    staff_tasks: Annotated[StaffTasks, Field(alias="staffTasks")]
+    outbound_reminders: Annotated[OutboundReminders, Field(alias="outboundReminders")]
     record_calls: Annotated[bool, Field(alias="recordCalls")]
     kill_switch: Annotated[bool, Field(alias="killSwitch")]
 
@@ -232,6 +263,9 @@ class CreateStaffTaskInput(BaseModel):
     )
     call_id: Annotated[str, Field(alias="callId", min_length=1)]
     verification_id: Annotated[str | None, Field(alias="verificationId", min_length=8)] = None
+    caller_name: Annotated[str | None, Field(alias="callerName", max_length=100, min_length=1)] = (
+        None
+    )
     category: Category
     summary: Annotated[str, Field(max_length=200, min_length=1)]
     urgency: Urgency
@@ -247,6 +281,26 @@ class CreateStaffTaskOutput(BaseModel):
     callback_by: Annotated[
         str, Field(alias="callbackBy", pattern="^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$")
     ]
+
+
+class DueReminder(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    appointment_id: Annotated[str, Field(alias="appointmentId")]
+    patient_id: Annotated[str, Field(alias="patientId")]
+    patient_name: Annotated[str, Field(alias="patientName")]
+    phone: str
+    attempts: Annotated[int, Field(ge=0, le=9007199254740991)]
+
+
+class DueRemindersOutput(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    due: list[DueReminder]
 
 
 class FindPatientInput(BaseModel):
@@ -340,6 +394,8 @@ class Outcome(StrEnum):
     no_answer = "no_answer"
     voicemail = "voicemail"
     opted_out = "opted_out"
+    reached_family = "reached_family"
+    not_verified = "not_verified"
 
 
 class MarkReminderOutcomeInput(BaseModel):
@@ -429,6 +485,33 @@ class Slot(BaseModel):
     service_id: Annotated[str, Field(alias="serviceId", pattern="^[a-z0-9][a-z0-9-]{0,63}$")]
 
 
+class Status1(StrEnum):
+    open = "open"
+    done = "done"
+
+
+class StaffTask(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    id: str
+    call_id: Annotated[str, Field(alias="callId")]
+    category: str
+    summary: str
+    urgency: Urgency
+    patient_id: Annotated[str | None, Field(alias="patientId")]
+    patient_name: Annotated[str | None, Field(alias="patientName")]
+    caller_name: Annotated[str | None, Field(alias="callerName")]
+    verified: bool
+    callback_number_masked: Annotated[str, Field(alias="callbackNumberMasked")]
+    callback_by: Annotated[
+        str, Field(alias="callbackBy", pattern="^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$")
+    ]
+    status: Status1
+    created_at: Annotated[str, Field(alias="createdAt")]
+
+
 class Direction(StrEnum):
     inbound = "inbound"
     outbound = "outbound"
@@ -457,6 +540,32 @@ class StartCallOutput(BaseModel):
     call_id: Annotated[str, Field(alias="callId")]
 
 
+class Code(StrEnum):
+    validation = "VALIDATION"
+    not_verified = "NOT_VERIFIED"
+    not_found = "NOT_FOUND"
+    slot_unavailable = "SLOT_UNAVAILABLE"
+    outside_hours = "OUTSIDE_HOURS"
+    too_soon = "TOO_SOON"
+    too_far_ahead = "TOO_FAR_AHEAD"
+    service_not_offered = "SERVICE_NOT_OFFERED"
+    already_cancelled = "ALREADY_CANCELLED"
+    idempotency_conflict = "IDEMPOTENCY_CONFLICT"
+    kill_switch = "KILL_SWITCH"
+    unauthorized = "UNAUTHORIZED"
+    internal = "INTERNAL"
+
+
+class ToolError(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    code: Code
+    message: str
+    details: dict[str, Any] | None = None
+
+
 class BookInput(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
@@ -468,6 +577,15 @@ class BookInput(BaseModel):
     service_id: Annotated[str, Field(alias="serviceId", pattern="^[a-z0-9][a-z0-9-]{0,63}$")]
     resource_id: Annotated[str, Field(alias="resourceId", pattern="^[a-z0-9][a-z0-9-]{0,63}$")]
     start: Annotated[str, Field(pattern="^\\d{4}-\\d{2}-\\d{2}T([01]\\d|2[0-3]):[0-5]\\d$")]
+
+
+class ErrorEnvelope(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    ok: Literal[False]
+    error: ToolError
 
 
 class FindPatientOutput1(BaseModel):
@@ -490,3 +608,11 @@ class FindSlotsOutput(BaseModel):
         populate_by_name=True,
     )
     slots: list[Slot]
+
+
+class ListTasksOutput(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    tasks: list[StaffTask]
