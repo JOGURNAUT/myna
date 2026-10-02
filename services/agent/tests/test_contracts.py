@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 AGENT = Path(__file__).resolve().parents[1]
+COMMITTED = AGENT / "src" / "myna_agent" / "contracts.py"
 
 
 def _load_generator():
@@ -20,22 +21,20 @@ def _load_generator():
     return module
 
 
+def _text(path: Path) -> str:
+    # Line endings depend on the OS and git settings, not on the contract.
+    return path.read_text(encoding="utf-8").replace("\r\n", "\n")
+
+
 def test_generated_models_are_up_to_date() -> None:
     gen = _load_generator()
     # Generate inside the project so the formatter picks up the same ruff settings.
     fresh = AGENT / "src" / "myna_agent" / "_contracts_check.py"
     try:
         gen.generate(fresh)
-        regenerated = fresh.read_text(encoding="utf-8").replace("
-", "
-")
+        regenerated = _text(fresh)
     finally:
         fresh.unlink(missing_ok=True)
-    committed = (
-        (AGENT / "src" / "myna_agent" / "contracts.py").read_text(encoding="utf-8").replace("
-", "
-")
-    )
-    assert regenerated == committed, (
+    assert regenerated == _text(COMMITTED), (
         "contracts.py is stale: run `uv run python scripts/gen_contracts.py`"
     )
