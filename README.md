@@ -24,13 +24,47 @@ docs/             plans, decisions, findings
 - Node 22+ and pnpm 12
 - [uv](https://docs.astral.sh/uv/) (installs Python 3.12 for the agent)
 
-## Getting started
+## Run it
 
 ```sh
 pnpm install
-cp .env.example .env
-pnpm test                      # TS tests (shared + api)
-cd services/agent && uv run pytest
+cp .env.example .env              # set AGENT_API_TOKEN; LLM_PROVIDER=rules works offline
+(cd services/agent && uv sync)
+
+# terminal 1: API on :4000, seeded with synthetic patients
+SEED_DEMO=1 pnpm dev:api
+
+# terminal 2: agent text endpoint on :8000
+cd services/agent && uv run myna-agent
 ```
 
-See `docs/plan-m1.md` for the current milestone.
+Talk to Myna over HTTP:
+
+```sh
+curl -s -X POST localhost:8000/v1/calls -H 'content-type: application/json' \
+  -d '{"clinicId":"smile-dental","callerPhone":"9811100733","source":"manual_test"}'
+# → {"callId":"call_…","reply":{"text":"Namaste, main Myna hoon…"}}
+
+curl -s -X POST localhost:8000/v1/calls/<callId>/turns -H 'content-type: application/json' \
+  -d '{"text":"Mera appointment change karna hai"}'
+```
+
+To use Sarvam for understanding, set `LLM_PROVIDER=sarvam` and `SARVAM_API_KEY` in `.env`.
+
+## Test
+
+```sh
+pnpm lint && pnpm typecheck && pnpm test           # TS: shared + api
+cd services/agent && uv run ruff check src tests && uv run pytest   # Python (starts the real API)
+docker build -f Dockerfile.ci -t myna-ci . && docker run --rm myna-ci   # everything, clean Linux
+```
+
+When a contract in `packages/shared` changes: `pnpm schemas:export`, then
+`cd services/agent && uv run python scripts/gen_contracts.py`. Drift tests on both sides fail
+until you do.
+
+## Docs
+
+- `docs/plan-m1.md` — milestone 1 plan and status
+- `docs/decisions.md` — design decisions and why
+- `docs/findings.md` — what testing (and later, real calls) taught us

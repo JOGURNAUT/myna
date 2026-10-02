@@ -182,6 +182,11 @@ LINES: dict[str, dict[Lang, str]] = {
         "hi": "{doctor} के साथ {options} खाली है। आपको कौन सा चाहिए?",
         "hinglish": "{doctor} ke saath {options} available hai. Aapko kaunsa chahiye?",
     },
+    "offer_slots_same_day": {
+        "en": "On {date} I have {times} with {doctor}. Which time would you like?",
+        "hi": "{date} को {doctor} के साथ {times} खाली है। कौन सा समय चाहिए?",
+        "hinglish": "{date} ko {doctor} ke saath {times} available hai. Kaunsa time chahiye?",
+    },
     "exact_slot": {
         "en": "{when} with {doctor} is available.",
         "hi": "{doctor} के साथ {when} खाली है।",

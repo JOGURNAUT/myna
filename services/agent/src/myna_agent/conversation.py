@@ -415,11 +415,21 @@ class Conversation:
                 line("exact_slot", self.lang, when=self._when(exact), doctor=exact.resource_name)
             )
         d.offered = self._spread(slots, want)
-        options = i18n.join_options([self._when(s) for s in d.offered], self.lang)
-        doctor = d.offered[0].resource_name
-        return await self._ask(
-            "choice", prefix + line("offer_slots", self.lang, options=options, doctor=doctor)
-        )
+        return await self._ask("choice", prefix + self._offer_text())
+
+    def _offer_text(self) -> str:
+        """Read the offered slots; say the date once when they all fall on one day."""
+        offered = self.draft.offered
+        doctor = offered[0].resource_name
+        days = {s.start[:10] for s in offered}
+        if len(days) == 1 and len(offered) > 1:
+            times = i18n.join_options(
+                [i18n.say_time(_hhmm(s.start), self.lang) for s in offered], self.lang
+            )
+            day = i18n.say_date(_d(offered[0].start), self.lang)
+            return line("offer_slots_same_day", self.lang, date=day, times=times, doctor=doctor)
+        options = i18n.join_options([self._when(s) for s in offered], self.lang)
+        return line("offer_slots", self.lang, options=options, doctor=doctor)
 
     async def _find_slots(
         self,
@@ -832,10 +842,7 @@ class Conversation:
             case "when":
                 return line("ask_when", self.lang)
             case "choice" if d.offered:
-                options = i18n.join_options([self._when(s) for s in d.offered], self.lang)
-                return line(
-                    "offer_slots", self.lang, options=options, doctor=d.offered[0].resource_name
-                )
+                return self._offer_text()
             case "appointment" if d.appointments:
                 options = i18n.join_options([self._item(a) for a in d.appointments], self.lang)
                 return line("which_appointment", self.lang, options=options)

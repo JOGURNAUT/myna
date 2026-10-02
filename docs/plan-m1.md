@@ -1,6 +1,15 @@
 # Plan — Milestone 1: scaffold, API + SQLite adapter, text agent (flow a), safety tests
 
-Status: **draft, waiting for OK**
+Status: **done (2026-10-03).** All "done when" criteria met: 73 TS tests + 155 Python tests
+pass on Windows and in `Dockerfile.ci` (Linux); 20 end-to-end conversations (EN, HI, Hinglish)
+assert the final schedule; every safety rule has tests. Deviations from this plan are logged in
+`docs/decisions.md` (libsql instead of better-sqlite3, sarvam-105b instead of the deprecated 30b,
+templated replies, rule-based NLU kept as fallback). Not done: the Sarvam provider is tested only
+against a mocked HTTP transport — no API key was available to run it live.
+
+---
+
+Original plan:
 
 ## Done when
 - `pnpm test` and `pytest` pass from a clean clone, on Windows and in Docker.

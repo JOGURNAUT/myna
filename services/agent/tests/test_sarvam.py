@@ -1,0 +1,107 @@
+"""Sarvam provider against a mocked HTTP transport (no network, no key needed)."""
+
+from __future__ import annotations
+
+import json
+from datetime import date
+
+import httpx
+import pytest
+
+from myna_agent.llm.sarvam import NLUError, SarvamNLU, WithFallback
+from myna_agent.nlu import ClinicFacts, Intent, RuleBasedNLU, TurnContext
+
+FACTS = ClinicFacts(
+    services={"cleaning": ["cleaning"], "consultation": ["consultation"]},
+    resources={"dr-mehta": ["dr. mehta"]},
+    faqs={"timings": "What are the clinic timings?"},
+)
+CTX = TurnContext(expecting="intent", today=date(2026, 10, 12), facts=FACTS, language="hinglish")
+
+
+def completion(content: str) -> dict:
+    return {
+        "choices": [
+            {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {"role": "assistant", "content": content},
+            }
+        ]
+    }
+
+
+def transport(*contents: str, status: int = 200, seen: list | None = None) -> httpx.MockTransport:
+    queue = list(contents)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if seen is not None:
+            seen.append(request)
+        if status != 200:
+            return httpx.Response(status, json={"error": "nope"})
+        return httpx.Response(200, json=completion(queue.pop(0)))
+
+    return httpx.MockTransport(handler)
+
+
+async def test_parses_a_structured_understanding_and_sends_the_documented_request() -> None:
+    seen: list[httpx.Request] = []
+    body = {
+        "intent": "book",
+        "language": "hinglish",
+        "confidence": 0.92,
+        "service_id": "cleaning",
+        "date_text": "kal subah",
+    }
+    nlu = SarvamNLU(
+        "key-123", clinic_name="Smile Dental Care", transport=transport(json.dumps(body), seen=seen)
+    )
+    u = await nlu.understand("kal subah cleaning karwani hai", CTX)
+    assert u.intent == Intent.book and u.service_id == "cleaning" and u.date_text == "kal subah"
+
+    req = seen[0]
+    assert req.url.path == "/v1/chat/completions"
+    assert req.headers["api-subscription-key"] == "key-123"
+    sent = json.loads(req.content)
+    assert sent["model"] == "sarvam-105b"
+    assert sent["response_format"]["type"] == "json_schema"
+    assert "Monday, 12 October 2026" in sent["messages"][0]["content"]
+    await nlu.aclose()
+
+
+async def test_tolerates_fences_around_the_json() -> None:
+    fenced = '```json\n{"intent": "yes", "language": "en", "confidence": 0.9}\n```'
+    nlu = SarvamNLU("k", transport=transport(fenced))
+    assert (await nlu.understand("yes", CTX)).intent == Intent.yes
+
+
+async def test_drops_ids_the_clinic_does_not_have() -> None:
+    body = {
+        "intent": "book",
+        "language": "en",
+        "confidence": 0.9,
+        "service_id": "whitening",
+        "resource_id": "dr-house",
+        "faq_id": "parking",
+    }
+    nlu = SarvamNLU("k", transport=transport(json.dumps(body)))
+    u = await nlu.understand("whitening with dr house", CTX)
+    assert (u.service_id, u.resource_id, u.faq_id) == (None, None, None)
+
+
+async def test_retries_once_on_invalid_output_then_succeeds() -> None:
+    good = json.dumps({"intent": "cancel", "language": "en", "confidence": 0.9})
+    nlu = SarvamNLU("k", transport=transport("I think they want to cancel", good))
+    assert (await nlu.understand("cancel it", CTX)).intent == Intent.cancel
+
+
+async def test_gives_up_after_the_retry() -> None:
+    nlu = SarvamNLU("k", transport=transport('{"intent": "dance"}', "not json"))
+    with pytest.raises(NLUError):
+        await nlu.understand("hmm", CTX)
+
+
+async def test_http_errors_fall_back_to_rules() -> None:
+    nlu = WithFallback(SarvamNLU("k", transport=transport(status=503)), RuleBasedNLU())
+    u = await nlu.understand("I want to cancel my appointment", CTX)
+    assert u.intent == Intent.cancel and nlu.fallbacks == 1

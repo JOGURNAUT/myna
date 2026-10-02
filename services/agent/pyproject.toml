@@ -10,6 +10,9 @@ dependencies = [
   "uvicorn>=0.32",
 ]
 
+[project.scripts]
+myna-agent = "myna_agent.server:main"
+
 [dependency-groups]
 dev = [
   "pytest>=8.3",
@@ -46,3 +49,4 @@ ignore = ["RUF001", "RUF002", "RUF003"]  # Devanagari and typographic quotes are
 "src/myna_agent/i18n.py" = ["E501"]
 "src/myna_agent/nlu.py" = ["E501"]
 "src/myna_agent/dates.py" = ["E501"]
+"src/myna_agent/llm/sarvam.py" = ["E501"]

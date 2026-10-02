@@ -1,0 +1,23 @@
+# Runs every check from a clean Linux checkout: lint + tests for TS and Python.
+#   docker build -f Dockerfile.ci -t myna-ci . && docker run --rm myna-ci
+FROM node:24-bookworm-slim
+
+RUN npm install -g pnpm@12.6.0
+COPY --from=ghcr.io/astral-sh/uv:0.12 /uv /uvx /usr/local/bin/
+ENV UV_LINK_MODE=copy UV_PYTHON_INSTALL_DIR=/opt/uv-python
+
+WORKDIR /repo
+
+# Dependencies first, for layer caching.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json packages/shared/
+COPY services/api/package.json services/api/
+RUN pnpm install --frozen-lockfile
+
+COPY services/agent/pyproject.toml services/agent/uv.lock services/agent/.python-version services/agent/
+RUN cd services/agent && uv sync --frozen --no-install-project
+
+COPY . .
+RUN cd services/agent && uv sync --frozen
+
+CMD ["sh", "-c", "set -e; pnpm lint; pnpm format:check; pnpm typecheck; pnpm test; cd services/agent; uv run ruff check src tests scripts; uv run ruff format --check src tests scripts; uv run pytest -q"]

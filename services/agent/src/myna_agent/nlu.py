@@ -359,6 +359,9 @@ _NAME_STOP = re.compile(
     r"\s*(?:,|\.|\band\b|\baur\b|\bmy\b|\bdob\b|\bdate of birth\b|\bborn\b|\bnumber\b|\bphone\b|\bhai\b|\bhoon\b|\d|$)",
     re.I,
 )
+_LEADING_FILLER = re.compile(
+    r"^(?:(?:hello|hi|namaste|ji|haan|yes|sure|ok|okay|it's|its)\b[\s,.]*)+", re.I
+)
 _FILLER = {
     "hello",
     "hi",
@@ -392,6 +395,7 @@ def _extract_name(raw: str, expecting: Expecting) -> str | None:
             return _clean_name(candidate)
     if expecting == "name":
         # A bare answer to "what's the name?": take the leading words before any date/number.
+        text = _LEADING_FILLER.sub("", text)
         candidate = _NAME_STOP.split(text, maxsplit=1)[0]
         return _clean_name(candidate)
     return None
@@ -497,12 +501,12 @@ class RuleBasedNLU:
                 return Intent.other_request
         if any_phrase(t, _GOODBYE):
             return Intent.goodbye
-        if has_info:
-            return Intent.provide_info
         if ctx.expecting in ("intent", "anything_else") and any_phrase(
             t, tuple(w for ws in SERVICE_SYNONYMS.values() for w in ws)
         ):
             return Intent.book
+        if has_info:
+            return Intent.provide_info
         return Intent.unclear
 
 

@@ -100,6 +100,7 @@ async def test_offers_choices_and_takes_the_second(make_call, api) -> None:
     await call.start()
     r = await call.say("I need a consultation with Dr Rao on Wednesday")
     assert "Dr. Rao" in r.text and " or " in r.text  # three spaced-out options
+    assert r.text.count("Wednesday, 14 October") == 1  # same day: the date is said once
     r = await call.say("the second one")
     assert "full name" in r.text
     await call.say("Ravi Menon")
