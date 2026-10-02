@@ -116,7 +116,7 @@ export const SendSmsInput = z.object({
 });
 export const SendSmsOutput = z.object({ queued: z.boolean() });
 
-// ---------- create_staff_task (flow b — contract only in M1)
+// ---------- create_staff_task (flow b)
 export const StaffTaskCategory = z.enum([
   'report_status',
   'medicine_refill_request',
@@ -125,17 +125,23 @@ export const StaffTaskCategory = z.enum([
   'directions_timings',
   'other',
 ]);
+export type StaffTaskCategory = z.infer<typeof StaffTaskCategory>;
+export const TaskUrgency = z.enum(['urgent', 'today', 'routine']);
 export const CreateStaffTaskInput = z.object({
   callId: z.string().min(1),
+  /** Links the task to a verified patient. Absent = an unverified caller (flagged for staff). */
   verificationId: VerificationId.optional(),
+  /** What an unverified caller said their name is. Never used to look anyone up. */
+  callerName: z.string().trim().min(1).max(100).optional(),
   category: StaffTaskCategory,
   summary: z.string().min(1).max(200),
-  urgency: z.enum(['urgent', 'today', 'routine']),
+  urgency: TaskUrgency,
   callbackNumber: z.string(),
 });
+/** `callbackBy` is the promise Myna says out loud, counted in clinic opening hours. */
 export const CreateStaffTaskOutput = z.object({ taskId: z.string(), callbackBy: LocalDateTime });
 
-// ---------- mark_reminder_outcome (flow c — contract only in M1)
+// ---------- mark_reminder_outcome (flow c)
 export const ReminderOutcome = z.enum([
   'confirmed',
   'rescheduled',
@@ -144,7 +150,12 @@ export const ReminderOutcome = z.enum([
   'no_answer',
   'voicemail',
   'opted_out',
+  /** A family member answered; asked them to have the patient call back. No details given. */
+  'reached_family',
+  /** The person couldn't confirm the patient's date of birth. No details given. */
+  'not_verified',
 ]);
+export type ReminderOutcome = z.infer<typeof ReminderOutcome>;
 export const MarkReminderOutcomeInput = z.object({
   callId: z.string().min(1),
   appointmentId: z.string().min(1),

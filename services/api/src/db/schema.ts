@@ -140,3 +140,72 @@ export const smsOutbox = sqliteTable('sms_outbox', {
     .default('queued'),
   createdAt: utcNow('created_at'),
 });
+
+/** Flow (b): messages for staff. The callback number is stored in full (staff must dial it). */
+export const staffTasks = sqliteTable(
+  'staff_tasks',
+  {
+    id: text('id').primaryKey(),
+    tenantId: text('tenant_id').notNull(),
+    callId: text('call_id').notNull(),
+    patientId: text('patient_id').references(() => patients.id),
+    callerName: text('caller_name'),
+    category: text('category').notNull(),
+    summary: text('summary').notNull(),
+    urgency: text('urgency', { enum: ['urgent', 'today', 'routine'] }).notNull(),
+    callbackNumber: text('callback_number').notNull(),
+    /** Business-local `YYYY-MM-DDTHH:mm`, counted in opening hours. */
+    callbackBy: text('callback_by').notNull(),
+    status: text('status', { enum: ['open', 'done'] })
+      .notNull()
+      .default('open'),
+    createdAt: utcNow('created_at'),
+    doneAt: text('done_at'),
+  },
+  (t) => [index('staff_tasks_tenant_status').on(t.tenantId, t.status, t.callbackBy)],
+);
+
+/** Flow (c): one row per reminder call attempt and its outcome. */
+export const reminderAttempts = sqliteTable(
+  'reminder_attempts',
+  {
+    id: text('id').primaryKey(),
+    tenantId: text('tenant_id').notNull(),
+    appointmentId: text('appointment_id')
+      .notNull()
+      .references(() => appointments.id),
+    callId: text('call_id').notNull(),
+    outcome: text('outcome').notNull(),
+    /** UTC ISO instant, used for the retry gap. */
+    attemptedAt: utcNow('attempted_at'),
+  },
+  (t) => [index('reminder_attempts_appt').on(t.tenantId, t.appointmentId)],
+);
+
+/** Hawk go-live reports (the JSON is the source of truth; HTML/markdown are renderings). */
+export const hawkReports = sqliteTable(
+  'hawk_reports',
+  {
+    id: text('id').primaryKey(),
+    tenantId: text('tenant_id').notNull(),
+    createdAt: utcNow('created_at'),
+    reportJson: text('report_json').notNull(),
+  },
+  (t) => [index('hawk_reports_tenant_created').on(t.tenantId, t.createdAt)],
+);
+
+/**
+ * Contact preferences, keyed by phone number rather than patient: an opt-out applies to the
+ * number we dial, and it works whichever scheduling backend holds the patient record.
+ */
+export const contactPreferences = sqliteTable(
+  'contact_preferences',
+  {
+    tenantId: text('tenant_id').notNull(),
+    /** Last 10 digits. */
+    phone: text('phone').notNull(),
+    doNotCall: integer('do_not_call', { mode: 'boolean' }).notNull().default(false),
+    updatedAt: utcNow('updated_at'),
+  },
+  (t) => [primaryKey({ columns: [t.tenantId, t.phone] })],
+);

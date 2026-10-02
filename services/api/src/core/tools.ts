@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { and, eq, gt } from 'drizzle-orm';
 import {
   type Appointment,
   type BusinessConfig,
@@ -9,22 +8,21 @@ import {
   type ToolName,
   type ToolOutput,
 } from '@myna/shared';
-import type { SchedulingAdapter, StoredAppointment } from '../adapters/types.js';
-import type { Db } from '../db/client.js';
-import { smsOutbox, verifications } from '../db/schema.js';
+import type { StoredAppointment } from '../adapters/types.js';
+import { smsOutbox } from '../db/schema.js';
 import { recordHandoff } from './calls.js';
 import { nameKey, phoneKey } from './identity.js';
+import { markReminderOutcome } from './reminders.js';
 import { assertBookable, findResource, findService } from './slots.js';
+import { createStaffTask } from './tasks.js';
+import {
+  assertNotKilled,
+  issueVerification,
+  type ToolContext,
+  verifiedPatient,
+} from './tool-context.js';
 
-/** How long a successful identity check lasts. One call rarely runs past this. */
-export const VERIFICATION_TTL_MIN = 30;
-
-export interface ToolContext {
-  db: Db;
-  adapter: SchedulingAdapter;
-  config: BusinessConfig;
-  clock: () => Date;
-}
+export { type ToolContext, VERIFICATION_TTL_MIN } from './tool-context.js';
 
 type Handler<K extends ToolName> = (ctx: ToolContext, args: ToolArgs<K>) => Promise<ToolOutput<K>>;
 export type ToolHandlers = { [K in ToolName]?: Handler<K> };
@@ -37,45 +35,6 @@ function toAppointment(config: BusinessConfig, a: StoredAppointment): Appointmen
     resourceName: findResource(config, a.resourceId).name,
     serviceName: findService(config, a.serviceId).name,
   };
-}
-
-async function issueVerification(
-  ctx: ToolContext,
-  patientId: string,
-  callId: string,
-): Promise<string> {
-  const id = `ver_${randomUUID()}`;
-  const expiresAt = new Date(ctx.clock().getTime() + VERIFICATION_TTL_MIN * 60_000).toISOString();
-  await ctx.db.insert(verifications).values({
-    id,
-    tenantId: ctx.config.tenantId,
-    patientId,
-    callId,
-    expiresAt,
-  });
-  return id;
-}
-
-/** Resolves a verification to its patient, or refuses. Every patient-specific tool goes through here. */
-async function verifiedPatient(ctx: ToolContext, verificationId: string): Promise<string> {
-  const [row] = await ctx.db
-    .select({ patientId: verifications.patientId })
-    .from(verifications)
-    .where(
-      and(
-        eq(verifications.tenantId, ctx.config.tenantId),
-        eq(verifications.id, verificationId),
-        gt(verifications.expiresAt, ctx.clock().toISOString()),
-      ),
-    );
-  if (!row) throw new ToolFailure('NOT_VERIFIED', 'patient is not verified on this call');
-  return row.patientId;
-}
-
-function assertNotKilled(config: BusinessConfig): void {
-  if (config.killSwitch) {
-    throw new ToolFailure('KILL_SWITCH', 'the clinic has routed all calls to staff');
-  }
 }
 
 /** The patient's own appointment; anybody else's is indistinguishable from a missing one. */
@@ -212,4 +171,7 @@ export const toolHandlers: ToolHandlers = {
     });
     return { queued: true };
   },
+
+  create_staff_task: createStaffTask,
+  mark_reminder_outcome: markReminderOutcome,
 };

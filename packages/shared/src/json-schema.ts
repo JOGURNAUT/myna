@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { CallEvent, StartCallInput, StartCallOutput } from './calls.js';
 import { BusinessConfig } from './config.js';
-import { Appointment, NewPatient, PatientSummary, Slot } from './domain.js';
+import { Appointment, DueReminder, NewPatient, PatientSummary, Slot, StaffTask } from './domain.js';
 import { ToolError } from './errors.js';
 import { TOOLS } from './tools.js';
 
@@ -38,6 +38,8 @@ export function buildContractSchema(): Record<string, unknown> {
     PatientSummary,
     NewPatient,
     ToolError,
+    StaffTask,
+    DueReminder,
   };
 
   const exportOne = (schema: z.ZodType, io: 'input' | 'output') => {

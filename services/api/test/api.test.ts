@@ -89,11 +89,23 @@ describe('API', () => {
       expect(res.body.data).toMatchObject({ id: CLINIC, killSwitch: false, recordCalls: false });
     });
 
-    it('404s unknown clinics, unknown tools and tools not built yet', async () => {
+    it('404s unknown clinics and unknown tools', async () => {
       expect((await api.call('GET', '/v1/clinics/nope/config')).status).toBe(404);
       expect((await api.tool('drop_tables', {})).status).toBe(404);
-      const later = await api.tool('create_staff_task', {});
-      expect(later.status).toBe(404);
+    });
+
+    it('has a handler for every tool in the contract', async () => {
+      const { TOOLS } = await import('@myna/shared');
+      for (const name of Object.keys(TOOLS)) {
+        const res = await api.tool(name, {});
+        expect(res.status, name).toBe(400); // exists, and validates its input
+      }
+    });
+
+    it('does not mount the Hawk test routes by default', async () => {
+      expect((await api.call('POST', '/v1/hawk/tenants', { baseClinicId: CLINIC })).status).toBe(
+        404,
+      );
     });
 
     it('explains validation failures by path', async () => {

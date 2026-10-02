@@ -74,8 +74,35 @@ export const BusinessConfig = z
       })
       .default({ slotStepMin: 15, minNoticeMin: 60, maxDaysAhead: 30 }),
     faq: z.array(FaqEntry).default([]),
-    /** What Myna promises when she takes a message. */
+    /** What Myna promises when she takes a message, counted in opening hours. */
     callbackPromiseHours: z.number().int().min(1).max(48).default(2),
+    /** Flow (b): which messages are always urgent, whatever the caller says. */
+    staffTasks: z
+      .object({
+        urgentCategories: z.array(z.string()).default(['medicine_refill_request']),
+      })
+      .default({ urgentCategories: ['medicine_refill_request'] }),
+    /** Flow (c). Off until the clinic owner explicitly turns it on (pilot rule). */
+    outboundReminders: z
+      .object({
+        enabled: z.boolean().default(false),
+        /** Calls only inside this window. Daytime only: must end by 19:00. */
+        callWindow: TimeRange.default({ start: '10:00', end: '18:00' }).refine(
+          (w) => w.end <= '19:00',
+          { message: 'reminder calls must end by 19:00 (never late evening)' },
+        ),
+        maxAttempts: z.number().int().min(1).max(3).default(2),
+        /** Minutes to wait before retrying a no-answer. */
+        retryGapMin: z.number().int().min(15).default(90),
+        daysBefore: z.number().int().min(1).max(3).default(1),
+      })
+      .default({
+        enabled: false,
+        callWindow: { start: '10:00', end: '18:00' },
+        maxAttempts: 2,
+        retryGapMin: 90,
+        daysBefore: 1,
+      }),
     /** Whether calls are recorded; drives the opening disclosure. Off by default (DPDP). */
     recordCalls: z.boolean().default(false),
     /** Global kill switch: every call goes straight to a human. */

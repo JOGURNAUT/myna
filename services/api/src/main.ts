@@ -26,7 +26,19 @@ if (process.env.SEED_DEMO === '1') {
   for (const cfg of clinics.values()) await seedDemo(db, cfg, clock());
 }
 
-const app = await buildApp({ db, clinics, agentToken: env.AGENT_API_TOKEN, logger: true, clock });
+const hawk = process.env.HAWK_ENABLED === '1';
+if (hawk && process.env.NODE_ENV === 'production') {
+  throw new Error('HAWK_ENABLED is not allowed in production');
+}
+
+const app = await buildApp({
+  db,
+  clinics,
+  agentToken: env.AGENT_API_TOKEN,
+  logger: true,
+  clock,
+  hawk,
+});
 
 const shutdown = async () => {
   await app.close();

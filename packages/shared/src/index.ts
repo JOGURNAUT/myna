@@ -6,3 +6,4 @@ export * from './tools.js';
 export * from './calls.js';
 export * from './time.js';
 export * from './load-config.js';
+export * from './hawk.js';

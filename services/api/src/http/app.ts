@@ -1,4 +1,5 @@
-import { timingSafeEqual } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { and, eq } from 'drizzle-orm';
 import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 import { z } from 'zod';
 import {
@@ -6,6 +7,7 @@ import {
   CallEvent,
   isToolFailure,
   StartCallInput,
+  StoredReportInput,
   type ToolArgs,
   type ToolError,
   type ToolErrorCode,
@@ -14,11 +16,15 @@ import {
   type ToolOutput,
   TOOLS,
 } from '@myna/shared';
-import { SqliteSchedulingAdapter } from '../adapters/sqlite.js';
-import type { SchedulingAdapter } from '../adapters/types.js';
 import { appendCallEvent, listCallEvents, startCall } from '../core/calls.js';
+import { dueReminders } from '../core/reminders.js';
+import { completeTask, listTasks } from '../core/tasks.js';
 import { type ToolContext, toolHandlers } from '../core/tools.js';
 import type { Db } from '../db/client.js';
+import { hawkReports } from '../db/schema.js';
+import { registerHawkRoutes } from './hawk.js';
+import { ClinicRegistry } from './registry.js';
+import { parseOrFail } from './validate.js';
 
 export interface AppDeps {
   db: Db;
@@ -27,7 +33,11 @@ export interface AppDeps {
   agentToken: string;
   clock?: () => Date;
   logger?: boolean;
+  /** Mount Hawk's test-only routes. main.ts refuses this in production. */
+  hawk?: boolean;
 }
+
+const TaskStatusQuery = z.enum(['open', 'done']).optional();
 
 const STATUS: Record<ToolErrorCode, number> = {
   VALIDATION: 400,
@@ -55,16 +65,6 @@ function tokensMatch(given: string, expected: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-function parseOrFail<T extends z.ZodType>(schema: T, value: unknown): z.output<T> {
-  const result = schema.safeParse(value);
-  if (!result.success) {
-    throw new ToolFailure('VALIDATION', 'request does not match the contract', {
-      issues: result.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
-    });
-  }
-  return result.data;
-}
-
 /** Validates input, runs the handler, validates output. Output drift is a server bug (500). */
 async function runTool<K extends ToolName>(
   name: K,
@@ -89,8 +89,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     logger: deps.logger ? { redact: ['req.headers.authorization'] } : false,
   });
 
-  const adapters = new Map<string, SchedulingAdapter>();
-  for (const [id, cfg] of deps.clinics) adapters.set(id, new SqliteSchedulingAdapter(deps.db, cfg));
+  const registry = new ClinicRegistry(deps.db, deps.clinics.values());
 
   app.setErrorHandler((err, req, reply) => {
     if (isToolFailure(err)) return sendError(reply, err.toJSON());
@@ -118,10 +117,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       });
 
       const clinicOf = (clinicId: string) => {
-        const config = deps.clinics.get(clinicId);
-        const adapter = adapters.get(clinicId);
-        if (!config || !adapter) throw new ToolFailure('NOT_FOUND', `unknown clinic "${clinicId}"`);
-        return { config, adapter };
+        const entry = registry.get(clinicId);
+        if (!entry) throw new ToolFailure('NOT_FOUND', `unknown clinic "${clinicId}"`);
+        return entry;
       };
 
       v1.get<{ Params: { clinicId: string } }>('/clinics/:clinicId/config', (req) => {
@@ -166,6 +164,64 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           };
         },
       );
+
+      // ---- flow (b): the staff task queue
+      v1.get<{ Params: { clinicId: string }; Querystring: { status?: string } }>(
+        '/clinics/:clinicId/tasks',
+        async (req) => {
+          const { adapter } = clinicOf(req.params.clinicId);
+          const status = parseOrFail(TaskStatusQuery, req.query.status);
+          return { ok: true, data: { tasks: await listTasks(deps.db, adapter, status) } };
+        },
+      );
+
+      v1.post<{ Params: { clinicId: string; taskId: string } }>(
+        '/clinics/:clinicId/tasks/:taskId/done',
+        async (req) => {
+          const { config } = clinicOf(req.params.clinicId);
+          await completeTask(deps.db, config.tenantId, req.params.taskId);
+          return { ok: true, data: {} };
+        },
+      );
+
+      // ---- flow (c): who to call now
+      v1.get<{ Params: { clinicId: string } }>('/clinics/:clinicId/reminders/due', async (req) => {
+        const { config, adapter } = clinicOf(req.params.clinicId);
+        return { ok: true, data: { due: await dueReminders(deps.db, adapter, config, clock()) } };
+      });
+
+      // ---- Hawk go-live reports
+      v1.post<{ Params: { clinicId: string } }>('/clinics/:clinicId/reports', async (req) => {
+        const { config } = clinicOf(req.params.clinicId);
+        const report = parseOrFail(StoredReportInput, req.body);
+        const id = `rep_${randomUUID()}`;
+        await deps.db
+          .insert(hawkReports)
+          .values({ id, tenantId: config.tenantId, reportJson: JSON.stringify(report) });
+        return { ok: true, data: { reportId: id } };
+      });
+
+      v1.get<{ Params: { clinicId: string; reportId: string } }>(
+        '/clinics/:clinicId/reports/:reportId',
+        async (req) => {
+          const { config } = clinicOf(req.params.clinicId);
+          const [row] = await deps.db
+            .select()
+            .from(hawkReports)
+            .where(
+              and(
+                eq(hawkReports.tenantId, config.tenantId),
+                eq(hawkReports.id, req.params.reportId),
+              ),
+            );
+          if (!row) throw new ToolFailure('NOT_FOUND', 'unknown report');
+          return { ok: true, data: JSON.parse(row.reportJson) as unknown };
+        },
+      );
+
+      if (deps.hawk) {
+        registerHawkRoutes(v1, { db: deps.db, registry });
+      }
 
       done();
     },

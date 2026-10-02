@@ -68,6 +68,14 @@ export function schedulingAdapterContract(name: string, factory: AdapterFactory)
         expect(byDob.map((p) => p.id)).toEqual([pooja]);
       });
 
+      it('gets a patient by id, and nothing for an unknown id', async () => {
+        expect(await adapter.getPatient(pooja)).toMatchObject({
+          name: 'Pooja Malhotra',
+          phone: '9811100733',
+        });
+        expect(await adapter.getPatient('pat_nope')).toBeNull();
+      });
+
       it('returns nothing without a phone or dob', async () => {
         expect(await adapter.findPatients({})).toEqual([]);
       });
@@ -145,6 +153,24 @@ export function schedulingAdapterContract(name: string, factory: AdapterFactory)
           if (r.status === 'rejected')
             expect(isToolFailure(r.reason) && r.reason.code).toBe('SLOT_UNAVAILABLE');
         }
+      });
+    });
+
+    describe('listAppointmentsBetween', () => {
+      it("lists every patient's non-cancelled appointments in a half-open range", async () => {
+        const a = await adapter.book(bookReq());
+        const b = await adapter.book(
+          bookReq({ patientId: arjun, start: '2026-10-13T17:00', end: '2026-10-13T17:30' }),
+        );
+        await adapter.book(
+          bookReq({ start: '2026-10-14T10:00', end: '2026-10-14T10:30', resourceId: 'dr-rao' }),
+        );
+        const c = await adapter.book(
+          bookReq({ patientId: arjun, start: '2026-10-13T11:00', end: '2026-10-13T11:30' }),
+        );
+        await adapter.cancel({ idempotencyKey: key(), appointmentId: c.id, patientId: arjun });
+        const day = await adapter.listAppointmentsBetween('2026-10-13T00:00', '2026-10-14T00:00');
+        expect(day.map((x) => x.id)).toEqual([a.id, b.id]);
       });
     });
 

@@ -21,10 +21,14 @@ export interface SchedulingAdapter {
     dob?: string | undefined;
   }): Promise<PatientRecord>;
 
+  getPatient(id: string): Promise<PatientRecord | null>;
+
   listSlots(query: SlotQuery, now: string): Promise<Slot[]>;
   getAppointment(id: string): Promise<StoredAppointment | null>;
   /** Non-cancelled appointments for a patient starting at or after `from`. */
   listAppointments(patientId: string, from: string): Promise<StoredAppointment[]>;
+  /** Every non-cancelled appointment starting in [from, to), earliest first (reminders). */
+  listAppointmentsBetween(from: string, to: string): Promise<StoredAppointment[]>;
 
   /** Throws `SLOT_UNAVAILABLE` on overlap, `IDEMPOTENCY_CONFLICT` on key reuse with a different request. */
   book(req: BookRequest): Promise<StoredAppointment>;

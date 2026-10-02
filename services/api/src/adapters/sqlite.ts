@@ -124,6 +124,30 @@ export class SqliteSchedulingAdapter implements SchedulingAdapter {
     return rows.map(toStored);
   }
 
+  async listAppointmentsBetween(from: string, to: string): Promise<StoredAppointment[]> {
+    const rows = await this.db
+      .select()
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.tenantId, this.tenantId),
+          ne(appointments.status, 'cancelled'),
+          gte(appointments.start, from),
+          lt(appointments.start, to),
+        ),
+      )
+      .orderBy(appointments.start);
+    return rows.map(toStored);
+  }
+
+  async getPatient(id: string): Promise<PatientRecord | null> {
+    const [row] = await this.db
+      .select()
+      .from(patients)
+      .where(and(eq(patients.tenantId, this.tenantId), eq(patients.id, id)));
+    return row ? { id: row.id, name: row.name, phone: row.phone, dob: row.dob } : null;
+  }
+
   book(req: BookRequest): Promise<StoredAppointment> {
     return this.idempotent('book', req.idempotencyKey, req, async (tx) => {
       await this.assertFree(tx, req.resourceId, req, null);
