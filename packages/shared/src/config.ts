@@ -74,6 +74,20 @@ export const BusinessConfig = z
       })
       .default({ slotStepMin: 15, minNoticeMin: 60, maxDaysAhead: 30 }),
     faq: z.array(FaqEntry).default([]),
+    /**
+     * Pilot step 2 ("after-hours only"): bookings made while the clinic is closed are `pending`
+     * until staff approve them on the dashboard the next morning.
+     */
+    bookingApproval: z.enum(['none', 'after_hours']).default('none'),
+    /** The public "Talk to Myna" page may show this clinic's busy/free grid (no names). */
+    publicDemo: z.boolean().default(false),
+    /** Assumptions behind "staff hours saved" on the dashboard (shown with the formula). */
+    metrics: z
+      .object({
+        receptionistCallMinutes: z.number().min(0.5).max(30).default(3),
+        reminderCallMinutes: z.number().min(0.5).max(30).default(2),
+      })
+      .default({ receptionistCallMinutes: 3, reminderCallMinutes: 2 }),
     /** What Myna promises when she takes a message, counted in opening hours. */
     callbackPromiseHours: z.number().int().min(1).max(48).default(2),
     /** Flow (b): which messages are always urgent, whatever the caller says. */

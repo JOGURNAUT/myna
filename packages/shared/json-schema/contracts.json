@@ -411,6 +411,44 @@
             "additionalProperties": false
           }
         },
+        "bookingApproval": {
+          "default": "none",
+          "type": "string",
+          "enum": [
+            "none",
+            "after_hours"
+          ]
+        },
+        "publicDemo": {
+          "default": false,
+          "type": "boolean"
+        },
+        "metrics": {
+          "default": {
+            "receptionistCallMinutes": 3,
+            "reminderCallMinutes": 2
+          },
+          "type": "object",
+          "properties": {
+            "receptionistCallMinutes": {
+              "default": 3,
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 30
+            },
+            "reminderCallMinutes": {
+              "default": 2,
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 30
+            }
+          },
+          "required": [
+            "receptionistCallMinutes",
+            "reminderCallMinutes"
+          ],
+          "additionalProperties": false
+        },
         "callbackPromiseHours": {
           "default": 2,
           "type": "integer",
@@ -534,6 +572,9 @@
         "services",
         "booking",
         "faq",
+        "bookingApproval",
+        "publicDemo",
+        "metrics",
         "callbackPromiseHours",
         "staffTasks",
         "outboundReminders",

@@ -15,6 +15,7 @@ import { nameKey, phoneKey } from './identity.js';
 import { markReminderOutcome } from './reminders.js';
 import { assertBookable, findResource, findService } from './slots.js';
 import { createStaffTask } from './tasks.js';
+import { isOpenAt } from './hours.js';
 import {
   assertNotKilled,
   issueVerification,
@@ -115,6 +116,11 @@ export const toolHandlers: ToolHandlers = {
       start: slot.start,
       end: slot.end,
       source: 'agent',
+      // Pilot step 2: while the clinic is closed, bookings wait for staff approval.
+      status:
+        ctx.config.bookingApproval === 'after_hours' && !isOpenAt(ctx.config, now)
+          ? 'pending'
+          : 'confirmed',
     });
     const appointment = toAppointment(ctx.config, stored);
     return newVerification ? { appointment, verificationId: newVerification } : { appointment };

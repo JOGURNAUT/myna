@@ -101,3 +101,5 @@ faq:
 callbackPromiseHours: 2
 recordCalls: false
 killSwitch: false
+bookingApproval: none
+publicDemo: true

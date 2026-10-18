@@ -23,7 +23,9 @@ import { type ToolContext, toolHandlers } from '../core/tools.js';
 import type { Db } from '../db/client.js';
 import { hawkReports } from '../db/schema.js';
 import { registerHawkRoutes } from './hawk.js';
+import { registerPublicRoutes } from './public.js';
 import { ClinicRegistry } from './registry.js';
+import { registerStaffRoutes, type StaffAuthConfig } from './staff.js';
 import { parseOrFail } from './validate.js';
 
 export interface AppDeps {
@@ -35,6 +37,8 @@ export interface AppDeps {
   logger?: boolean;
   /** Mount Hawk's test-only routes. main.ts refuses this in production. */
   hawk?: boolean;
+  /** Dashboard sign-in. Without it, staff routes refuse every request. */
+  staff?: StaffAuthConfig;
 }
 
 const TaskStatusQuery = z.enum(['open', 'done']).optional();
@@ -90,6 +94,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   const registry = new ClinicRegistry(deps.db, deps.clinics.values());
+  await registry.loadOverrides();
 
   app.setErrorHandler((err, req, reply) => {
     if (isToolFailure(err)) return sendError(reply, err.toJSON());
@@ -103,6 +108,21 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.get('/health', () => ({ ok: true }));
+
+  await app.register(
+    (staff, _opts, done) => {
+      registerStaffRoutes(staff, { db: deps.db, registry, clock, auth: deps.staff });
+      done();
+    },
+    { prefix: '/v1/staff' },
+  );
+  await app.register(
+    (pub, _opts, done) => {
+      registerPublicRoutes(pub, { db: deps.db, registry, clock });
+      done();
+    },
+    { prefix: '/v1/public' },
+  );
 
   await app.register(
     (v1, _opts, done) => {
@@ -140,7 +160,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       v1.post<{ Params: { clinicId: string } }>('/clinics/:clinicId/calls', async (req) => {
         const { config } = clinicOf(req.params.clinicId);
         const input = parseOrFail(StartCallInput, req.body ?? {});
-        const callId = await startCall(deps.db, config.tenantId, input);
+        const callId = await startCall(deps.db, config.tenantId, input, clock());
         return { ok: true, data: { callId } };
       });
 
@@ -149,7 +169,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         async (req) => {
           const { config } = clinicOf(req.params.clinicId);
           const event = parseOrFail(CallEvent, req.body);
-          await appendCallEvent(deps.db, config.tenantId, req.params.callId, event);
+          await appendCallEvent(deps.db, config.tenantId, req.params.callId, event, clock());
           return { ok: true, data: {} };
         },
       );

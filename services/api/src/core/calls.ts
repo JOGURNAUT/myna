@@ -10,11 +10,18 @@ export interface StartCall {
   callerPhone?: string | undefined;
 }
 
-export async function startCall(db: Db, tenantId: string, input: StartCall): Promise<string> {
+export async function startCall(
+  db: Db,
+  tenantId: string,
+  input: StartCall,
+  now: Date = new Date(),
+): Promise<string> {
   const id = `call_${randomUUID()}`;
   await db.insert(calls).values({
     id,
     tenantId,
+    // The app's clock, not the DB's: "today" on the dashboard must agree with a pinned clock.
+    startedAt: now.toISOString(),
     direction: input.direction,
     source: input.source,
     callerPhoneMasked: input.callerPhone ? maskPhone(input.callerPhone) : null,
@@ -35,6 +42,7 @@ export async function appendCallEvent(
   tenantId: string,
   callId: string,
   event: CallEvent,
+  now: Date = new Date(),
 ): Promise<void> {
   await assertCall(db, tenantId, callId);
   await writeTransaction(db, async (tx) => {
@@ -48,7 +56,7 @@ export async function appendCallEvent(
       await tx
         .update(calls)
         .set({
-          endedAt: new Date().toISOString(),
+          endedAt: now.toISOString(),
           outcome: event.outcome,
           ...(event.handoffReason ? { handoffReason: event.handoffReason } : {}),
         })

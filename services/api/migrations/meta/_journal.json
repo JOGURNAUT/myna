@@ -15,6 +15,13 @@
       "when": 1790977592238,
       "tag": "0001_flows_b_c_hawk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792333328329,
+      "tag": "0002_dashboard",
+      "breakpoints": true
     }
   ]
 }

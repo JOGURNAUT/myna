@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { and, desc, eq } from 'drizzle-orm';
 import {
+  type BusinessConfig,
   maskPhone,
   nowIn,
   type StaffTask,
@@ -26,25 +27,45 @@ export async function createStaffTask(
   if (!phone)
     throw new ToolFailure('VALIDATION', 'callback number must be a 10-digit Indian mobile');
 
-  const urgency = ctx.config.staffTasks.urgentCategories.includes(args.category)
-    ? 'urgent'
-    : args.urgency;
-  const now = nowIn(ctx.config.timezone, ctx.clock());
-  const callbackBy = addOpenMinutes(ctx.config, now, ctx.config.callbackPromiseHours * 60);
-  if (callbackBy === null) throw new ToolFailure('INTERNAL', 'clinic has no opening hours');
-
-  const id = `task_${randomUUID()}`;
-  await ctx.db.insert(staffTasks).values({
-    id,
-    tenantId: ctx.config.tenantId,
+  return insertTask(ctx.db, ctx.config, ctx.clock(), {
     callId: args.callId,
     patientId,
     // A verified patient is named by the record; an unverified caller only by what they said.
     callerName: patientId === null ? (args.callerName ?? null) : null,
     category: args.category,
     summary: args.summary,
-    urgency,
+    urgency: args.urgency,
     callbackNumber: phone,
+  });
+}
+
+/** Writes a task with a callback promise counted in opening hours. Used by Myna and the dashboard. */
+export async function insertTask(
+  db: Db,
+  config: BusinessConfig,
+  now: Date,
+  task: {
+    callId: string;
+    patientId: string | null;
+    callerName: string | null;
+    category: string;
+    summary: string;
+    urgency: 'urgent' | 'today' | 'routine';
+    callbackNumber: string;
+  },
+): Promise<{ taskId: string; callbackBy: string }> {
+  const urgency = config.staffTasks.urgentCategories.includes(task.category)
+    ? 'urgent'
+    : task.urgency;
+  const local = nowIn(config.timezone, now);
+  const callbackBy = addOpenMinutes(config, local, config.callbackPromiseHours * 60);
+  if (callbackBy === null) throw new ToolFailure('INTERNAL', 'clinic has no opening hours');
+  const id = `task_${randomUUID()}`;
+  await db.insert(staffTasks).values({
+    id,
+    tenantId: config.tenantId,
+    ...task,
+    urgency,
     callbackBy,
   });
   return { taskId: id, callbackBy };

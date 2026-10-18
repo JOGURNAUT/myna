@@ -18,6 +18,10 @@ const Env = z.object({
   CLINICS_DIR: z.string().default('clinics'),
   AGENT_API_TOKEN: z.string().min(12, 'set AGENT_API_TOKEN (12+ characters) in .env'),
   LOG_LEVEL: z.string().default('info'),
+  /** Dashboard sessions are signed with this. 32+ characters; from Secret Manager in prod. */
+  STAFF_SESSION_SECRET: z.string().min(32).optional(),
+  /** `clinicId=scrypt$…;…` — make entries with `pnpm --filter @myna/api run hash-password`. */
+  CLINIC_LOGINS: z.string().optional(),
 });
 export type Env = z.infer<typeof Env>;
 

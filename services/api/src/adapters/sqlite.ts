@@ -159,7 +159,7 @@ export class SqliteSchedulingAdapter implements SchedulingAdapter {
         serviceId: req.serviceId,
         start: req.start,
         end: req.end,
-        status: 'confirmed' as const,
+        status: req.status ?? ('confirmed' as const),
         source: req.source,
       };
       await tx.insert(appointments).values(row);
@@ -188,6 +188,27 @@ export class SqliteSchedulingAdapter implements SchedulingAdapter {
         .set({ status: 'cancelled', updatedAt: new Date().toISOString() })
         .where(and(eq(appointments.tenantId, this.tenantId), eq(appointments.id, current.id)));
       return { ...current, status: 'cancelled' };
+    });
+  }
+
+  decidePending(
+    appointmentId: string,
+    decision: 'confirmed' | 'cancelled',
+  ): Promise<StoredAppointment> {
+    return writeTransaction(this.db, async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(appointments)
+        .where(and(eq(appointments.tenantId, this.tenantId), eq(appointments.id, appointmentId)));
+      if (!row) throw new ToolFailure('NOT_FOUND', 'no such appointment');
+      if (row.status !== 'pending') {
+        throw new ToolFailure('VALIDATION', `appointment is ${row.status}, not pending`);
+      }
+      await tx
+        .update(appointments)
+        .set({ status: decision, updatedAt: new Date().toISOString() })
+        .where(and(eq(appointments.tenantId, this.tenantId), eq(appointments.id, appointmentId)));
+      return { ...toStored(row), status: decision };
     });
   }
 

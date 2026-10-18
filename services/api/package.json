@@ -7,6 +7,7 @@
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
     "seed": "tsx src/seed.ts",
+    "hash-password": "tsx src/hash-password.ts",
     "db:generate": "drizzle-kit generate",
     "typecheck": "tsc --noEmit"
   },

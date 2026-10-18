@@ -44,6 +44,13 @@ export function addOpenMinutes(
   return null;
 }
 
+/** Whether the business is open at business-local `at`. */
+export function isOpenAt(config: BusinessConfig, at: string): boolean {
+  const { date, time } = splitDateTime(at);
+  const m = toMinutes(time);
+  return openSessions(config, date).some(([open, close]) => m >= open && m < close);
+}
+
 /** Whether business-local `at` falls inside [start, end) of a `HH:mm` window. */
 export function insideWindow(at: string, window: { start: string; end: string }): boolean {
   const { time } = splitDateTime(at);

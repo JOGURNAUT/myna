@@ -109,6 +109,8 @@ export const calls = sqliteTable(
     endedAt: text('ended_at'),
     outcome: text('outcome'),
     handoffReason: text('handoff_reason'),
+    /** When staff acknowledged the handoff alert on the dashboard (UTC ISO). */
+    handoffSeenAt: text('handoff_seen_at'),
   },
   (t) => [index('calls_tenant_started').on(t.tenantId, t.startedAt)],
 );
@@ -209,3 +211,23 @@ export const contactPreferences = sqliteTable(
   },
   (t) => [primaryKey({ columns: [t.tenantId, t.phone] })],
 );
+
+/** Manual review of a call by staff or the builder — the ground truth for Hawk's LLM judge. */
+export const callLabels = sqliteTable('call_labels', {
+  callId: text('call_id')
+    .primaryKey()
+    .references(() => calls.id),
+  tenantId: text('tenant_id').notNull(),
+  correct: integer('correct', { mode: 'boolean' }).notNull(),
+  failureType: text('failure_type'),
+  notes: text('notes'),
+  labeledAt: utcNow('labeled_at'),
+});
+
+/** Runtime settings changed from the dashboard (override the clinic YAML until changed back). */
+export const clinicSettings = sqliteTable('clinic_settings', {
+  clinicId: text('clinic_id').primaryKey(),
+  tenantId: text('tenant_id').notNull(),
+  killSwitch: integer('kill_switch', { mode: 'boolean' }),
+  updatedAt: utcNow('updated_at'),
+});

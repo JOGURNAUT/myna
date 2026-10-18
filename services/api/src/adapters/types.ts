@@ -34,6 +34,14 @@ export interface SchedulingAdapter {
   book(req: BookRequest): Promise<StoredAppointment>;
   reschedule(req: RescheduleRequest): Promise<StoredAppointment>;
   cancel(req: CancelRequest): Promise<StoredAppointment>;
+  /**
+   * Staff decision on a `pending` (after-hours) booking: confirm it or release the slot.
+   * Throws NOT_FOUND for an unknown id, VALIDATION if it isn't pending.
+   */
+  decidePending(
+    appointmentId: string,
+    decision: 'confirmed' | 'cancelled',
+  ): Promise<StoredAppointment>;
 }
 
 export interface PatientRecord {
@@ -62,6 +70,8 @@ export interface BookRequest {
   start: string;
   end: string;
   source: string;
+  /** `pending` for after-hours bookings awaiting staff approval. Default `confirmed`. */
+  status?: 'confirmed' | 'pending';
 }
 
 export interface RescheduleRequest {

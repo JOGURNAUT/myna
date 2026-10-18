@@ -1,6 +1,7 @@
 import { loadClinics, registerClinics } from './clinics.js';
 import { openDb } from './db/client.js';
 import { loadDotEnv, readEnv } from './env.js';
+import { parseClinicLogins } from './core/staff-auth.js';
 import { buildApp } from './http/app.js';
 import { seedDemo } from './seed.js';
 
@@ -38,6 +39,9 @@ const app = await buildApp({
   logger: true,
   clock,
   hawk,
+  ...(env.STAFF_SESSION_SECRET
+    ? { staff: { secret: env.STAFF_SESSION_SECRET, logins: parseClinicLogins(env.CLINIC_LOGINS) } }
+    : {}),
 });
 
 const shutdown = async () => {

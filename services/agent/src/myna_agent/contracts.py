@@ -124,6 +124,22 @@ class FaqItem(BaseModel):
     answer: str
 
 
+class BookingApproval(StrEnum):
+    none = "none"
+    after_hours = "after_hours"
+
+
+class Metrics(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    receptionist_call_minutes: Annotated[
+        float, Field(alias="receptionistCallMinutes", ge=0.5, le=30.0)
+    ]
+    reminder_call_minutes: Annotated[float, Field(alias="reminderCallMinutes", ge=0.5, le=30.0)]
+
+
 class StaffTasks(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -177,6 +193,9 @@ class BusinessConfig(BaseModel):
     services: Annotated[list[Service1], Field(min_length=1)]
     booking: Booking
     faq: list[FaqItem]
+    booking_approval: Annotated[BookingApproval, Field(alias="bookingApproval")]
+    public_demo: Annotated[bool, Field(alias="publicDemo")]
+    metrics: Metrics
     callback_promise_hours: Annotated[int, Field(alias="callbackPromiseHours", ge=1, le=48)]
     staff_tasks: Annotated[StaffTasks, Field(alias="staffTasks")]
     outbound_reminders: Annotated[OutboundReminders, Field(alias="outboundReminders")]
