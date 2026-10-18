@@ -37,6 +37,7 @@ jobs:
           pnpm format:check
           pnpm typecheck
           pnpm test
+          pnpm build   # the web app (Next.js) must compile
 
       - name: Python — lint, format, tests
         working-directory: services/agent
