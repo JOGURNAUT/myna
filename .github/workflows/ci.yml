@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, tests and the Hawk gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4 # version from package.json "packageManager"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Python deps
+        working-directory: services/agent
+        run: uv sync --frozen
+
+      - name: TypeScript — lint, format, types, tests
+        run: |
+          pnpm lint
+          pnpm format:check
+          pnpm typecheck
+          pnpm test
+
+      - name: Python — lint, format, tests
+        working-directory: services/agent
+        run: |
+          uv run ruff check src tests scripts
+          uv run ruff format --check src tests scripts
+          uv run pytest -q
+
+      # Fails the build if any flow is NOT SAFE.
+      - name: Hawk go-live gate
+        run: pnpm hawk run --gate --out hawk-reports
+
+      - name: Upload the Hawk report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hawk-report
+          path: hawk-reports/
+          if-no-files-found: ignore
