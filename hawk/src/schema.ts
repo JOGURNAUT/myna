@@ -17,6 +17,8 @@ export const Persona = z.object({
   rambles: z.boolean().default(false),
   /** Gives the bare answer ("Pooja Malhotra") rather than a sentence ("My name is…"). */
   terse: z.boolean().default(false),
+  /** Introduces themselves the way callers do on Indian phone calls: "ji main X bol rahi hoon". */
+  formalIntro: z.boolean().default(false),
 });
 export type Persona = z.infer<typeof Persona>;
 

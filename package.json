@@ -17,7 +17,8 @@
     "schemas:export": "pnpm --filter @myna/shared run export-schemas",
     "db:seed": "pnpm --filter @myna/api run seed",
     "dev:api": "pnpm --filter @myna/api run dev",
-    "hawk": "pnpm --filter @myna/hawk run hawk"
+    "hawk": "pnpm --filter @myna/hawk run hawk",
+    "demo": "tsx scripts/demo.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

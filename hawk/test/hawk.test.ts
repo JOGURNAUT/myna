@@ -208,7 +208,14 @@ describe('scripted patient', () => {
     });
     const p = new ScriptedPatient(
       s,
-      { id: 'x', description: '', dobStyle: 'words', rambles: false, terse: false },
+      {
+        id: 'x',
+        description: '',
+        dobStyle: 'words',
+        rambles: false,
+        terse: false,
+        formalIntro: false,
+      },
       'en',
     );
     const ask = (expecting: string) => p.respond({ text: '', state: '', expecting, ended: false });

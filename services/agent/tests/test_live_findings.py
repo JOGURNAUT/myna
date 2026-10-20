@@ -128,3 +128,13 @@ async def test_a_slow_model_is_cut_off_and_rules_answer_in_time() -> None:
     u = await nlu.understand("I want to cancel my appointment", ctx("intent", "en"))
     assert time.perf_counter() - started < 1.5
     assert u.intent == Intent.cancel and NLU_STATS["fallbacks"] - before == 1
+
+
+async def test_devanagari_is_hindi_whatever_the_model_labels_it(make_call) -> None:
+    call = await make_call(caller_phone="9822200789")
+    await call.start()
+    mislabelled = Understanding(intent=Intent.book, language="hinglish", confidence=0.95)
+    call.conv.nlu = ScriptedNLU([mislabelled])
+    r = await call.say("मुझे सफ़ाई का अपॉइंटमेंट चाहिए कल दोपहर 12 बजे")
+    assert r.language == "hi"
+    assert any("ऀ" <= ch <= "ॿ" for ch in r.text)  # replied in Devanagari

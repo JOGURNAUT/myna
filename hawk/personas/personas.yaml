@@ -11,3 +11,6 @@
 - id: number-mumbler
   description: Says the date of birth in words ("twelve April nineteen ninety"), like many real callers.
   dobStyle: words
+- id: formal-introducer
+  description: Says "ji main Neha Kapoor bol rahi hoon" / "this is Neha speaking" when asked the name.
+  formalIntro: true

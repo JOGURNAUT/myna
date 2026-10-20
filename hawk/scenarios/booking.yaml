@@ -283,3 +283,16 @@
   expect:
     appointments: []
     handoff: kill_switch
+
+- id: book-formal-introduction
+  title: Introduces themselves as "ji main X bol rahi hoon"
+  flow: booking
+  type: persona_style
+  persona: formal-introducer
+  notes: Found by the live demo (not by the scripted suite, and not by the real model).
+  callerPhone: '9822202222'
+  caller: { name: Neha Kapoor, nameHi: नेहा कपूर, dob: '1992-03-15' }
+  goal: { intent: book, service: cleaning, when: { day: thursday, time: '11:00' } }
+  expect:
+    appointments:
+      - { patient: Neha Kapoor, service: cleaning, start: 2026-10-15T11:00 }

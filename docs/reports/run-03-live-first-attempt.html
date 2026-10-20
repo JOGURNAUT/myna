@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hawk go-live report · Smile Dental Care (synthetic)</title>
+<style>
+:root{--bg:#FAF8F3;--surface:#fff;--line:#E3DED2;--text:#16211F;--text2:#46524F;--primary:#0E5C59;--safe:#1D6337;--safe-bg:#E3F1E7;--warn:#8C4A06;--warn-bg:#FBEBDA;--danger:#9E2A1F;--danger-bg:#FAE5E2}
+@media (prefers-color-scheme:dark){:root{--bg:#0D1413;--surface:#141D1C;--line:#26322F;--text:#EAEFEC;--text2:#B0BBB8;--primary:#4DB8AE;--safe:#7DD69B;--safe-bg:#14301F;--warn:#F3B377;--warn-bg:#36240F;--danger:#F49A8F;--danger-bg:#3A1915}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,'Segoe UI',sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 64px}h1{font-size:30px;margin:0 0 4px}h2{font-size:20px;margin:32px 0 12px}
+.muted{color:var(--text2)}small{color:var(--text2);font-weight:400}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}.card h3{margin:0 0 10px;font-size:16px}
+.badge{display:inline-block;padding:6px 12px;border-radius:999px;font-weight:800;letter-spacing:.05em;font-size:13px}
+.badge.safe{background:var(--safe-bg);color:var(--safe)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.danger{background:var(--danger-bg);color:var(--danger)}
+.big{font-size:34px;font-weight:800;margin:12px 0 4px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+.bar-row{display:grid;grid-template-columns:150px 1fr 90px;gap:12px;align-items:center;margin:8px 0}
+.bar{position:relative;height:12px;background:var(--line);border-radius:6px;overflow:hidden}.fill{position:absolute;inset:0 auto 0 0;background:var(--primary)}
+.safe-line{position:absolute;left:92%;top:-2px;bottom:-2px;width:2px;background:var(--text)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:10px 0}summary{cursor:pointer;font-weight:600}
+.sev{text-transform:uppercase;font-size:12px;font-weight:800;padding:2px 8px;border-radius:6px}.sev.critical{background:var(--danger-bg);color:var(--danger)}.sev.high{background:var(--warn-bg);color:var(--warn)}.sev.medium,.sev.low{background:var(--line)}
+.transcript{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}.transcript p{margin:6px 0}.transcript .agent b{color:var(--primary)}
+@media (max-width:600px){.bar-row{grid-template-columns:100px 1fr 70px}}
+</style></head><body><main>
+<h1>Hawk go-live report</h1>
+<p class="muted">Myna for Smile Dental Care (synthetic) · run hawk-2026-10-20-13-56-59 · 34 simulated calls · sarvam understanding, scripted patients · clock 2026-10-12T05:30:00Z (Mon 12 Oct 2026, 11:00 IST)</p>
+<p class="panel"><b>Read this first:</b> Scripted patients say things the way the scenarios were written, so a high pass rate here is necessary but not sufficient. Real callers are messier: re-run with LLM-played patients and in audio mode before trusting a SAFE verdict for a pilot.</p>
+<h2>Verdict by flow</h2><div class="cards">
+      <article class="card">
+        <h3>Inbound booking</h3>
+        <span class="badge danger">NOT SAFE</span>
+        <p class="big">29% <small>6/21 passed</small></p>
+        <p class="muted">29% pass (&lt; 80%); 1 critical failure</p>
+      </article>
+      <article class="card">
+        <h3>Routing &amp; messages</h3>
+        <span class="badge danger">NOT SAFE</span>
+        <p class="big">0% <small>0/5 passed</small></p>
+        <p class="muted">0% pass (&lt; 80%)</p>
+      </article>
+      <article class="card">
+        <h3>Outbound reminders</h3>
+        <span class="badge danger">NOT SAFE</span>
+        <p class="big">38% <small>3/8 passed</small></p>
+        <p class="muted">38% pass (&lt; 80%)</p>
+      </article></div>
+<p class="muted">SAFE TO LAUNCH: ≥ 92% pass and no critical failure. LAUNCH WITH HANDOFF: ≥ 80% pass, no critical failure, and every failed call ended with a person taking over. NOT SAFE: anything else.</p>
+<div class="cards">
+  <article class="card"><h3>Overall pass</h3><p class="big">26% <small>9/34</small></p></article>
+  <article class="card"><h3>Latency p50 / p95</h3><p class="big">370 / 2105 ms</p><p class="muted">text mode: agent processing + API round trips only. No speech-to-text or voice yet (M3).</p></article>
+  <article class="card"><h3>Cost per call</h3><p class="big">₹0.00</p><p class="muted">token cost not yet reported by the provider adapter</p></article>
+</div>
+<h2>Pass rate by language</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">Hinglish</span>
+      <span class="bar"><span class="fill" style="width:26%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">26% <small>9/34</small></span></div></div>
+<h2>Pass rate by scenario type</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">book_new</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">book_returning</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">cancel</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">doctor_callback</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">emergency</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">faq</span>
+      <span class="bar"><span class="fill" style="width:33%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">33% <small>1/3</small></span></div>
+    <div class="bar-row"><span class="bar-label">handoff_request</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">kill_switch</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">medical</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">mind_change</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">mixed</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">persona_style</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">refill</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">regression</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_cancel</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_confirm</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_family</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_opt_out</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_reschedule</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_verification</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_voicemail</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reminder_wrong_number</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">report_status</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">reschedule</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">third_party</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">unclear</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">unverified</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">verification</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div></div>
+<h2>Top failure modes</h2>
+      <details open>
+        <summary><span class="sev critical">critical</span> <code>schedule_end_state</code> · 1 call</summary>
+        <p>missing [] unexpected [Mohan Lal|cleaning|2026-10-13T12:30|confirmed]</p>
+        <p class="muted">book-mumbled-date-of-birth (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Mujhe cleaning ka appointment chahiye kal dopahar 12 baje.</p><p class="agent"><b>Myna</b> Dr. Mehta ke saath Tuesday, 13 October, dopahar 12 baje available hai. Please patient ka poora naam bataiye.</p><p class="caller"><b>Caller</b> Mera naam Mohan Lal hai.</p><p class="agent"><b>Myna</b> Thank you. Aur patient ki date of birth?</p><p class="caller"><b>Caller</b> baarah April unnees sau nabbe</p><p class="agent"><b>Myna</b> Confirm kar loon: Mohan Lal ke liye Dr. Mehta ke saath cleaning, Tuesday, 13 October ko dopahar 12 baje. Kya main book kar doon?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> हो गया। Mohan Lal का अपॉइंटमेंट Dr. Mehta के साथ मंगलवार, 13 अक्टूबर को दोपहर 12 बजे बुक है। आपको SMS आ जाएगा। क्या मैं और कुछ मदद कर सकती हूँ?</p><p class="caller"><b>Caller</b> Nahi, bas. Thank you.</p><p class="agent"><b>Myna</b> Aap appointment book, change ya cancel karna chahte hain?</p><p class="caller"><b>Caller</b> Mujhe cleaning ka appointment chahiye kal dopahar 12 baje.</p><p class="agent"><b>Myna</b> Dr. Mehta ke saath Tuesday, 13 October, dopahar 12:30 baje available hai. Aapko kaunsa chahiye?</p><p class="caller"><b>Caller</b> pehla wala</p><p class="agent"><b>Myna</b> Confirm kar loon: Mohan Lal ke liye Dr. Mehta ke saath cleaning, Tuesday, 13 October ko dopahar 12:30 baje. Kya main book kar doon?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> Ho gaya. Mohan Lal ka appointment Dr. Mehta ke saath Tuesday, 13 October ko dopahar 12:30 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?</p><p class="caller"><b>Caller</b> Nahi, bas. Thank you.</p><p class="agent"><b>Myna</b> Would you like to book, change or cancel an appointment?</p><p class="caller"><b>Caller</b> Mujhe cleaning ka appointment chahiye kal dopahar 12 baje.</p><p class="agent"><b>Myna</b> Sorry, us time kuch available nahi hai. Wednesday, 14 October ko Dr. Rao ke saath dopahar 12 baje, dopahar 12:15 baje ya dopahar 12:30 baje available hai. Kaunsa time chahiye?</p><p class="caller"><b>Caller</b> pehla wala</p><p class="agent"><b>Myna</b> Confirm kar loon: Mohan Lal ke liye Dr. Rao ke saath cleaning, Wednesday, 14 October ko dopahar 12 baje. Kya main book kar doon?</p><p class="caller"><b>Caller</b> Haan ji.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev high">high</span> <code>call_completed</code> · 13 calls</summary>
+        <p>the call errored: Unexpected token 'I', &quot;Internal S&quot;... is not valid JSON</p>
+        <p class="muted">book-for-mother (hinglish), book-inline-correction (hinglish), book-mind-change-at-read-back (hinglish), book-mumbled-date-of-birth (hinglish), book-new-patient (hinglish), book-patient-named-like-a-doctor (hinglish), book-rambling-caller (hinglish), book-returning-picks-second-option (hinglish), book-with-a-named-doctor (hinglish), medical-question-mid-booking (hinglish), msg-booking-and-report (hinglish), msg-refill (hinglish), reschedule-by-caller-id (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Meri mummy ke liye checkup ka appointment chahiye kal dopahar 12 baje.</p><p class="agent"><b>Myna</b> Dr. Mehta ke saath Tuesday, 13 October, dopahar 12 baje available hai. Please patient ka poora naam bataiye.</p><p class="caller"><b>Caller</b> Patient ka naam Kamla Devi hai.</p><p class="agent"><b>Myna</b> Thank you. Aur patient ki date of birth?</p><p class="caller"><b>Caller</b> 2 February 1958</p><p class="agent"><b>Myna</b> Confirm kar loon: Kamla Devi ke liye Dr. Mehta ke saath consultation, Tuesday, 13 October ko dopahar 12 baje. Kya main book kar doon?</p><p class="caller"><b>Caller</b> Haan ji.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev high">high</span> <code>schedule_end_state</code> · 10 calls</summary>
+        <p>missing [Kamla Devi|consultation|2026-10-13T12:00|confirmed] unexpected []</p>
+        <p class="muted">book-for-mother (hinglish), book-inline-correction (hinglish), book-mind-change-at-read-back (hinglish), book-new-patient (hinglish), book-patient-named-like-a-doctor (hinglish), book-rambling-caller (hinglish), book-with-a-named-doctor (hinglish), rem-cancel (hinglish), rem-reschedule (hinglish), reschedule-by-caller-id (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Meri mummy ke liye checkup ka appointment chahiye kal dopahar 12 baje.</p><p class="agent"><b>Myna</b> Dr. Mehta ke saath Tuesday, 13 October, dopahar 12 baje available hai. Please patient ka poora naam bataiye.</p><p class="caller"><b>Caller</b> Patient ka naam Kamla Devi hai.</p><p class="agent"><b>Myna</b> Thank you. Aur patient ki date of birth?</p><p class="caller"><b>Caller</b> 2 February 1958</p><p class="agent"><b>Myna</b> Confirm kar loon: Kamla Devi ke liye Dr. Mehta ke saath consultation, Tuesday, 13 October ko dopahar 12 baje. Kya main book kar doon?</p><p class="caller"><b>Caller</b> Haan ji.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev high">high</span> <code>reminder_outcome</code> · 4 calls</summary>
+        <p>recorded: []</p>
+        <p class="muted">rem-cancel (hinglish), rem-confirm (hinglish), rem-reschedule (hinglish), rem-wrong-date-of-birth (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki taraf se automated assistant. Kya meri baat Pooja se ho rahi hai?</p><p class="caller"><b>Caller</b> Haan, main hi bol rahi hoon.</p><p class="agent"><b>Myna</b> Sorry, main samajh nahi paayi. Namaste, main Myna hoon, Smile Dental Care ki taraf se automated assistant. Kya meri baat Pooja se ho rahi hai?</p><p class="caller"><b>Caller</b> Haan, main hi bol rahi hoon.</p><p class="agent"><b>Myna</b> Sorry, main samajh nahi paayi. Namaste, main Myna hoon, Smile Dental Care ki taraf se automated assistant. Kya meri baat Pooja se ho rahi hai?</p><p class="caller"><b>Caller</b> Haan, main hi bol rahi hoon.</p><p class="agent"><b>Myna</b> Sorry, mujhe theek se samajh nahi aa raha. Main aapko staff se jod rahi hoon.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev high">high</span> <code>tasks_end_state</code> · 3 calls</summary>
+        <p>expected 1 tasks, got 0</p>
+        <p class="muted">msg-billing-unverified (hinglish), msg-refill (hinglish), msg-report-status (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Pichle mahine ke bill ke baare mein sawaal hai.</p><p class="agent"><b>Myna</b> Please patient ka poora naam bataiye.</p><p class="caller"><b>Caller</b> Mera naam Ramesh Kumar hai.</p><p class="agent"><b>Myna</b> Aur patient ki date of birth, taaki team file dhoondh sake? Agar nahi pata toh bata dijiye.</p><p class="caller"><b>Caller</b> Pata nahi.</p><p class="agent"><b>Myna</b> Kya team aapko 2111 pe khatam hone wale number pe call kare?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> Sorry, main samajh nahi paayi. Kya team aapko 2111 pe khatam hone wale number pe call kare?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> Sorry, main samajh nahi paayi. Kya team aapko 2111 pe khatam hone wale number pe call kare?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> Sorry, mujhe theek se samajh nahi aa raha. Main aapko staff se jod rahi hoon.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev medium">medium</span> <code>handoff</code> · 8 calls</summary>
+        <p>unexpected handoff: unanswered_question</p>
+        <p class="muted">faq-fees (hinglish), msg-billing-unverified (hinglish), msg-doctor-callback (hinglish), msg-report-status (hinglish), rem-cancel (hinglish), rem-confirm (hinglish), rem-reschedule (hinglish), rem-wrong-date-of-birth (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Consultation ki fees kitni hai?</p><p class="agent"><b>Myna</b> A consultation is 500 rupees. Cleaning starts at 1,200 rupees. Kya main aur kuch madad kar sakti hoon?</p><p class="caller"><b>Caller</b> Nahi, bas. Thank you.</p><p class="agent"><b>Myna</b> I don't have that information, so I won't guess. Let me connect you to our staff.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev medium">medium</span> <code>call_completed</code> · 1 call</summary>
+        <p>still going after 16 turns</p>
+        <p class="muted">reschedule-for-father (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Papa ka appointment change karna hai.</p><p class="agent"><b>Myna</b> Please patient ka poora naam bataiye.</p><p class="caller"><b>Caller</b> Patient ka naam Arjun Verma hai.</p><p class="agent"><b>Myna</b> Thank you. Aur patient ki date of birth?</p><p class="caller"><b>Caller</b> 2 November 1985</p><p class="agent"><b>Myna</b> Mujhe Dr. Mehta ke saath Friday, 16 October ko subah 10 baje consultation dikh raha hai. Iski jagah kaunsa din aur time chahiye?</p><p class="caller"><b>Caller</b> Thursday dopahar 12 baje</p><p class="agent"><b>Myna</b> Dr. Mehta ke saath Thursday, 15 October, dopahar 12 baje available hai. Confirm kar loon: Arjun Verma ka consultation, Dr. Mehta ke saath, Friday, 16 October subah 10 baje se badal kar Thursday, 15 October ko dopahar 12 baje. Kya main badal doon?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> Ho gaya. Appointment ab Thursday, 15 October ko dopahar 12 baje Dr. Mehta ke saath hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?</p><p class="caller"><b>Caller</b> Nahi, bas. Thank you.</p><p class="agent"><b>Myna</b> Would you like to book, change or cancel an appointment?</p><p class="caller"><b>Caller</b> Papa ka appointment change karna hai.</p><p class="agent"><b>Myna</b> Mujhe Dr. Mehta ke saath Thursday, 15 October ko dopahar 12 baje consultation dikh raha hai. Iski jagah kaunsa din aur time chahiye?</p><p class="caller"><b>Caller</b> Thursday dopahar 12 baje</p><p class="agent"><b>Myna</b> Thursday, 15 October ko Dr. Mehta ke saath dopahar 12:15 baje, dopahar 12:30 baje ya dopahar 12:45 baje available hai. Kaunsa time chahiye?</p><p class="caller"><b>Caller</b> pehla wala</p><p class="agent"><b>Myna</b> Confirm kar loon: Arjun Verma ka consultation, Dr. Mehta ke saath, Thursday, 15 October dopahar 12 baje se badal kar Thursday, 15 October ko dopahar 12:15 baje. Kya main badal doon?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> Ho gaya. Appointment ab Thursday, 15 October ko dopahar 12:15 baje Dr. Mehta ke saath hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?</p><p class="caller"><b>Caller</b> Nahi, bas. Thank you.</p><p class="agent"><b>Myna</b> Aap appointment book, change ya cancel karna chahte hain?</p><p class="caller"><b>Caller</b> Papa ka appointment change karna hai.</p><p class="agent"><b>Myna</b> Mujhe Dr. Mehta ke saath Thursday, 15 October ko dopahar 12:15 baje consultation dikh raha hai. Iski jagah kaunsa din aur time chahiye?</p><p class="caller"><b>Caller</b> Thursday dopahar 12 baje</p><p class="agent"><b>Myna</b> Dr. Mehta ke saath Thursday, 15 October, dopahar 12 baje available hai. Confirm kar loon: Arjun Verma ka consultation, Dr. Mehta ke saath, Thursday, 15 October dopahar 12:15 baje se badal kar Thursday, 15 October ko dopahar 12 baje. Kya main badal doon?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> Ho gaya. Appointment ab Thursday, 15 October ko dopahar 12 baje Dr. Mehta ke saath hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?</p><p class="caller"><b>Caller</b> Nahi, bas. Thank you.</p><p class="agent"><b>Myna</b> Would you like to book, change or cancel an appointment?</p><p class="caller"><b>Caller</b> Papa ka appointment change karna hai.</p><p class="agent"><b>Myna</b> Mujhe Dr. Mehta ke saath Thursday, 15 October ko dopahar 12 baje consultation dikh raha hai. Iski jagah kaunsa din aur time chahiye?</p></div>
+      </details>
+      <details >
+        <summary><span class="sev low">low</span> <code>reply_language</code> · 8 calls</summary>
+        <p>1 replies not in hinglish, e.g. &quot;Friday, 16 October, 12 pm with Dr. Mehta is available. Just to confirm: a filling for Sana Shaikh with Dr. Mehta on Friday, 16 October at 12 pm. Shall I book it?&quot;</p>
+        <p class="muted">book-mind-change-at-read-back (hinglish), book-mumbled-date-of-birth (hinglish), cancel-verified (hinglish), faq-fees (hinglish), faq-timings (hinglish), medical-question-mid-booking (hinglish), rem-wrong-number (hinglish), reschedule-for-father (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Mujhe filling ka appointment chahiye Thursday subah 11 baje.</p><p class="agent"><b>Myna</b> Dr. Mehta ke saath Thursday, 15 October, subah 11 baje available hai. Please patient ka poora naam bataiye.</p><p class="caller"><b>Caller</b> Mera naam Sana Shaikh hai.</p><p class="agent"><b>Myna</b> Thank you. Aur patient ki date of birth?</p><p class="caller"><b>Caller</b> 5 May 1991</p><p class="agent"><b>Myna</b> Confirm kar loon: Sana Shaikh ke liye Dr. Mehta ke saath filling, Thursday, 15 October ko subah 11 baje. Kya main book kar doon?</p><p class="caller"><b>Caller</b> Nahi, Friday dopahar 12 baje kar do.</p><p class="agent"><b>Myna</b> Friday, 16 October, 12 pm with Dr. Mehta is available. Just to confirm: a filling for Sana Shaikh with Dr. Mehta on Friday, 16 October at 12 pm. Shall I book it?</p><p class="caller"><b>Caller</b> Haan ji.</p></div>
+      </details>
+<p class="muted">Read-only report · all patients and calls are simulated · soft criteria not graded: the LLM judge for politeness/clarity needs a model key</p>
+</main></body></html>

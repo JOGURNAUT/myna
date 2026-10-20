@@ -42,7 +42,7 @@ from .nlu import (
     detect_language,
     mentions_booking,
 )
-from .text import normalize
+from .text import has_devanagari, normalize
 from .tools import ApiClient, ToolError
 
 log = logging.getLogger("myna.conversation")
@@ -1336,6 +1336,10 @@ class Conversation:
         """Follow the caller's language. A switch to English needs English words: a name, a
         date ("15 March 1992") or a number is Latin script but no language at all.
         (Findings: M1 #1 for names; Hawk run 2 for dates of birth.)"""
+        if has_devanagari(text):
+            # Script is a fact, not a judgement: Devanagari is Hindi, whatever the model labels
+            # it (Hawk full run: the live model said "hinglish" and Myna answered in Hinglish).
+            candidate = "hi"
         if candidate not in self._allowed_languages() or candidate == self.lang:
             return
         if candidate == "en":

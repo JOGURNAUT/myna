@@ -17,7 +17,13 @@ from typing import Any
 import httpx
 from pydantic import ValidationError
 
-from ..nlu import NLU, Understanding, fill_gaps, settle_closed_answers
+from ..nlu import (
+    NLU,
+    Understanding,
+    fill_gaps,
+    settle_closed_answers,
+    settle_staff_requests,
+)
 
 log = logging.getLogger("myna.llm.sarvam")
 
@@ -231,7 +237,8 @@ class WithFallback:
             # The model decides what the caller MEANT; code fills in facts it left out, and
             # settles simple yes / no / goodbye answers the model didn't recognise.
             rules = await self.fallback.understand(text, ctx)
-            return settle_closed_answers(fill_gaps(understood, rules), rules, ctx.expecting)
+            settled = settle_closed_answers(fill_gaps(understood, rules), rules, ctx.expecting)
+            return settle_staff_requests(settled, rules, ctx.expecting)
         except Exception:
             self.fallbacks += 1
             NLU_STATS["fallbacks"] += 1

@@ -3,6 +3,39 @@
 Real-world and test findings, newest first: what happened, why, and what changed.
 Every bug found in a real call also becomes a Hawk regression scenario.
 
+## 2026-10-20 — Hawk against the REAL model (Sarvam `sarvam-105b-conversations`)
+Reports: `docs/reports/run-03-live-first-attempt.html` → `run-04-live-final.html`.
+
+The offline suite was 100% on all three flows, so I expected the real model to roughly match.
+**It scored 26% on the Hinglish suite** (9/34; booking 29%, messages 0%, reminders 38%). One
+critical failure: a booking nobody asked for. The offline tests had never shown any of this,
+because a language model fails in ways a keyword parser doesn't. After the fixes below:
+**102/103 (99%), all three flows SAFE TO LAUNCH**, 370 model calls with 1 fallback to rules,
+p50 372 ms / p95 1.98 s per reply (understanding only; speech comes with M3).
+
+The principle that fixed all of it: **the model suggests, code decides.** Wherever the answer is a
+closed set or a visible fact (a service name, a doctor, yes/no/goodbye, Devanagari = Hindi, a
+message category), deterministic code overrules a noisy model. The model keeps the judgement calls
+(intent, emergencies, medical questions, frustration) and code never overrides what it did extract.
+
+| # | What the live model did | Effect on a call | Fix (each one is a regression test) |
+|---|---|---|---|
+| 1 | Right intent, but left `service_id` empty, even for the bare answer "cleaning" | Myna asked "what is the visit for?" 16 times | Code fills fields the model left empty (service, doctor, option, phone, DOB, name, FAQ). |
+| 2 | Copied a date from an earlier turn into `date_text` on a bare "Haan ji" | Wiped the slot being confirmed; an `assert` then crashed the turn (HTTP 500) | A model hint only counts if it quotes what the caller just said. No asserts in commit paths. Any unexpected error becomes a handoff, never a dead line. |
+| 3 | Heard "yes" (or a new FAQ) in "Nahi, bas. Thank you." | Myna asked what to book next; the caller started over and booked twice (the critical failure) | On yes/no/goodbye questions, plain keywords beat a confused or wrong model. |
+| 4 | Collapsed "is my report ready? also book a cleaning" into one label | The booking was dropped | Code sees the booking word plus a day or service: book first, the question waits its turn. |
+| 5 | Labelled Devanagari "hinglish", and "Nahi, bas. Thank you." "en" | Hindi callers got Hinglish replies | Script is a fact: Devanagari is Hindi. Hinglish words veto a switch to English. |
+| 6 | Filed "is my X-ray report ready?" and "ask the doctor to call me" as `other`; called a bill question an FAQ | Wrong task category; a bill question was transferred ("I don't have that information") instead of taken as a message | Closed-vocabulary categories are decided by keywords when the model says nothing specific; a report/refill/bill/callback request is never an FAQ. |
+| 7 | Sarvam's Starter plan rate-limits (~40–60 chat requests/min) | 429s silently downgraded a call to the keyword parser, and one call hung past 20 s | Retry with backoff; a hard 6 s model budget (a phone caller can't wait); `/v1/stats` counts model answers vs fallbacks and Hawk prints it, so a report can't claim the model's result for the parser's work. |
+
+Also learned:
+- `sarvam-105b` is a *reasoning* model: given a small token budget it can spend it all thinking and
+  return an empty reply. `sarvam-105b-conversations` answers directly (~300 ms) and is the right
+  model for a voice agent; it is now the default.
+- Hawk now prints the agent's log tail when a call errors. That is how finding #2's traceback was found.
+- Still open: the Hawk patients are scripted and text-only. Re-run with LLM-played patients and in
+  audio mode (M3) before trusting any SAFE verdict for a pilot.
+
 ## 2026-10-03 — Hawk run 1: the first go-live report (M2)
 103 simulated calls (35 scenarios × EN / Hinglish / Hindi), rule-based understanding, scripted
 patients. Report: `docs/reports/run-01-baseline.html`.

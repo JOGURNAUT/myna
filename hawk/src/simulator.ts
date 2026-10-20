@@ -503,6 +503,14 @@ export class ScriptedPatient {
     const { name, nameHi } = this.scenario.caller;
     const lang = this.lang;
     const spoken = lang === 'hi' && nameHi ? nameHi : name;
+    if (this.persona.formalIntro && !this.namedOnce) {
+      this.namedOnce = true;
+      return L(
+        `Hi, this is ${spoken} speaking.`,
+        `ji main ${spoken} bol rahi hoon`,
+        `जी मैं ${spoken} बोल रही हूँ`,
+      )[lang];
+    }
     if (this.persona.terse || this.namedOnce) return spoken;
     this.namedOnce = true;
     if (this.scenario.thirdParty) {

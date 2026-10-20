@@ -11,6 +11,7 @@ export default defineConfig(
       '**/coverage/**',
       '**/.next/**',
       'apps/web/postcss.config.mjs',
+      'scripts/*.mjs',
       'apps/web/next-env.d.ts',
       'services/agent/**',
       'packages/shared/json-schema/**',

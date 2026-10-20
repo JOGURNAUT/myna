@@ -524,10 +524,11 @@ _NAME_PATTERNS = [
         re.I,
     ),
     re.compile(r"^main\s+(.+?)\s+(?:bol rahi|bol raha|hoon|hu)\b", re.I),
+    re.compile(r"(?:मैं|मै)\s+(.+?)\s+(?:बोल रही|बोल रहा|हूँ|हूं)"),
     re.compile(r"(?:मेरा नाम|नाम)\s+(.+?)(?:\s+है|$)"),
 ]
 _NAME_STOP = re.compile(
-    r"\s*(?:,|\.|\band\b|\baur\b|\bmy\b|\bdob\b|\bdate of birth\b|\bborn\b|\bnumber\b|\bphone\b|\bhai\b|\bhoon\b|\d|$)",
+    r"\s*(?:,|\.|\band\b|\baur\b|\bmy\b|\bdob\b|\bdate of birth\b|\bborn\b|\bnumber\b|\bphone\b|\bhai\b|\bhoon\b|\bspeaking\b|\bbol\b|\d|$)",
     re.I,
 )
 _LEADING_FILLER = re.compile(
@@ -559,14 +560,16 @@ def detect_language(text: str) -> Lang:
 
 
 def _extract_name(raw: str, expecting: Expecting) -> str | None:
-    text = raw.strip()
+    # "ji main Neha Kapoor bol rahi hoon": drop the leading "ji" so the patterns can anchor.
+    # (Found by the live demo: neither Hawk's scripts nor the real model handled this very
+    # common way to introduce yourself on an Indian phone call.)
+    text = _LEADING_FILLER.sub("", raw.strip())
     for pattern in _NAME_PATTERNS:
         if m := pattern.search(text):
             candidate = _NAME_STOP.split(m.group(1).strip(), maxsplit=1)[0]
             return _clean_name(candidate)
     if expecting == "name":
         # A bare answer to "what's the name?": take the leading words before any date/number.
-        text = _LEADING_FILLER.sub("", text)
         candidate = _NAME_STOP.split(text, maxsplit=1)[0]
         return _clean_name(candidate)
     return None
@@ -739,7 +742,40 @@ def fill_gaps(model: Understanding, rules: Understanding) -> Understanding:
         for name in ("service_id", "resource_id", "option_number", "phone", "dob", "name", "faq_id")
         if getattr(model, name) is None and getattr(rules, name) is not None
     }
+    # The message category is a closed list too. The live model files "is my X-ray report
+    # ready?" and "ask the doctor to call me" under `other` (Hawk full run): when it says nothing
+    # specific and the keywords find a real category, the keywords win.
+    for name in ("task_category", "secondary_category"):
+        mine, theirs = getattr(model, name), getattr(rules, name)
+        if mine in (None, "other") and theirs not in (None, "other"):
+            gaps[name] = theirs
     return model.model_copy(update=gaps) if gaps else model
+
+
+def settle_staff_requests(
+    model: Understanding, rules: Understanding, expecting: str
+) -> Understanding:
+    """A report / refill / bill / callback request is a MESSAGE for staff, never an FAQ.
+
+    Hawk full run: the model called "a question about last month's bill" an FAQ, so Myna said
+    "I don't have that information" and transferred the call instead of taking a message.
+    FAQs are answered only from the clinic's config; the keywords know which words are which.
+    """
+    if (
+        expecting in ("intent", "anything_else")
+        and model.intent in (Intent.faq, Intent.provide_info, Intent.unclear)
+        and rules.intent == Intent.other_request
+        and rules.task_category is not None
+    ):
+        return model.model_copy(
+            update={
+                "intent": Intent.other_request,
+                "task_category": rules.task_category,
+                "summary": model.summary or rules.summary,
+                "faq_id": None,
+            }
+        )
+    return model
 
 
 #: Questions whose answer is yes / no / goodbye / "that's all".

@@ -120,3 +120,18 @@ def test_third_party_and_frustration() -> None:
     assert parse("booking for my mother").third_party
     assert parse("mummy ke liye appointment chahiye").third_party
     assert parse("this is useless").frustrated
+
+
+@pytest.mark.parametrize(
+    ("text", "name"),
+    [
+        ("ji main Neha Kapoor bol rahi hoon", "Neha Kapoor"),
+        ("main Neha Kapoor bol rahi hoon", "Neha Kapoor"),
+        ("Hi, this is Neha Kapoor speaking", "Neha Kapoor"),
+        ("जी मैं नेहा कपूर बोल रही हूँ", "नेहा कपूर"),
+        ("haan ji, mera naam Rahul Gupta hai", "Rahul Gupta"),
+    ],
+)
+def test_formal_introductions(text: str, name: str) -> None:
+    """Found by the live demo: 'ji main X bol rahi hoon' was not understood as a name."""
+    assert parse(text, "name").name == name
