@@ -7,3 +7,4 @@ packages/shared/json-schema
 *.md
 docs/reports
 .next
+services/api/migrations
