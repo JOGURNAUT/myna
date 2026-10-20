@@ -9,6 +9,7 @@ dependencies = [
   "fastapi>=0.115",
   "uvicorn>=0.32",
   "tzdata>=2026.4",
+  "redis>=8.1.0",
 ]
 
 [project.scripts]
@@ -20,6 +21,7 @@ dev = [
   "pytest-asyncio>=0.24",
   "ruff>=0.7",
   "datamodel-code-generator>=0.26",
+  "fakeredis[lua]>=2.40.0",
 ]
 
 [build-system]

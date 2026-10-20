@@ -23,7 +23,15 @@ from . import contracts as c
 from .conversation import Conversation, Reply
 from .llm.sarvam import NLU_STATS, SarvamNLU, WithFallback
 from .nlu import NLU, RuleBasedNLU
+from .session_store import (
+    InMemoryStore,
+    LockTimeout,
+    RedisStore,
+    ResilientStore,
+    SessionStore,
+)
 from .settings import Settings, load_dotenv
+from .snapshot import IncompatibleSnapshot, restore, snapshot
 from .tools import ApiClient, ToolError
 
 log = logging.getLogger("myna.server")
@@ -70,9 +78,23 @@ class ReplyOut(BaseModel):
 
 @dataclass
 class Session:
+    """This instance's warm objects for a call. The truth lives in the SessionStore."""
+
     conv: Conversation
     api: ApiClient
+    clinic_id: str
     touched: float
+    rev: int = 0
+
+
+def make_store(settings: Settings) -> SessionStore:
+    """Redis when REDIS_URL is set (shared across instances), else this process's memory."""
+    if not settings.redis_url:
+        return InMemoryStore()
+    from redis.asyncio import Redis
+
+    client = Redis.from_url(settings.redis_url, decode_responses=True, socket_timeout=2)
+    return ResilientStore(RedisStore(client), InMemoryStore())
 
 
 def make_nlu(settings: Settings, clinic_name: str) -> NLU:
@@ -94,8 +116,11 @@ def create_app(
     settings: Settings | None = None,
     nlu_factory: Callable[[str], NLU] | None = None,
     now: Callable[[], datetime] | None = None,
+    store: SessionStore | None = None,
 ) -> FastAPI:
     sessions: dict[str, Session] = {}
+    cfg = settings or Settings.from_env()
+    sessions_store: SessionStore = store if store is not None else make_store(cfg)
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
@@ -104,7 +129,6 @@ def create_app(
             await s.api.aclose()
 
     app = FastAPI(title="Myna agent", lifespan=lifespan)
-    cfg = settings or Settings.from_env()
 
     async def sweep() -> None:
         cutoff = time.monotonic() - SESSION_IDLE_SECONDS
@@ -171,9 +195,50 @@ def create_app(
         )
         return conv, api, reminder
 
-    def keep(conv: Conversation, api: ApiClient, reply: Reply) -> dict[str, object]:
-        sessions[conv.call_id] = Session(conv, api, time.monotonic())
+    async def keep(
+        conv: Conversation, api: ApiClient, clinic_id: str, reply: Reply
+    ) -> dict[str, object]:
+        """Persist the call after a turn (or forget it if it ended)."""
+        session = sessions.get(conv.call_id) or Session(conv, api, clinic_id, time.monotonic())
+        sessions[conv.call_id] = session
+        session.touched = time.monotonic()
+        if reply.ended:
+            await finish(conv.call_id)
+        else:
+            session.rev += 1
+            await sessions_store.save(
+                conv.call_id, snapshot(conv, clinic_id=clinic_id, rev=session.rev)
+            )
         return {"callId": conv.call_id, "reply": ReplyOut.of(reply).model_dump(by_alias=True)}
+
+    async def finish(call_id: str) -> None:
+        session = sessions.pop(call_id, None)
+        await sessions_store.delete(call_id)
+        if session is not None:
+            await session.api.aclose()
+
+    async def revive(call_id: str, data: dict[str, object]) -> Session:
+        """This instance hasn't seen the call (another one took the earlier turns): rebuild it."""
+        clinic_id = str(data["clinicId"])
+        api = ApiClient(cfg.api_base_url, cfg.agent_api_token, clinic_id)
+        try:
+            config = await api.config()
+        except ToolError as e:
+            await api.aclose()
+            raise HTTPException(502, e.message) from e
+        clock = clock_for(config)
+        phone = data.get("callerPhone")
+        conv = Conversation(
+            api=api,
+            nlu=nlu_factory(config.name) if nlu_factory else make_nlu(cfg, config.name),
+            config=config,
+            call_id=call_id,
+            caller_phone=str(phone) if phone else None,
+            **({"now": clock} if clock else {}),
+        )
+        session = Session(conv, api, clinic_id, time.monotonic())
+        sessions[call_id] = session
+        return session
 
     @app.post("/v1/calls")
     async def start_call(body: StartCall) -> dict[str, object]:
@@ -182,10 +247,7 @@ def create_app(
             body.clinic_id, c.Direction.inbound, body.source, body.caller_phone
         )
         reply = await conv.start()
-        out = keep(conv, api, reply)
-        if reply.ended:
-            await sessions.pop(conv.call_id).api.aclose()
-        return out
+        return await keep(conv, api, body.clinic_id, reply)
 
     @app.post("/v1/outbound")
     async def start_outbound(body: StartOutbound) -> dict[str, object]:
@@ -203,18 +265,30 @@ def create_app(
         )
         assert reminder is not None
         reply = await conv.start_outbound(reminder)
-        return keep(conv, api, reply)
+        return await keep(conv, api, body.clinic_id, reply)
 
     @app.post("/v1/calls/{call_id}/turns")
     async def turn(call_id: str, body: Turn) -> dict[str, object]:
-        session = sessions.get(call_id)
-        if session is None:
-            raise HTTPException(404, "unknown or finished call")
-        session.touched = time.monotonic()
-        reply = await session.conv.handle(body.text)
-        if reply.ended:
-            await sessions.pop(call_id).api.aclose()
-        return {"reply": ReplyOut.of(reply).model_dump(by_alias=True)}
+        try:
+            async with sessions_store.lock(call_id):
+                data = await sessions_store.load(call_id)
+                if data is None:
+                    raise HTTPException(404, "unknown or finished call")
+                session = sessions.get(call_id) or await revive(call_id, data)
+                try:
+                    restore(session.conv, data)  # another instance may have moved it on
+                except IncompatibleSnapshot as e:
+                    log.warning("discarding incompatible call state: %s", e)
+                    await finish(call_id)
+                    raise HTTPException(
+                        410, "this call's state is from another version; please start again"
+                    ) from e
+                session.rev = int(data["rev"])
+                reply = await session.conv.handle(body.text)
+                out = await keep(session.conv, session.api, session.clinic_id, reply)
+        except LockTimeout as e:
+            raise HTTPException(409, "another turn of this call is still running") from e
+        return {"reply": out["reply"]}
 
     return app
 

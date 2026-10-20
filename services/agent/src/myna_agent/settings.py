@@ -31,6 +31,8 @@ class Settings:
     port: int
     #: Pinned clock for tests and Hawk (UTC ISO). Refused when APP_ENV=production.
     fake_now: str | None = None
+    #: Shared state for several agent instances. Unset = single-process, in-memory.
+    redis_url: str | None = None
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -45,6 +47,7 @@ class Settings:
             sarvam_model=os.environ.get("SARVAM_MODEL", "sarvam-105b-conversations"),
             port=int(os.environ.get("AGENT_PORT", "8000")),
             fake_now=_fake_now(),
+            redis_url=os.environ.get("REDIS_URL") or None,
         )
 
 
