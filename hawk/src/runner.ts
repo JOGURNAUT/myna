@@ -4,7 +4,8 @@ import { type AgentReply, ScriptedPatient } from './simulator.js';
 
 export interface Endpoints {
   apiUrl: string;
-  agentUrl: string;
+  /** Agent instances. Each call starts on one and every later turn goes to the next. */
+  agentUrls: string[];
   token: string;
   baseClinicId: string;
 }
@@ -83,6 +84,8 @@ export async function runScenario(
   const tenant = await createTenant(env, scenario, lang);
   const turns: Turn[] = [];
   const sim = new ScriptedPatient(scenario, persona, lang);
+  const agents = env.agentUrls;
+  const nextAgent = rotation(agents);
   let callId = '';
   let endedBy: CallRecord['endedBy'] = 'agent';
   let error: string | undefined;
@@ -92,11 +95,11 @@ export async function runScenario(
     const started = performance.now();
     const first =
       scenario.direction === 'outbound'
-        ? await json<AgentTurnResponse>(`${env.agentUrl}/v1/outbound`, {
+        ? await json<AgentTurnResponse>(`${nextAgent()}/v1/outbound`, {
             method: 'POST',
             body: JSON.stringify({ clinicId: tenant.clinicId, source: 'hawk' }),
           })
-        : await json<AgentTurnResponse>(`${env.agentUrl}/v1/calls`, {
+        : await json<AgentTurnResponse>(`${nextAgent()}/v1/calls`, {
             method: 'POST',
             body: JSON.stringify({
               clinicId: tenant.clinicId,
@@ -127,7 +130,7 @@ export async function runScenario(
       if (said === null) break;
       turns.push({ speaker: 'caller', text: said });
       const t0 = performance.now();
-      const next = await json<AgentTurnResponse>(`${env.agentUrl}/v1/calls/${callId}/turns`, {
+      const next = await json<AgentTurnResponse>(`${nextAgent()}/v1/calls/${callId}/turns`, {
         method: 'POST',
         body: JSON.stringify({ text: said }),
       });
@@ -177,4 +180,15 @@ export async function runScenario(
     state,
     handoffTo,
   };
+}
+
+let started = 0;
+/**
+ * Round-robin over the agent instances, offset per call so every instance also opens calls.
+ * With one instance it's constant; with several, a call's turns hop between them, which only
+ * works if call state really is shared.
+ */
+function rotation(urls: string[]): () => string {
+  let i = started++;
+  return () => urls[i++ % urls.length] as string;
 }

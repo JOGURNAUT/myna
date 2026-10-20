@@ -2,6 +2,34 @@
 
 Newest first. Each entry: what, why, and what would make us revisit it.
 
+## 2026-10-20 — Redis: four uses, each with a failure it prevents
+Approved plan: `docs/plan-redis.md`. Redis is optional (no `REDIS_URL` = in-memory, same
+interfaces, same tests). Versions: redis-py 8.1, ioredis 6, Redis 7 in CI/compose.
+- **Live-call state** (agent): the whole conversation serialises to a versioned JSON snapshot
+  under `myna:call:{id}` with a 30-min sliding TTL. Every turn runs load → handle → save under a
+  per-call lock (`SET NX PX` + compare-and-delete release), so any instance serves any turn, a
+  deploy doesn't drop calls, and a double-tapped send can't interleave. The snapshot has a
+  version; an incompatible one answers 410 "please start again" rather than crashing. The clinic
+  config and model client are deliberately NOT in the snapshot (rebuilt per instance).
+- **Reminder claims** (API): `POST /reminders/claim` hands a worker the due reminder only if
+  `SET NX PX 120000` succeeds. The claim expires, so a crashed worker's reminder returns. If
+  Redis is unreachable the answer is "claimed nothing": a missed reminder beats ringing a
+  patient twice.
+- **Shared rate limits** (API login lock-out, web demo chat): atomic `INCR`+`PEXPIRE` in one Lua
+  script, fixed window. Falls back to per-instance memory if Redis is down (a limiter must not
+  take the site down). One implementation in `@myna/shared/rate-limit`, used by API and web.
+- **Config cache + kill switch**: the agent caches a clinic's config for 60 s, but a config with
+  the kill switch ON is never cached or served from cache. The API `DEL`s the key and publishes
+  on `myna:config-changed` when settings change; every API instance subscribes and re-reads that
+  clinic from the DB. (This also fixed a real scale-out bug: each API instance held the kill
+  switch in its own memory, so flipping it on one instance left the others taking calls.)
+- Per-tenant key prefixes were dropped for call state: call ids are random UUIDs and the turn
+  route doesn't know the clinic, so the clinic id lives inside the snapshot instead.
+- Tests: the same store/limiter/claim contract suites run on memory, a Redis mock/fakeredis,
+  and (when `REDIS_URL` is set, as in CI) a real Redis. Locally there is no Docker daemon, so
+  `hawk run --instances 2` starts a Redis-protocol server (fakeredis' TCP server) unless
+  `REDIS_URL` points at a real one; CI runs it against real Redis 7.
+
 ## 2026-10-03 — Hawk: how a call is judged
 - **One throwaway tenant per scenario** (`/v1/hawk/*`, only with `HAWK_ENABLED=1`, refused in
   production). Uses the product's own tenant isolation, so scenarios run in parallel with no DB

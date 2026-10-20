@@ -5,6 +5,7 @@ const config: NextConfig = {
   poweredByHeader: false,
   // Workspace package ships TypeScript source.
   transpilePackages: ['@myna/shared'],
+  serverExternalPackages: ['ioredis'],
 };
 
 export default config;

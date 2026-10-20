@@ -9,17 +9,19 @@ from __future__ import annotations
 import json
 import logging
 import time
+import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from . import contracts as c
+from .config_cache import ConfigCache
 from .conversation import Conversation, Reply
 from .llm.sarvam import NLU_STATS, SarvamNLU, WithFallback
 from .nlu import NLU, RuleBasedNLU
@@ -87,14 +89,22 @@ class Session:
     rev: int = 0
 
 
-def make_store(settings: Settings) -> SessionStore:
-    """Redis when REDIS_URL is set (shared across instances), else this process's memory."""
+def make_redis(settings: Settings) -> Any | None:
+    """A Redis client when REDIS_URL is set; None means single-process, in-memory."""
     if not settings.redis_url:
-        return InMemoryStore()
+        return None
     from redis.asyncio import Redis
 
-    client = Redis.from_url(settings.redis_url, decode_responses=True, socket_timeout=2)
-    return ResilientStore(RedisStore(client), InMemoryStore())
+    return Redis.from_url(
+        settings.redis_url, decode_responses=True, socket_timeout=2, socket_connect_timeout=2
+    )
+
+
+def make_store(redis: Any | None) -> SessionStore:
+    """Shared Redis state (with a memory fallback if it goes down), else this process's memory."""
+    if redis is None:
+        return InMemoryStore()
+    return ResilientStore(RedisStore(redis), InMemoryStore())
 
 
 def make_nlu(settings: Settings, clinic_name: str) -> NLU:
@@ -117,16 +127,22 @@ def create_app(
     nlu_factory: Callable[[str], NLU] | None = None,
     now: Callable[[], datetime] | None = None,
     store: SessionStore | None = None,
+    config_cache: ConfigCache | None = None,
 ) -> FastAPI:
     sessions: dict[str, Session] = {}
+    worker_id = f"agent-{uuid.uuid4().hex[:12]}"
     cfg = settings or Settings.from_env()
-    sessions_store: SessionStore = store if store is not None else make_store(cfg)
+    redis = make_redis(cfg)
+    sessions_store: SessionStore = store if store is not None else make_store(redis)
+    configs = config_cache if config_cache is not None else ConfigCache(redis)
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         yield
         for s in sessions.values():
             await s.api.aclose()
+        if redis is not None:
+            await redis.aclose()
 
     app = FastAPI(title="Myna agent", lifespan=lifespan)
 
@@ -166,7 +182,7 @@ def create_app(
     ) -> tuple[Conversation, ApiClient, c.DueReminder | None]:
         api = ApiClient(cfg.api_base_url, cfg.agent_api_token, clinic_id)
         try:
-            config = await api.config()
+            config = await configs.get(api)
             reminder = await pick(api) if pick else None
             if pick and reminder is None:
                 raise HTTPException(404, "no reminder is due")
@@ -222,7 +238,7 @@ def create_app(
         clinic_id = str(data["clinicId"])
         api = ApiClient(cfg.api_base_url, cfg.agent_api_token, clinic_id)
         try:
-            config = await api.config()
+            config = await configs.get(api)
         except ToolError as e:
             await api.aclose()
             raise HTTPException(502, e.message) from e
@@ -255,10 +271,9 @@ def create_app(
         await sweep()
 
         async def pick(api: ApiClient) -> c.DueReminder | None:
-            due = await api.due_reminders()
-            if body.appointment_id is None:
-                return due[0] if due else None
-            return next((d for d in due if d.appointment_id == body.appointment_id), None)
+            # Claim first: with several instances/workers, only one may ring a given patient.
+            claimed = await api.claim_reminders(worker_id, body.appointment_id)
+            return claimed[0] if claimed else None
 
         conv, api, reminder = await open_call(
             body.clinic_id, c.Direction.outbound, body.source, None, pick

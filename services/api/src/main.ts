@@ -3,6 +3,7 @@ import { openDb } from './db/client.js';
 import { loadDotEnv, readEnv } from './env.js';
 import { parseClinicLogins } from './core/staff-auth.js';
 import { buildApp } from './http/app.js';
+import { connectRedis } from './infra/redis.js';
 import { seedDemo } from './seed.js';
 
 loadDotEnv();
@@ -32,6 +33,7 @@ if (hawk && process.env.NODE_ENV === 'production') {
   throw new Error('HAWK_ENABLED is not allowed in production');
 }
 
+const infra = connectRedis(process.env.REDIS_URL);
 const app = await buildApp({
   db,
   clinics,
@@ -39,6 +41,7 @@ const app = await buildApp({
   logger: true,
   clock,
   hawk,
+  ...(infra ? { limiter: infra.limiter, claims: infra.claims, configBus: infra.configBus } : {}),
   ...(env.STAFF_SESSION_SECRET
     ? { staff: { secret: env.STAFF_SESSION_SECRET, logins: parseClinicLogins(env.CLINIC_LOGINS) } }
     : {}),
@@ -46,10 +49,11 @@ const app = await buildApp({
 
 const shutdown = async () => {
   await app.close();
+  await infra?.close();
   close();
 };
 process.once('SIGINT', () => void shutdown());
 process.once('SIGTERM', () => void shutdown());
 
 await app.listen({ host: env.API_HOST, port: env.API_PORT });
-app.log.info({ clinics: [...clinics.keys()] }, 'myna api ready');
+app.log.info({ clinics: [...clinics.keys()], redis: Boolean(infra) }, 'myna api ready');

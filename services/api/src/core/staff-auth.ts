@@ -1,4 +1,5 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import type { RateLimiter } from '@myna/shared/rate-limit';
 
 /**
  * Dashboard sign-in: one login per clinic (CLAUDE.md, web app). Passwords are stored as scrypt
@@ -74,26 +75,30 @@ export function verifySession(secret: string, token: string, now: number): Staff
   }
 }
 
-/** At most `limit` failed logins per clinic per window. In-memory: one API process. */
+/**
+ * At most `limit` failed logins per clinic per window. The counter lives in the RateLimiter, so
+ * with Redis every API instance shares it (and the lock-out can't be dodged by switching instance).
+ */
 export class LoginThrottle {
-  private readonly failures = new Map<string, number[]>();
-
   constructor(
+    private readonly limiter: RateLimiter,
     private readonly limit = 5,
     private readonly windowMs = 15 * 60 * 1000,
   ) {}
 
-  blocked(clinicId: string, now: number): boolean {
-    const recent = (this.failures.get(clinicId) ?? []).filter((t) => now - t < this.windowMs);
-    this.failures.set(clinicId, recent);
-    return recent.length >= this.limit;
+  private key(clinicId: string): string {
+    return `login:${clinicId}`;
   }
 
-  fail(clinicId: string, now: number): void {
-    this.failures.set(clinicId, [...(this.failures.get(clinicId) ?? []), now]);
+  async blocked(clinicId: string): Promise<boolean> {
+    return (await this.limiter.count(this.key(clinicId))) >= this.limit;
   }
 
-  succeed(clinicId: string): void {
-    this.failures.delete(clinicId);
+  async fail(clinicId: string): Promise<void> {
+    await this.limiter.hit(this.key(clinicId), this.windowMs);
+  }
+
+  async succeed(clinicId: string): Promise<void> {
+    await this.limiter.reset(this.key(clinicId));
   }
 }

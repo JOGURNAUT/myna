@@ -14,6 +14,15 @@ jobs:
     name: Lint, tests and the Hawk gate
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # A real Redis: the shared-state tests and the scaled-out Hawk run use it instead of mocks.
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      REDIS_URL: redis://127.0.0.1:6379/0
     steps:
       - uses: actions/checkout@v7
 
@@ -46,9 +55,10 @@ jobs:
           uv run ruff format --check src tests scripts
           uv run pytest -q
 
-      # Fails the build if any flow is NOT SAFE.
-      - name: Hawk go-live gate
-        run: pnpm hawk run --gate --out hawk-reports
+      # Fails the build if any flow is NOT SAFE. Two agent instances share the real Redis above,
+      # and every turn of a call is served by the other one: "works scaled out" is graded.
+      - name: Hawk go-live gate (2 instances, shared Redis)
+        run: pnpm hawk run --gate --instances 2 --out hawk-reports
 
       - name: Upload the Hawk report
         if: always()

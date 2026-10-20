@@ -1,4 +1,6 @@
 import type { FastifyInstance } from 'fastify';
+import type { ConfigBus } from '../infra/config-bus.js';
+import type { RateLimiter } from '@myna/shared/rate-limit';
 import { z } from 'zod';
 import { addDays, nowIn, splitDateTime, ToolFailure } from '@myna/shared';
 import { phoneKey } from '../core/identity.js';
@@ -56,25 +58,32 @@ declare module 'fastify' {
  */
 export function registerStaffRoutes(
   app: FastifyInstance,
-  deps: { db: Db; registry: ClinicRegistry; clock: () => Date; auth: StaffAuthConfig | undefined },
+  deps: {
+    db: Db;
+    registry: ClinicRegistry;
+    clock: () => Date;
+    auth: StaffAuthConfig | undefined;
+    limiter: RateLimiter;
+    configBus: ConfigBus;
+  },
 ): void {
-  const throttle = new LoginThrottle();
+  const throttle = new LoginThrottle(deps.limiter);
 
-  app.post('/login', (req) => {
+  app.post('/login', async (req) => {
     const auth = deps.auth;
     if (!auth) throw new ToolFailure('NOT_FOUND', 'dashboard sign-in is not configured');
     const { clinicId, password } = parseOrFail(Login, req.body);
     const now = deps.clock().getTime();
-    if (throttle.blocked(clinicId, now)) {
+    if (await throttle.blocked(clinicId)) {
       throw new ToolFailure('UNAUTHORIZED', 'too many attempts; try again in 15 minutes');
     }
     const hash = auth.logins.get(clinicId);
     // Same answer for an unknown clinic and a wrong password.
     if (!hash || !deps.registry.get(clinicId) || !verifyPassword(password, hash)) {
-      throttle.fail(clinicId, now);
+      await throttle.fail(clinicId);
       throw new ToolFailure('UNAUTHORIZED', 'wrong clinic or password');
     }
-    throttle.succeed(clinicId);
+    await throttle.succeed(clinicId);
     const { token, session } = issueSession(auth.secret, clinicId, now);
     return {
       ok: true,
@@ -212,6 +221,11 @@ export function registerStaffRoutes(
       const { config } = clinic(req);
       const { on } = parseOrFail(KillSwitch, req.body);
       const updated = await deps.registry.setKillSwitch(config.id, on);
+      // Tell the other instances and flush cached copies. The switch itself is already saved, so a
+      // broken bus must not fail the request: the dashboard owner still gets their "on".
+      await deps.configBus.publish(config.id).catch((e: unknown) => {
+        req.log.error({ err: e, clinicId: config.id }, 'could not announce kill-switch change');
+      });
       req.log.warn({ clinicId: config.id, killSwitch: on }, 'kill switch changed from dashboard');
       return { ok: true, data: { on: updated.killSwitch } };
     });

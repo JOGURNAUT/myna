@@ -27,6 +27,7 @@ async function main(): Promise<void> {
       out: { type: 'string', default: join(REPO_ROOT, 'docs', 'reports') },
       nlu: { type: 'string', default: 'rules' },
       model: { type: 'string' },
+      instances: { type: 'string', default: '1' },
       clock: { type: 'string', default: DEFAULT_CLOCK },
       api: { type: 'string' },
       agent: { type: 'string' },
@@ -57,16 +58,17 @@ async function main(): Promise<void> {
           fakeNowUtc: values.clock,
           nlu: values.nlu,
           ...(values.model ? { model: values.model } : {}),
+          instances: Number(values.instances),
         });
   const env: Endpoints = {
     apiUrl: services?.apiUrl ?? values.api ?? '',
-    agentUrl: services?.agentUrl ?? values.agent ?? '',
+    agentUrls: services?.agentUrls ?? (values.agent ? [values.agent] : []),
     token: services?.token ?? values.token ?? '',
     baseClinicId: values.clinic,
   };
 
   console.log(
-    `Hawk: ${jobs.length} calls (${suite.scenarios.length} scenarios) against ${env.agentUrl}`,
+    `Hawk: ${jobs.length} calls (${suite.scenarios.length} scenarios) against ${env.agentUrls.join(' + ')}`,
   );
   const graded: GradedCall[] = [];
   const queue = [...jobs];
@@ -94,17 +96,27 @@ ${api.slice(-1500)}
 `);
     }
     report = finish(graded, values.clock, values.nlu);
-    const stats = await fetch(`${env.agentUrl}/v1/stats`)
-      .then((r) => r.json() as Promise<Record<string, number | string | null>>)
-      .catch(() => null);
-    if (stats && values.nlu !== 'rules') {
+    const all = await Promise.all(
+      env.agentUrls.map((u) =>
+        fetch(`${u}/v1/stats`)
+          .then((r) => r.json() as Promise<Record<string, number | string | null>>)
+          .catch(() => null),
+      ),
+    );
+    const stats = all.filter((x): x is Record<string, number | string | null> => x !== null);
+    const first = stats[0];
+    if (first && values.nlu !== 'rules') {
+      const sum = (k: string) => stats.reduce((n, x) => n + Number(x[k] ?? 0), 0);
       report.setup.modelUse = {
-        model: typeof stats.model === 'string' ? stats.model : null,
-        calls: Number(stats.nluCalls ?? 0),
-        fallbacks: Number(stats.nluFallbacks ?? 0),
-        retries: Number(stats.nluRetries ?? 0),
+        model: typeof first.model === 'string' ? first.model : null,
+        calls: sum('nluCalls'),
+        fallbacks: sum('nluFallbacks'),
+        retries: sum('nluRetries'),
       };
       console.log(`Model use: ${JSON.stringify(report.setup.modelUse)}`);
+    }
+    if (services && env.agentUrls.length > 1) {
+      report.setup.instances = { agents: env.agentUrls.length, sharedState: services.sharedState };
     }
     // The JSON report is stored via the API (CLAUDE.md, Part 4); files below are renderings.
     const saved = await fetch(`${env.apiUrl}/v1/clinics/${values.clinic}/reports`, {

@@ -44,6 +44,23 @@ export class ClinicRegistry {
     }
   }
 
+  /**
+   * Re-reads one clinic's dashboard override from the database. Another API instance changed it
+   * (we were told over the config bus), and this instance must not keep answering with the old
+   * value: for the kill switch that would mean taking calls the clinic has turned off.
+   */
+  async refresh(clinicId: string): Promise<void> {
+    const entry = this.entries.get(clinicId);
+    if (!entry) return;
+    const [row] = await this.db
+      .select()
+      .from(clinicSettings)
+      .where(eq(clinicSettings.clinicId, clinicId));
+    if (row && row.killSwitch !== null && row.killSwitch !== entry.config.killSwitch) {
+      this.add({ ...entry.config, killSwitch: row.killSwitch });
+    }
+  }
+
   async setKillSwitch(clinicId: string, on: boolean): Promise<BusinessConfig> {
     const entry = this.entries.get(clinicId);
     if (!entry) throw new Error(`unknown clinic ${clinicId}`);

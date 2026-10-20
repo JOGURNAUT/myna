@@ -3,6 +3,17 @@
 Real-world and test findings, newest first: what happened, why, and what changed.
 Every bug found in a real call also becomes a Hawk regression scenario.
 
+## 2026-10-20 — Scaling out: Hawk with two agent instances (run 05)
+`pnpm hawk run --instances 2` starts two agents sharing one Redis and sends every turn of every
+call to the *other* instance than the previous turn. 106/106 pass, so a call's state genuinely
+lives in the store, not in any process. What the exercise surfaced before it ever ran in prod:
+- Each API instance kept the kill switch in memory: toggling it on one left the others taking
+  calls. Fixed with the config bus (see decisions.md) and a two-instance test.
+- A naive "wrap the Redis lock in try/except and fall back" would have run the locked turn twice
+  if the turn itself raised. The fallback now wraps acquiring the lock only.
+- The reminder list had no owner: two workers asking at once would both have dialled the same
+  patient. Now claimed atomically (20 racing claimers, exactly one winner).
+
 ## 2026-10-20 — Hawk against the REAL model (Sarvam `sarvam-105b-conversations`)
 Reports: `docs/reports/run-03-live-first-attempt.html` → `run-04-live-final.html`.
 

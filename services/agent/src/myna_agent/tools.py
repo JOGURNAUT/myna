@@ -75,6 +75,17 @@ class ApiClient:
     async def due_reminders(self) -> list[c.DueReminder]:
         return c.DueRemindersOutput.model_validate(await self._request("GET", "/reminders/due")).due
 
+    async def claim_reminders(
+        self, worker: str, appointment_id: str | None = None
+    ) -> list[c.DueReminder]:
+        """The next due reminder, claimed for THIS worker; anyone else asking won't get it."""
+        body: dict[str, object] = {"worker": worker, "limit": 1}
+        if appointment_id:
+            body["appointmentId"] = appointment_id
+        return c.DueRemindersOutput.model_validate(
+            await self._request("POST", "/reminders/claim", body)
+        ).due
+
     async def tasks(self, status: str | None = None) -> list[c.StaffTask]:
         query = f"?status={status}" if status else ""
         return c.ListTasksOutput.model_validate(await self._request("GET", f"/tasks{query}")).tasks

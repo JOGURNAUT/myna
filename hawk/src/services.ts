@@ -1,7 +1,7 @@
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdtempSync, rmSync } from 'node:fs';
-import { createServer } from 'node:net';
+import { createConnection, createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -50,6 +50,29 @@ function killTree(proc: ChildProcess): void {
   }
 }
 
+async function waitPort(port: number, proc: ChildProcess, log: () => string): Promise<void> {
+  const deadline = Date.now() + 30_000;
+  for (;;) {
+    if (proc.exitCode !== null)
+      throw new Error(`process exited early:
+${log()}`);
+    const open = await new Promise<boolean>((done) => {
+      const sock = createConnection({ host: '127.0.0.1', port }, () => {
+        sock.destroy();
+        done(true);
+      });
+      sock.on('error', () => {
+        done(false);
+      });
+    });
+    if (open) return;
+    if (Date.now() > deadline)
+      throw new Error(`timed out waiting for port ${port}:
+${log()}`);
+    await new Promise((r) => setTimeout(r, 250));
+  }
+}
+
 function start(cmd: string, args: string[], cwd: string, env: NodeJS.ProcessEnv) {
   const proc = spawn(cmd, args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'], shell: false });
   let output = '';
@@ -60,7 +83,10 @@ function start(cmd: string, args: string[], cwd: string, env: NodeJS.ProcessEnv)
 
 export interface RunningServices {
   apiUrl: string;
-  agentUrl: string;
+  /** One per agent instance. With more than one, every turn of a call lands on the next one. */
+  agentUrls: string[];
+  /** What holds the shared call state when there are several instances. */
+  sharedState: 'none' | 'redis' | 'fake-redis';
   token: string;
   stop: () => Promise<void>;
   /** Last few KB of each service's output, for diagnosing errored calls. */
@@ -72,10 +98,13 @@ export async function startServices(opts: {
   nlu: string;
   /** Sarvam chat model id when nlu is "sarvam". */
   model?: string;
+  /** Agent instances. More than one needs Redis (REDIS_URL, else a local fake is started). */
+  instances?: number;
 }): Promise<RunningServices> {
+  const instances = opts.instances ?? 1;
   const dir = mkdtempSync(join(tmpdir(), 'hawk-'));
   const token = `hawk-${randomBytes(12).toString('hex')}`;
-  const [apiPort, agentPort] = [await freePort(), await freePort()];
+  const apiPort = await freePort();
   const base = { ...process.env, AGENT_API_TOKEN: token, MYNA_FAKE_NOW: opts.fakeNowUtc };
 
   const api = start(
@@ -95,30 +124,70 @@ export async function startServices(opts: {
   await waitHealthy(apiUrl, api.proc, api.log);
 
   const uv = process.env.HAWK_UV ?? 'uv';
-  const agent = start(uv, ['run', '--frozen', 'myna-agent'], join(REPO_ROOT, 'services/agent'), {
-    ...base,
-    API_BASE_URL: apiUrl,
-    AGENT_PORT: String(agentPort),
-    LLM_PROVIDER: opts.nlu,
-    ...(opts.model ? { SARVAM_MODEL: opts.model } : {}),
-    UV_LINK_MODE: 'copy',
-  });
-  const agentUrl = `http://127.0.0.1:${agentPort}`;
+  const agentDir = join(REPO_ROOT, 'services/agent');
+  const procs: { proc: ChildProcess; log: () => string }[] = [api];
+  const stopAll = () => {
+    for (const p of procs.slice().reverse()) killTree(p.proc);
+  };
+
+  // Several instances only make sense with shared state. A real Redis if one is configured;
+  // otherwise a local Redis-protocol server, so the same code path runs on a laptop.
+  let redisUrl = instances > 1 ? process.env.REDIS_URL : undefined;
+  let sharedState: RunningServices['sharedState'] = redisUrl ? 'redis' : 'none';
+  if (instances > 1 && !redisUrl) {
+    const port = await freePort();
+    const fake = start(
+      uv,
+      ['run', '--frozen', 'python', 'scripts/fake_redis.py', String(port)],
+      agentDir,
+      {
+        ...base,
+        UV_LINK_MODE: 'copy',
+      },
+    );
+    procs.push(fake);
+    await waitPort(port, fake.proc, fake.log);
+    redisUrl = `redis://127.0.0.1:${port}/0`;
+    sharedState = 'fake-redis';
+  }
+
+  const agentUrls: string[] = [];
   try {
-    await waitHealthy(agentUrl, agent.proc, agent.log);
+    for (let i = 0; i < instances; i++) {
+      const port = await freePort();
+      const agent = start(uv, ['run', '--frozen', 'myna-agent'], agentDir, {
+        ...base,
+        API_BASE_URL: apiUrl,
+        AGENT_PORT: String(port),
+        LLM_PROVIDER: opts.nlu,
+        ...(opts.model ? { SARVAM_MODEL: opts.model } : {}),
+        ...(redisUrl ? { REDIS_URL: redisUrl } : {}),
+        UV_LINK_MODE: 'copy',
+      });
+      procs.push(agent);
+      const url = `http://127.0.0.1:${port}`;
+      await waitHealthy(url, agent.proc, agent.log);
+      agentUrls.push(url);
+    }
   } catch (e) {
-    killTree(agent.proc);
-    killTree(api.proc);
+    stopAll();
     throw e;
   }
 
   return {
     apiUrl,
-    agentUrl,
+    agentUrls,
+    sharedState,
     token,
-    logs: () => ({ api: api.log(), agent: agent.log() }),
+    logs: () => ({
+      api: api.log(),
+      agent: procs
+        .slice(1)
+        .map((p) => p.log())
+        .join('\n--\n'),
+    }),
     stop: async () => {
-      for (const p of [agent.proc, api.proc]) killTree(p);
+      stopAll();
       await new Promise((r) => setTimeout(r, 500));
       rmSync(dir, { recursive: true, force: true, maxRetries: 3 });
     },

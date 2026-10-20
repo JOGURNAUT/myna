@@ -1,0 +1,14 @@
+# Local Redis for the shared-state features (see docs/plan-redis.md). Optional: without
+# REDIS_URL Myna keeps everything in memory.
+#   docker compose up -d redis      then set REDIS_URL=redis://127.0.0.1:6379/0
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ['6379:6379']
+    # Cache and coordination only: nothing here is the source of truth, so no persistence.
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10

@@ -1,6 +1,7 @@
 # Plan — Redis in Myna (storage, caching, workflow coordination)
 
-Status: **draft, waiting for OK**
+Status: **approved and built (2026-10-20)**. See decisions.md and findings.md for what shipped and
+what changed from this plan.
 
 Why now: Myna is built to run as several instances on Cloud Run, and four things that are fine on
 one laptop break the moment there are two instances. Redis is the standard answer to each, so

@@ -34,6 +34,8 @@ export interface Report {
     judge: string;
     caveat: string;
     /** From the agent's /v1/stats: how many understandings the model really produced. */
+    /** Several agent instances sharing call state: every turn of a call hit a different one. */
+    instances?: { agents: number; sharedState: string };
     modelUse?: { model: string | null; calls: number; fallbacks: number; retries: number };
   };
   totals: Rate;
@@ -239,6 +241,12 @@ export function renderMarkdown(r: Report): string {
     const u = r.setup.modelUse;
     lines.push(
       `Model: \`${u.model ?? '?'}\` · ${u.calls} understandings, **${u.fallbacks} fell back to rules**, ${u.retries} rate-limit retries`,
+      '',
+    );
+  }
+  if (r.setup.instances) {
+    lines.push(
+      `Scaled out: **${r.setup.instances.agents} agent instances** sharing state via ${r.setup.instances.sharedState}; every turn of a call was served by a different instance than the one before`,
       '',
     );
   }

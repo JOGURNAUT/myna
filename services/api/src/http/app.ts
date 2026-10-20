@@ -1,6 +1,7 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { and, eq } from 'drizzle-orm';
 import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
+import { MemoryRateLimiter, type RateLimiter } from '@myna/shared/rate-limit';
 import { z } from 'zod';
 import {
   type BusinessConfig,
@@ -18,6 +19,8 @@ import {
 } from '@myna/shared';
 import { appendCallEvent, listCallEvents, startCall } from '../core/calls.js';
 import { dueReminders } from '../core/reminders.js';
+import { noConfigBus, type ConfigBus } from '../infra/config-bus.js';
+import { MemoryReminderClaims, type ReminderClaims } from '../core/reminder-claims.js';
 import { completeTask, listTasks } from '../core/tasks.js';
 import { type ToolContext, toolHandlers } from '../core/tools.js';
 import type { Db } from '../db/client.js';
@@ -39,8 +42,23 @@ export interface AppDeps {
   hawk?: boolean;
   /** Dashboard sign-in. Without it, staff routes refuse every request. */
   staff?: StaffAuthConfig;
+  /** Shared counters (Redis when configured). Default: this process's memory. */
+  limiter?: RateLimiter;
+  /** "I'm calling this patient" locks (Redis when configured). Default: this process's memory. */
+  claims?: ReminderClaims;
+  /** Tells other API instances (and the agent's cache) that a clinic's settings changed. */
+  configBus?: ConfigBus;
 }
 
+/** How long a worker holds a reminder before others may take it (a crashed worker's grace). */
+export const CLAIM_TTL_MS = 120_000;
+
+const ClaimRequest = z.object({
+  worker: z.string().min(1).max(100),
+  appointmentId: z.string().min(1).optional(),
+  /** Claim at most this many (a worker that dials one patient at a time asks for 1). */
+  limit: z.number().int().min(1).max(100).optional(),
+});
 const TaskStatusQuery = z.enum(['open', 'done']).optional();
 
 const STATUS: Record<ToolErrorCode, number> = {
@@ -89,12 +107,17 @@ const isToolName = (s: string): s is ToolName => Object.hasOwn(TOOLS, s);
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const clock = deps.clock ?? (() => new Date());
+  const limiter = deps.limiter ?? new MemoryRateLimiter();
+  const claims = deps.claims ?? new MemoryReminderClaims();
   const app = Fastify({
     logger: deps.logger ? { redact: ['req.headers.authorization'] } : false,
   });
 
   const registry = new ClinicRegistry(deps.db, deps.clinics.values());
   await registry.loadOverrides();
+  const configBus = deps.configBus ?? noConfigBus;
+  const unsubscribe = await configBus.subscribe((clinicId) => registry.refresh(clinicId));
+  app.addHook('onClose', unsubscribe);
 
   app.setErrorHandler((err, req, reply) => {
     if (isToolFailure(err)) return sendError(reply, err.toJSON());
@@ -111,7 +134,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   await app.register(
     (staff, _opts, done) => {
-      registerStaffRoutes(staff, { db: deps.db, registry, clock, auth: deps.staff });
+      registerStaffRoutes(staff, {
+        db: deps.db,
+        registry,
+        clock,
+        auth: deps.staff,
+        limiter,
+        configBus,
+      });
       done();
     },
     { prefix: '/v1/staff' },
@@ -209,6 +239,26 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         const { config, adapter } = clinicOf(req.params.clinicId);
         return { ok: true, data: { due: await dueReminders(deps.db, adapter, config, clock()) } };
       });
+
+      // Same list, but each reminder is CLAIMED for `worker` first: of two workers asking at once,
+      // only one gets a given patient. A claim lasts CLAIM_TTL_MS, so a crashed worker's
+      // reminders come back; if the lock store is unreachable we claim nothing (never ring twice).
+      v1.post<{ Params: { clinicId: string } }>(
+        '/clinics/:clinicId/reminders/claim',
+        async (req) => {
+          const { config, adapter } = clinicOf(req.params.clinicId);
+          const { worker, appointmentId, limit } = parseOrFail(ClaimRequest, req.body);
+          const claimed = [];
+          for (const d of await dueReminders(deps.db, adapter, config, clock())) {
+            if (claimed.length >= (limit ?? Infinity)) break;
+            if (appointmentId && d.appointmentId !== appointmentId) continue;
+            if (await claims.claim(config.tenantId, d.appointmentId, worker, CLAIM_TTL_MS)) {
+              claimed.push(d);
+            }
+          }
+          return { ok: true, data: { due: claimed } };
+        },
+      );
 
       // ---- Hawk go-live reports
       v1.post<{ Params: { clinicId: string } }>('/clinics/:clinicId/reports', async (req) => {
