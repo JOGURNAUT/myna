@@ -742,6 +742,36 @@ def fill_gaps(model: Understanding, rules: Understanding) -> Understanding:
     return model.model_copy(update=gaps) if gaps else model
 
 
+#: Questions whose answer is yes / no / goodbye / "that's all".
+_CLOSED_QUESTIONS = ("confirm", "anything_else", "callback_confirm", "attendance", "identity_who")
+#: Labels the model gives when it didn't recognise a simple answer.
+_CONFUSED = (Intent.provide_info, Intent.unclear, Intent.faq, Intent.other_request)
+
+
+def settle_closed_answers(
+    model: Understanding, rules: Understanding, expecting: str
+) -> Understanding:
+    """On a yes/no-style question, trust keywords over a confused model.
+
+    Hawk run 3 (live model): "Nahi, bas. Thank you." after "anything else?" came back as a new FAQ
+    or an unclear request, so Myna re-asked what the caller wanted and the caller started over,
+    booking twice. A short closing answer is exactly what a keyword list does reliably. The model
+    still wins when it is NOT confused (a real cancel, a medical question, an emergency...).
+    """
+    if expecting not in _CLOSED_QUESTIONS:
+        return model
+    confused = model.intent in _CONFUSED
+    # A plain "nahi" / "bas" / "that's all" beats a model that heard a "yes" in "thank you"
+    # (Hawk run 4: "Nahi, bas. Thank you." -> intent=yes -> Myna asked what to book next).
+    says_no = rules.intent in (Intent.no, Intent.goodbye) and (
+        confused or model.intent == Intent.yes
+    )
+    says_yes = rules.intent == Intent.yes and confused
+    if says_no or says_yes:
+        return model.model_copy(update={"intent": rules.intent, "confidence": 0.9})
+    return model
+
+
 Script = Understanding | Callable[[str, TurnContext], Understanding]
 
 

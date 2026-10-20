@@ -17,7 +17,7 @@ from typing import Any
 import httpx
 from pydantic import ValidationError
 
-from ..nlu import NLU, Understanding, fill_gaps
+from ..nlu import NLU, Understanding, fill_gaps, settle_closed_answers
 
 log = logging.getLogger("myna.llm.sarvam")
 
@@ -214,17 +214,24 @@ class SarvamNLU:
 class WithFallback:
     """Primary NLU, falling back to another (rules) when the primary fails outright."""
 
-    def __init__(self, primary: NLU, fallback: NLU) -> None:
+    def __init__(self, primary: NLU, fallback: NLU, *, deadline_s: float = 6.0) -> None:
         self.primary = primary
         self.fallback = fallback
         self.fallbacks = 0
+        #: Hard time budget for the model, retries included. A caller on the phone cannot wait
+        #: out a slow model (Hawk run 5: a rate-limited call hung past 20 s); after this, the
+        #: deterministic parser answers instead and the fallback is counted in /v1/stats.
+        self.deadline_s = deadline_s
 
     async def understand(self, text: str, ctx: Any) -> Understanding:
         NLU_STATS["calls"] += 1
         try:
-            understood = await self.primary.understand(text, ctx)
-            # The model decides what the caller MEANT; code fills in facts it left out.
-            return fill_gaps(understood, await self.fallback.understand(text, ctx))
+            async with asyncio.timeout(self.deadline_s):
+                understood = await self.primary.understand(text, ctx)
+            # The model decides what the caller MEANT; code fills in facts it left out, and
+            # settles simple yes / no / goodbye answers the model didn't recognise.
+            rules = await self.fallback.understand(text, ctx)
+            return settle_closed_answers(fill_gaps(understood, rules), rules, ctx.expecting)
         except Exception:
             self.fallbacks += 1
             NLU_STATS["fallbacks"] += 1

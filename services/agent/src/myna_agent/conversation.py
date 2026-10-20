@@ -42,6 +42,7 @@ from .nlu import (
     detect_language,
     mentions_booking,
 )
+from .text import normalize
 from .tools import ApiClient, ToolError
 
 log = logging.getLogger("myna.conversation")
@@ -180,6 +181,13 @@ class Draft:
     new_patient: bool = False
 
 
+def _quotes(hint: str | None, text: str) -> bool:
+    """Is `hint` (a model-extracted span) actually something the caller just said?"""
+    if not hint or not hint.strip():
+        return False
+    return normalize(hint) in normalize(text)
+
+
 def _d(local_dt: str) -> date:
     return date.fromisoformat(local_dt[:10])
 
@@ -258,7 +266,13 @@ class Conversation:
                 handoff_to=self.config.human_handoff_number if self.handoff_reason else None,
             )
         await self._log_turn("caller", text)
-        return await self._finish(await self._handle(text))
+        try:
+            reply = await self._handle(text)
+        except Exception:
+            # A bug must never become a dead line: log it and put a person on the call.
+            log.exception("unexpected error on call %s", self.call_id)
+            reply = await self._handoff("tool_failure", line("handoff", self.lang))
+        return await self._finish(reply)
 
     async def _finish(self, reply: Reply) -> Reply:
         """Every agent reply is logged exactly once, then the end of the call if it ended."""
@@ -473,10 +487,15 @@ class Conversation:
             d.resource_id = u.resource_id
         if d.goal in ("book", "reschedule") and self.expecting != "dob":
             # Code parses dates; the model's `date_text` is only a hint of where to look.
+            # A hint only counts if it QUOTES what the caller just said. The live model copies
+            # dates from earlier turns into `date_text` on a bare "haan ji" (Hawk run 3), which
+            # would wipe the slot being confirmed.
+            date_hint = u.date_text if _quotes(u.date_text, text) else None
+            time_hint = u.time_text if _quotes(u.time_text, text) else None
             date_ref = parse_date(text, self._today()) or (
-                parse_date(u.date_text, self._today()) if u.date_text else None
+                parse_date(date_hint, self._today()) if date_hint else None
             )
-            time_ref = parse_time(text) or (parse_time(u.time_text) if u.time_text else None)
+            time_ref = parse_time(text) or (parse_time(time_hint) if time_hint else None)
             if date_ref and date_ref != d.date_ref:
                 d.date_ref, d.offered, d.chosen = date_ref, [], None
             if time_ref and time_ref != d.time_ref:
@@ -843,7 +862,8 @@ class Conversation:
 
     async def _commit_book(self) -> Reply:
         d, s, ident = self.draft, self.draft.chosen, self.identity
-        assert s is not None and d.idempotency_key is not None
+        if s is None or d.idempotency_key is None:  # nothing confirmed to commit: ask again
+            return await self._advance()
         body = c.BookInput(
             idempotency_key=d.idempotency_key,
             call_id=self.call_id,
@@ -880,7 +900,8 @@ class Conversation:
 
     async def _commit_reschedule(self) -> Reply:
         d = self.draft
-        assert d.target is not None and d.chosen is not None and d.idempotency_key is not None
+        if d.target is None or d.chosen is None or d.idempotency_key is None:
+            return await self._advance()
         out = await self._tool(
             "reschedule",
             c.RescheduleInput(
@@ -909,7 +930,8 @@ class Conversation:
 
     async def _commit_cancel(self) -> Reply:
         d = self.draft
-        assert d.target is not None and d.idempotency_key is not None
+        if d.target is None or d.idempotency_key is None:
+            return await self._advance()
         await self._tool(
             "cancel",
             c.CancelInput(
@@ -1318,7 +1340,13 @@ class Conversation:
             return
         if candidate == "en":
             words = set(re.findall(r"[a-z']+", text.lower()))
-            if len(words) < 3 or not words & _ENGLISH_FUNCTION_WORDS:
+            # The model sometimes labels "Nahi, bas. Thank you." as English (Hawk run 3): Hinglish
+            # words in the caller's own text veto a switch to English.
+            if (
+                len(words) < 3
+                or not words & _ENGLISH_FUNCTION_WORDS
+                or detect_language(text) != "en"
+            ):
                 return
         self.lang = candidate  # type: ignore[assignment]
 

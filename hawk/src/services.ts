@@ -63,6 +63,8 @@ export interface RunningServices {
   agentUrl: string;
   token: string;
   stop: () => Promise<void>;
+  /** Last few KB of each service's output, for diagnosing errored calls. */
+  logs: () => { api: string; agent: string };
 }
 
 export async function startServices(opts: {
@@ -114,6 +116,7 @@ export async function startServices(opts: {
     apiUrl,
     agentUrl,
     token,
+    logs: () => ({ api: api.log(), agent: agent.log() }),
     stop: async () => {
       for (const p of [agent.proc, api.proc]) killTree(p);
       await new Promise((r) => setTimeout(r, 500));

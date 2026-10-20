@@ -84,6 +84,15 @@ async function main(): Promise<void> {
   let report: Report;
   try {
     await Promise.all(workers);
+    if (services && graded.some((g) => g.record.endedBy === 'error')) {
+      const { agent, api } = services.logs();
+      console.log(`
+--- agent log (tail) ---
+${agent.slice(-3500)}
+--- api log (tail) ---
+${api.slice(-1500)}
+`);
+    }
     report = finish(graded, values.clock, values.nlu);
     const stats = await fetch(`${env.agentUrl}/v1/stats`)
       .then((r) => r.json() as Promise<Record<string, number | string | null>>)
