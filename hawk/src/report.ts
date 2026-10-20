@@ -27,7 +27,15 @@ export interface Report {
   runId: string;
   createdAt: string;
   clinic: string;
-  setup: { clock: string; nlu: string; patient: string; judge: string; caveat: string };
+  setup: {
+    clock: string;
+    nlu: string;
+    patient: string;
+    judge: string;
+    caveat: string;
+    /** From the agent's /v1/stats: how many understandings the model really produced. */
+    modelUse?: { model: string | null; calls: number; fallbacks: number; retries: number };
+  };
   totals: Rate;
   flows: Record<string, FlowResult>;
   languages: Record<string, Rate>;
@@ -227,6 +235,13 @@ export function renderMarkdown(r: Report): string {
     `Understanding: **${r.setup.nlu}** · patients: **${r.setup.patient}** · soft criteria: ${r.setup.judge}`,
     '',
   );
+  if (r.setup.modelUse) {
+    const u = r.setup.modelUse;
+    lines.push(
+      `Model: \`${u.model ?? '?'}\` · ${u.calls} understandings, **${u.fallbacks} fell back to rules**, ${u.retries} rate-limit retries`,
+      '',
+    );
+  }
   lines.push(`> **Read this first:** ${r.setup.caveat}`, '');
   lines.push('## Verdict by flow', '', '| Flow | Verdict | Pass | Why |', '|---|---|---|---|');
   for (const [flow, f] of Object.entries(r.flows)) {

@@ -382,6 +382,12 @@ _FAMILY = (
 )
 
 
+def mentions_booking(text: str) -> bool:
+    """Did the caller use a booking word ("book", "appointment", "milna hai")? Code checks this
+    itself, so a model that collapses "book X and ask Y" into one label can't drop the booking."""
+    return any_phrase(normalize(text), _BOOK) is not None
+
+
 def _category(t: str) -> TaskCategory | None:
     for category, words in _CATEGORIES.items():
         if any_phrase(t, words):
@@ -716,6 +722,25 @@ class RuleBasedNLU:
 
 
 # ---------------------------------------------------------------- scripted (tests)
+
+
+def fill_gaps(model: Understanding, rules: Understanding) -> Understanding:
+    """Let deterministic code fill in what the model left empty.
+
+    Found by Hawk against the real model: sarvam-105b-conversations returned `intent=book` but no
+    `service_id` for "Mujhe cleaning ka appointment chahiye", and again for the bare answer
+    "cleaning", so Myna asked what the visit was for 16 times. Matching a word against the
+    clinic's own list of services, doctors and numbers is a job for code. The model keeps the
+    judgement calls (intent, language, frustration, emergencies); code only ADDS facts it can see
+    in the caller's words, and never overrides something the model did extract.
+    """
+    gaps = {
+        name: getattr(rules, name)
+        for name in ("service_id", "resource_id", "option_number", "phone", "dob", "name", "faq_id")
+        if getattr(model, name) is None and getattr(rules, name) is not None
+    }
+    return model.model_copy(update=gaps) if gaps else model
+
 
 Script = Understanding | Callable[[str, TurnContext], Understanding]
 

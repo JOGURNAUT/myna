@@ -27,3 +27,7 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Scratch Hawk output (probe runs); real reports are named in docs/reports/README.md
+docs/reports/_*
+hawk/docs/

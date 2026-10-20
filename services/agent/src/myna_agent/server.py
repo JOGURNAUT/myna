@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 
 from . import contracts as c
 from .conversation import Conversation, Reply
-from .llm.sarvam import SarvamNLU, WithFallback
+from .llm.sarvam import NLU_STATS, SarvamNLU, WithFallback
 from .nlu import NLU, RuleBasedNLU
 from .settings import Settings, load_dotenv
 from .tools import ApiClient, ToolError
@@ -114,6 +114,15 @@ def create_app(
     @app.get("/health")
     async def health() -> dict[str, bool]:
         return {"ok": True}
+
+    @app.get("/v1/stats")
+    async def stats() -> dict[str, object]:
+        """What actually answered: provider, model, and how often the model failed over to rules."""
+        return {
+            "provider": cfg.llm_provider,
+            "model": cfg.sarvam_model if cfg.llm_provider == "sarvam" else None,
+            **{f"nlu{k.capitalize()}": v for k, v in NLU_STATS.items()},
+        }
 
     def clock_for(config: c.BusinessConfig) -> Callable[[], datetime] | None:
         if now is not None:

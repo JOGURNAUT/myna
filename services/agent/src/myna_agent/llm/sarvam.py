@@ -8,6 +8,7 @@ low|high|max. The model only fills an `Understanding`; it never writes a reply.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -16,9 +17,13 @@ from typing import Any
 import httpx
 from pydantic import ValidationError
 
-from ..nlu import NLU, Understanding
+from ..nlu import NLU, Understanding, fill_gaps
 
 log = logging.getLogger("myna.llm.sarvam")
+
+#: Process-wide counters, exposed at GET /v1/stats so Hawk can say how many understandings
+#: really came from the model and how many silently fell back to rules.
+NLU_STATS: dict[str, int] = {"calls": 0, "fallbacks": 0, "retries": 0}
 
 SYSTEM_PROMPT = """You are the language-understanding step of Myna, the phone receptionist for {clinic}, \
 a dental clinic in India. Callers speak English, Hindi or Hinglish (Hindi in Latin script), and may switch.
@@ -87,9 +92,11 @@ class SarvamNLU:
         clinic_name: str = "the clinic",
         base_url: str = "https://api.sarvam.ai",
         timeout: float = 8.0,
+        retry_base_s: float = 1.5,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.model = model
+        self._retry_base = retry_base_s
         self.clinic_name = clinic_name
         self._http = httpx.AsyncClient(
             base_url=base_url,
@@ -148,11 +155,7 @@ class SarvamNLU:
                 "json_schema": {"name": "understanding", "schema": self._schema},
             },
         }
-        try:
-            res = await self._http.post("/v1/chat/completions", json=body)
-            res.raise_for_status()
-        except httpx.HTTPError as e:
-            raise NLUError(f"sarvam request failed: {e}") from e
+        res = await self._post_with_retry(body)
         choices = res.json().get("choices") or []
         if not choices:
             raise NLUError("no choices in response")
@@ -160,6 +163,34 @@ class SarvamNLU:
         if not content.strip():
             raise NLUError("empty content")
         return content
+
+    async def _post_with_retry(self, body: dict[str, Any]) -> httpx.Response:
+        """Sarvam's Starter plan allows ~40-60 chat requests a minute. A 429 (or a 5xx) is retried
+        with backoff instead of failing the turn, so rate limits don't silently degrade a call
+        to the rule-based fallback."""
+        last: Exception | None = None
+        for attempt in range(4):
+            try:
+                res = await self._http.post("/v1/chat/completions", json=body)
+                if res.status_code == 429 or res.status_code >= 500:
+                    wait = (
+                        float(res.headers.get("retry-after", 0) or 0)
+                        or self._retry_base * 2**attempt
+                    )
+                    NLU_STATS["retries"] += 1
+                    last = httpx.HTTPStatusError(
+                        f"HTTP {res.status_code}", request=res.request, response=res
+                    )
+                    await asyncio.sleep(min(wait, 10))
+                    continue
+                res.raise_for_status()
+                return res
+            except httpx.HTTPError as e:
+                last = e
+                if attempt == 3:
+                    break
+                await asyncio.sleep(self._retry_base / 3 * 2**attempt)
+        raise NLUError(f"sarvam request failed after retries: {last}")
 
     @staticmethod
     def _validate(content: str, ctx: Any) -> Understanding:
@@ -189,9 +220,13 @@ class WithFallback:
         self.fallbacks = 0
 
     async def understand(self, text: str, ctx: Any) -> Understanding:
+        NLU_STATS["calls"] += 1
         try:
-            return await self.primary.understand(text, ctx)
+            understood = await self.primary.understand(text, ctx)
+            # The model decides what the caller MEANT; code fills in facts it left out.
+            return fill_gaps(understood, await self.fallback.understand(text, ctx))
         except Exception:
             self.fallbacks += 1
+            NLU_STATS["fallbacks"] += 1
             log.exception("primary NLU failed; using fallback")
             return await self.fallback.understand(text, ctx)

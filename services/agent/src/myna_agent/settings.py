@@ -42,7 +42,7 @@ class Settings:
             agent_api_token=token,
             llm_provider=os.environ.get("LLM_PROVIDER", "sarvam"),
             sarvam_api_key=os.environ.get("SARVAM_API_KEY") or None,
-            sarvam_model=os.environ.get("SARVAM_MODEL", "sarvam-105b"),
+            sarvam_model=os.environ.get("SARVAM_MODEL", "sarvam-105b-conversations"),
             port=int(os.environ.get("AGENT_PORT", "8000")),
             fake_now=_fake_now(),
         )

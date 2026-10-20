@@ -68,6 +68,8 @@ export interface RunningServices {
 export async function startServices(opts: {
   fakeNowUtc: string;
   nlu: string;
+  /** Sarvam chat model id when nlu is "sarvam". */
+  model?: string;
 }): Promise<RunningServices> {
   const dir = mkdtempSync(join(tmpdir(), 'hawk-'));
   const token = `hawk-${randomBytes(12).toString('hex')}`;
@@ -96,6 +98,7 @@ export async function startServices(opts: {
     API_BASE_URL: apiUrl,
     AGENT_PORT: String(agentPort),
     LLM_PROVIDER: opts.nlu,
+    ...(opts.model ? { SARVAM_MODEL: opts.model } : {}),
     UV_LINK_MODE: 'copy',
   });
   const agentUrl = `http://127.0.0.1:${agentPort}`;

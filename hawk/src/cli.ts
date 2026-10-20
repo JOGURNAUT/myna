@@ -26,6 +26,7 @@ async function main(): Promise<void> {
       concurrency: { type: 'string', default: '6' },
       out: { type: 'string', default: join(REPO_ROOT, 'docs', 'reports') },
       nlu: { type: 'string', default: 'rules' },
+      model: { type: 'string' },
       clock: { type: 'string', default: DEFAULT_CLOCK },
       api: { type: 'string' },
       agent: { type: 'string' },
@@ -52,7 +53,11 @@ async function main(): Promise<void> {
   const services =
     values.api && values.agent && values.token
       ? null
-      : await startServices({ fakeNowUtc: values.clock, nlu: values.nlu });
+      : await startServices({
+          fakeNowUtc: values.clock,
+          nlu: values.nlu,
+          ...(values.model ? { model: values.model } : {}),
+        });
   const env: Endpoints = {
     apiUrl: services?.apiUrl ?? values.api ?? '',
     agentUrl: services?.agentUrl ?? values.agent ?? '',
@@ -80,6 +85,18 @@ async function main(): Promise<void> {
   try {
     await Promise.all(workers);
     report = finish(graded, values.clock, values.nlu);
+    const stats = await fetch(`${env.agentUrl}/v1/stats`)
+      .then((r) => r.json() as Promise<Record<string, number | string | null>>)
+      .catch(() => null);
+    if (stats && values.nlu !== 'rules') {
+      report.setup.modelUse = {
+        model: typeof stats.model === 'string' ? stats.model : null,
+        calls: Number(stats.nluCalls ?? 0),
+        fallbacks: Number(stats.nluFallbacks ?? 0),
+        retries: Number(stats.nluRetries ?? 0),
+      };
+      console.log(`Model use: ${JSON.stringify(report.setup.modelUse)}`);
+    }
     // The JSON report is stored via the API (CLAUDE.md, Part 4); files below are renderings.
     const saved = await fetch(`${env.apiUrl}/v1/clinics/${values.clinic}/reports`, {
       method: 'POST',

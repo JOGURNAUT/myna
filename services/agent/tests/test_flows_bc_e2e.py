@@ -263,3 +263,55 @@ async def test_reminders_stay_off_unless_enabled(make_call, make_tenant) -> None
     t = await make_tenant(patients=[POOJA], appointments=[TOMORROW_CLEANING])
     call = await make_call(clinic_id=t["clinicId"])
     assert await call.api.due_reminders() == []
+
+
+async def test_a_model_that_folds_book_and_ask_into_one_label_still_books(
+    make_call, make_tenant
+) -> None:
+    """Seen live with sarvam-105b-conversations: "Is my report ready? Also book me a cleaning
+    tomorrow" came back as a lone other_request and the booking vanished."""
+    from myna_agent.nlu import Intent, ScriptedNLU, Understanding
+
+    t = await make_tenant(patients=[POOJA])
+    collapsed = Understanding(
+        intent=Intent.other_request,
+        language="en",
+        confidence=0.95,
+        task_category="report_status",
+        summary="Wants to know if the X-ray report is ready",
+        service_id="cleaning",
+    )
+    call = await make_call(
+        caller_phone=POOJA["phone"], clinic_id=t["clinicId"], nlu=ScriptedNLU([collapsed])
+    )
+    await call.start()
+    await call.say("Is my X-ray report ready? Also book me a cleaning tomorrow at 12")
+    r = await call.say("Pooja Malhotra")
+    assert r.state == State.CONFIRM and "cleaning" in r.text
+    r = await call.say("yes")
+    assert r.text.startswith("Done.") and "question for the team" in r.text
+    await call.say("yes")
+    s = await make_tenant.state(t["clinicId"])
+    assert [a["start"] for a in s["appointments"]] == ["2026-10-13T12:00"]
+    assert [x["category"] for x in s["tasks"]] == ["report_status"]
+
+
+async def test_a_plain_message_with_a_day_is_not_turned_into_a_booking(
+    make_call, make_tenant
+) -> None:
+    from myna_agent.nlu import Intent, ScriptedNLU, Understanding
+
+    t = await make_tenant(patients=[POOJA])
+    msg = Understanding(
+        intent=Intent.other_request,
+        language="en",
+        confidence=0.95,
+        task_category="report_status",
+        summary="Asks when the report can be collected",
+    )
+    call = await make_call(
+        caller_phone=POOJA["phone"], clinic_id=t["clinicId"], nlu=ScriptedNLU([msg])
+    )
+    await call.start()
+    r = await call.say("Can I collect my X-ray report tomorrow?")
+    assert r.state == State.TAKE_MESSAGE  # a day alone, with no booking word, stays a message

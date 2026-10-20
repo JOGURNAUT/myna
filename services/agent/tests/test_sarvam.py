@@ -102,6 +102,63 @@ async def test_gives_up_after_the_retry() -> None:
 
 
 async def test_http_errors_fall_back_to_rules() -> None:
-    nlu = WithFallback(SarvamNLU("k", transport=transport(status=503)), RuleBasedNLU())
+    nlu = WithFallback(
+        SarvamNLU("k", transport=transport(status=503), retry_base_s=0), RuleBasedNLU()
+    )
     u = await nlu.understand("I want to cancel my appointment", CTX)
     assert u.intent == Intent.cancel and nlu.fallbacks == 1
+
+
+async def test_rate_limits_are_retried_not_silently_downgraded() -> None:
+    """A 429 must not turn into a rules-based answer labelled as the model's."""
+    from myna_agent.llm.sarvam import NLU_STATS
+
+    good = json.dumps({"intent": "yes", "language": "en", "confidence": 0.9})
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        if calls["n"] <= 2:
+            return httpx.Response(429, headers={"retry-after": "0"}, json={"error": "slow down"})
+        return httpx.Response(200, json=completion(good))
+
+    before = NLU_STATS["retries"]
+    nlu = SarvamNLU("k", transport=httpx.MockTransport(handler), retry_base_s=0)
+    assert (await nlu.understand("yes", CTX)).intent == Intent.yes
+    assert calls["n"] == 3 and NLU_STATS["retries"] - before == 2
+
+
+# ---- found by Hawk against the real model: the model left service_id empty ----
+
+
+def _model_without_entities(intent: Intent = Intent.book) -> str:
+    return json.dumps({"intent": intent.value, "language": "hinglish", "confidence": 0.95})
+
+
+async def test_code_fills_the_service_the_model_left_empty() -> None:
+    nlu = WithFallback(
+        SarvamNLU("k", transport=transport(_model_without_entities())), RuleBasedNLU()
+    )
+    u = await nlu.understand("Mujhe cleaning ka appointment chahiye kal subah", CTX)
+    assert u.intent == Intent.book  # the model's judgement stands
+    assert u.service_id == "cleaning"  # code added the fact it could see
+
+
+async def test_code_never_overrides_what_the_model_did_extract() -> None:
+    body = json.dumps(
+        {"intent": "book", "language": "en", "confidence": 0.9, "service_id": "consultation"}
+    )
+    nlu = WithFallback(SarvamNLU("k", transport=transport(body)), RuleBasedNLU())
+    u = await nlu.understand("a cleaning please", CTX)
+    assert u.service_id == "consultation"
+
+
+async def test_code_fills_a_bare_answer_to_the_service_question() -> None:
+    ctx = TurnContext(
+        expecting="service", today=date(2026, 10, 12), facts=FACTS, language="hinglish"
+    )
+    nlu = WithFallback(
+        SarvamNLU("k", transport=transport(_model_without_entities(Intent.provide_info))),
+        RuleBasedNLU(),
+    )
+    assert (await nlu.understand("cleaning", ctx)).service_id == "cleaning"

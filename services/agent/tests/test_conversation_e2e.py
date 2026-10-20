@@ -303,3 +303,25 @@ async def test_slot_taken_between_read_back_and_yes(make_call) -> None:
     r = await second.say("yes")
     assert "just taken" in r.text
     assert "12 pm" not in r.text.split("just taken", 1)[1]  # the taken slot is not re-offered
+
+
+async def test_a_conversation_that_cannot_progress_hands_off_instead_of_looping(
+    make_call,
+) -> None:
+    """The same question three times running means Myna is stuck, whatever the cause."""
+
+    class Deaf:
+        """A model that always says 'book' but never extracts anything."""
+
+        async def understand(self, text, ctx):
+            return Understanding(intent=Intent.book, language="en", confidence=0.95)
+
+    call = await make_call(nlu=Deaf())
+    await call.start()
+    replies = [await call.say("cleaning") for _ in range(4)]
+    assert not replies[0].ended and not replies[1].ended
+    assert replies[2].ended and replies[2].handoff_to is not None
+    events = await call.events()
+    assert [e["handoffReason"] for e in events if e["type"] == "end"] == [
+        "repeated_misunderstanding"
+    ]

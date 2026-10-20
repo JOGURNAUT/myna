@@ -32,12 +32,23 @@ from . import contracts as c
 from . import i18n, safety
 from .dates import DateRef, TimeRef, parse_date, parse_time
 from .i18n import Lang, line
-from .nlu import NLU, ClinicFacts, Expecting, Intent, TurnContext, Understanding, detect_language
+from .nlu import (
+    NLU,
+    ClinicFacts,
+    Expecting,
+    Intent,
+    TurnContext,
+    Understanding,
+    detect_language,
+    mentions_booking,
+)
 from .tools import ApiClient, ToolError
 
 log = logging.getLogger("myna.conversation")
 
 MAX_FAILED_UNDERSTANDING = 2
+#: The same question this many times in a row means we are stuck: hand over to a person.
+MAX_SAME_QUESTION = 3
 MAX_OFFERS = 3
 
 # Evidence that a caller is speaking English rather than giving a bare name, date or number.
@@ -213,6 +224,7 @@ class Conversation:
         self.transcript: list[tuple[str, str]] = []
         self._offer_booking_next = False
         self._pending_end: str | None = None
+        self._same_question = 1
         self.facts = ClinicFacts(
             services={
                 s.id: [
@@ -250,11 +262,25 @@ class Conversation:
 
     async def _finish(self, reply: Reply) -> Reply:
         """Every agent reply is logged exactly once, then the end of the call if it ended."""
+        reply = await self._break_loops(reply)
         await self._log_turn("agent", reply.text)
         if self._pending_end is not None:
             await self._log_end(self._pending_end)
             self._pending_end = None
         return reply
+
+    async def _break_loops(self, reply: Reply) -> Reply:
+        """A safety net for ANY understanding failure (model or rules): if Myna is about to ask
+        the exact same thing a third time running, she isn't making progress. Hand over."""
+        last_agent = next((t for s, t in reversed(self.transcript) if s == "agent"), None)
+        if reply.ended or last_agent != reply.text:
+            self._same_question = 1
+            return reply
+        self._same_question += 1
+        if self._same_question < MAX_SAME_QUESTION:
+            return reply
+        log.warning("same question asked %d times; handing off", self._same_question)
+        return await self._handoff("repeated_misunderstanding", line("handoff_confused", self.lang))
 
     async def _start(self) -> Reply:
         clinic = self.config.spoken_name.get(self.lang) or self.config.name
@@ -378,8 +404,14 @@ class Conversation:
             return await self._answer_faq(u.faq_id)
         if u.intent == Intent.other_request:
             request = u.summary or text.strip()
-            return await self._start_message(u.task_category or "other", request)
-        if u.secondary_category:
+            category = u.task_category or "other"
+            if not self._also_wants_booking(u, text):
+                return await self._start_message(category, request)
+            # The model folded "book X, and also ask Y" into one label (seen live with
+            # sarvam-105b-conversations). Don't lose the booking: book first, Y waits its turn.
+            self.pending_message = MessageDraft(category=category, request=request[:200])
+            u = u.model_copy(update={"intent": Intent.book})
+        elif u.secondary_category:
             # "Book a cleaning, and is my report ready?" — the question waits its turn.
             self.pending_message = MessageDraft(
                 category=u.secondary_category, request=(u.summary or text.strip())[:200]
@@ -398,6 +430,16 @@ class Conversation:
         self.draft = Draft(goal=goal)
         self._absorb(u, text)
         return await self._advance()
+
+    def _also_wants_booking(self, u: Understanding, text: str) -> bool:
+        """A message request that ALSO books: a booking word, plus a service, day or time.
+        Needing both keeps "can I collect my report tomorrow?" a plain message."""
+        names_when = (
+            u.service_id is not None
+            or parse_date(text, self._today()) is not None
+            or parse_time(text) is not None
+        )
+        return mentions_booking(text) and names_when
 
     # ================================================================ slot filling
 
