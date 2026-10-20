@@ -135,3 +135,14 @@ def test_third_party_and_frustration() -> None:
 def test_formal_introductions(text: str, name: str) -> None:
     """Found by the live demo: 'ji main X bol rahi hoon' was not understood as a name."""
     assert parse(text, "name").name == name
+
+
+def test_name_corrections_at_the_read_back() -> None:
+    from myna_agent.nlu import extract_name_correction
+
+    assert extract_name_correction("No, the name is Neha Kapoor.") == "Neha Kapoor"
+    assert extract_name_correction("nahi, naam Neha Kapoor hai") == "Neha Kapoor"
+    assert extract_name_correction("नहीं, नाम नेहा कपूर है।") == "नेहा कपूर"
+    # Ordinary objections are not names.
+    for text in ("no, this is wrong", "no thanks", "nahi, Wednesday kar do", "I am not sure"):
+        assert extract_name_correction(text) is None

@@ -128,6 +128,7 @@ console.log(`
    Clinic dashboard        http://localhost:3000/login
                            clinic ID: smile-dental   password: ${password}
 
+   Voice: press "Talk with your voice" (needs the microphone; ${hasKey ? 'enabled' : 'off without SARVAM_API_KEY'}).
    Try:  "Mujhe cleaning ka appointment chahiye kal subah"
          then watch the booking land on the schedule, and appear
          on the dashboard as a "Test call" you can review.

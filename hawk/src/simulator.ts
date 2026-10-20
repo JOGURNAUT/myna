@@ -1,3 +1,4 @@
+import { cer } from './audio.js';
 import type { Event, Goal, Language, Persona, Scenario, When } from './schema.js';
 
 /**
@@ -412,8 +413,21 @@ const EVENT_LINES = {
   ),
 };
 
+/**
+ * Does `text` say this name, give or take a letter? Used to notice a read-back with the wrong
+ * name: recognition turns "Neha" into "Deha", and a real caller who hears that objects.
+ */
+export function mentionsName(text: string, name: string): boolean {
+  const words = text.split(/[\s,.।!?]+/).filter(Boolean);
+  return name
+    .split(/\s+/)
+    .every((token) => words.some((w) => cer(token.toLowerCase(), w.toLowerCase()) <= 0.2));
+}
+
 export class ScriptedPatient {
   private turn = 0;
+  private lastReply = '';
+  private correctedName = false;
   private changedMind = false;
   private namedOnce = false;
 
@@ -421,11 +435,14 @@ export class ScriptedPatient {
     private readonly scenario: Scenario,
     private readonly persona: Persona,
     private readonly lang: Language,
+    /** Audio mode: listen to the read-back like a real caller and object to a wrong name. */
+    private readonly checkReadBack = false,
   ) {}
 
   /** The caller's next utterance, or null when the call is over. */
   respond(reply: AgentReply): string | null {
     if (reply.ended) return null;
+    this.lastReply = reply.text;
     this.turn += 1;
     const forced = this.eventAt(this.turn);
     if (forced) return forced;
@@ -475,6 +492,8 @@ export class ScriptedPatient {
       case 'appointment':
         return ORDINALS[0][lang];
       case 'confirm': {
+        const wrongName = this.readBackNameProblem();
+        if (wrongName) return wrongName;
         const change = this.event('change_mind_at_confirm');
         if (change && !this.changedMind) {
           this.changedMind = true;
@@ -497,6 +516,21 @@ export class ScriptedPatient {
       default:
         return YES[lang];
     }
+  }
+
+  /** One correction at most: "No, the name is Neha Kapoor", when the read-back got it wrong. */
+  private readBackNameProblem(): string | null {
+    if (!this.checkReadBack || this.correctedName) return null;
+    const who = this.scenario.caller;
+    const heardOk =
+      mentionsName(this.lastReply, who.name) ||
+      (who.nameHi !== undefined && mentionsName(this.lastReply, who.nameHi));
+    if (heardOk) return null;
+    this.correctedName = true;
+    const name = this.lang === 'hi' ? (who.nameHi ?? who.name) : who.name;
+    return L(`No, the name is ${name}.`, `Nahi, naam ${name} hai.`, `नहीं, नाम ${name} है।`)[
+      this.lang
+    ];
   }
 
   private sayName(): string {

@@ -40,6 +40,7 @@ from .nlu import (
     TurnContext,
     Understanding,
     detect_language,
+    extract_name_correction,
     mentions_booking,
 )
 from .text import has_devanagari, normalize
@@ -282,6 +283,13 @@ class Conversation:
             await self._log_end(self._pending_end)
             self._pending_end = None
         return reply
+
+    async def hang_up(self) -> None:
+        """The caller disconnected mid-call: close the log honestly (never as a booking)."""
+        if self.ended:
+            return
+        self.ended = True
+        await self._log_end("hung_up")
 
     async def _break_loops(self, reply: Reply) -> Reply:
         """A safety net for ANY understanding failure (model or rules): if Myna is about to ask
@@ -816,6 +824,17 @@ class Conversation:
 
     async def _on_confirm(self, u: Understanding, text: str) -> Reply:
         d = self.draft
+        if (
+            d.goal == "book"
+            and not self.identity.verified
+            and u.intent != Intent.yes
+            and (fixed := extract_name_correction(text))
+            and normalize(fixed) != normalize(self.identity.name or "")
+        ):
+            # Speech recognition mangles names ("Neha" -> "Deha"); the read-back is where the
+            # caller catches it. Take the corrected name and read everything back again.
+            self.identity.name = fixed
+            return await self._confirm_booking()
         changed_when = bool(parse_date(text, self._today()) or parse_time(text))
         if d.goal in ("book", "reschedule") and changed_when and u.intent != Intent.yes:
             # A correction ("Wednesday... nahi, Tuesday"): already absorbed; search again.

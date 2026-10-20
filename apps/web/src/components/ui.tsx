@@ -91,6 +91,7 @@ export const ICONS = {
   stop: 'M8.2 3h7.6L21 8.2v7.6L15.8 21H8.2L3 15.8V8.2zM9.5 9.5l5 5M14.5 9.5l-5 5',
   moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',
   send: 'M4 12l16-8-6 16-2.5-6.5z',
+  mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM6 11a6 6 0 0 0 12 0M12 17v4M9 21h6',
 } as const;
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {

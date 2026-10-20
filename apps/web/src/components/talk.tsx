@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Demo } from '@/lib/types';
 import { latency } from '@/lib/format';
+import { useVoiceCall, type VoiceReply } from '@/lib/voice';
 import { Schedule } from './schedule';
 import { btnGhost, btnPrimary, Icon, ICONS, LangBadge } from './ui';
 
@@ -43,6 +44,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
   const [demo, setDemo] = useState<Demo | null>(initialDemo);
   const baseline = useRef(new Set(initialDemo?.busy.map(key) ?? []));
   const bottom = useRef<HTMLDivElement>(null);
+  const [mode, setMode] = useState<'text' | 'voice'>('text');
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
@@ -52,6 +54,39 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
     const res = await fetch('/api/demo', { cache: 'no-store' }).catch(() => null);
     if (res?.ok) setDemo((await res.json()) as Demo);
   }, []);
+
+  const voice = useVoiceCall({
+    onGreeting: (reply: VoiceReply) => {
+      setMessages([{ who: 'myna', text: reply.text, lang: reply.language }]);
+    },
+    onTurn: (caller, reply) => {
+      setMessages((prev) => [
+        ...prev,
+        { who: 'caller', text: caller, lang: reply.language },
+        { who: 'myna', text: reply.text, lang: reply.language },
+      ]);
+      if (reply.ended) setEnded({ handoffTo: reply.handoffTo });
+      void refreshSchedule();
+    },
+    onLatency: (l) => {
+      // What the caller felt: from the end of their sentence to the first sound of Myna's reply.
+      const ms = l.felt_ms ?? l.total_ms;
+      if (ms === null) return;
+      setMessages((prev) => {
+        const i = prev.findLastIndex((m) => m.who === 'myna');
+        return prev.map((m, j) => (j === i ? { ...m, latencyMs: ms } : m));
+      });
+    },
+  });
+
+  const startVoice = () => {
+    setMode('voice');
+    setMessages([]);
+    setEnded(null);
+    setError(null);
+    baseline.current = new Set(demo?.busy.map(key) ?? []);
+    void voice.start();
+  };
 
   const post = useCallback(
     async (text: string | null) => {
@@ -105,6 +140,8 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
   };
 
   const restart = () => {
+    void voice.stop();
+    setMode('text');
     setMessages([]);
     setCallId(null);
     setEnded(null);
@@ -138,13 +175,29 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
           {messages.length === 0 ? (
             <div className="m-auto flex max-w-md flex-col items-center gap-4 text-center">
               <p className="text-ink-2">
-                She answers the phone for a small dental clinic. Type in English, Hindi or Hinglish
-                (voice arrives soon). Try booking a cleaning with Dr. Mehta.
+                She answers the phone for a small dental clinic. Speak or type in English, Hindi or
+                Hinglish. Try booking a cleaning with Dr. Mehta.
               </p>
-              <button type="button" className={btnPrimary} disabled={busy} onClick={restart}>
-                <Icon d={ICONS.phone} size={18} />
-                Start the call
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  className={btnPrimary}
+                  disabled={busy || voice.status === 'connecting'}
+                  onClick={startVoice}
+                >
+                  <Icon d={ICONS.mic} size={18} />
+                  {voice.status === 'connecting' ? 'Connecting…' : 'Talk with your voice'}
+                </button>
+                <button type="button" className={btnGhost} disabled={busy} onClick={restart}>
+                  <Icon d={ICONS.phone} size={18} />
+                  Type instead
+                </button>
+              </div>
+              {voice.error && (
+                <p role="alert" className="text-sm text-danger-ink">
+                  {voice.error}
+                </p>
+              )}
             </div>
           ) : (
             <ol className="flex flex-col gap-3" aria-live="polite">
@@ -209,7 +262,36 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
           </p>
         )}
 
-        {messages.length > 0 && !ended && (
+        {mode === 'voice' && voice.status !== 'idle' && !ended && (
+          <div
+            role="status"
+            className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3"
+          >
+            <span
+              className={`h-3 w-3 rounded-full ${voice.status === 'live' ? 'live bg-accent' : 'bg-muted-ink'}`}
+              aria-hidden="true"
+            />
+            <span className="flex-1 text-sm text-ink-2">
+              {voice.status === 'connecting' && 'Connecting to Myna…'}
+              {voice.status === 'live' &&
+                (voice.speaker === 'myna'
+                  ? 'Myna is speaking… (talk over her any time)'
+                  : voice.speaker === 'you'
+                    ? 'Listening…'
+                    : 'Your turn. Just talk.')}
+              {voice.status === 'ended' && 'The voice call has ended.'}
+              {voice.status === 'error' && (voice.error ?? 'The voice call failed.')}
+            </span>
+            {(voice.status === 'live' || voice.status === 'connecting') && (
+              <button type="button" className={btnGhost} onClick={() => void voice.stop()}>
+                <Icon d={ICONS.phone} size={16} />
+                Hang up
+              </button>
+            )}
+          </div>
+        )}
+
+        {messages.length > 0 && !ended && mode === 'text' && (
           <>
             <form
               className="flex gap-2"

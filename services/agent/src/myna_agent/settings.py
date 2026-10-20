@@ -33,6 +33,10 @@ class Settings:
     fake_now: str | None = None
     #: Shared state for several agent instances. Unset = single-process, in-memory.
     redis_url: str | None = None
+    #: Browser voice (Pipecat + Sarvam speech). On by default when a Sarvam key exists.
+    voice_enabled: bool = False
+    #: Clinic a browser voice call opens when the client doesn't say.
+    voice_clinic: str = "smile-dental"
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -48,6 +52,9 @@ class Settings:
             port=int(os.environ.get("AGENT_PORT", "8000")),
             fake_now=_fake_now(),
             redis_url=os.environ.get("REDIS_URL") or None,
+            voice_enabled=os.environ.get("VOICE_ENABLED", "1") == "1"
+            and bool(os.environ.get("SARVAM_API_KEY")),
+            voice_clinic=os.environ.get("VOICE_CLINIC", "smile-dental"),
         )
 
 

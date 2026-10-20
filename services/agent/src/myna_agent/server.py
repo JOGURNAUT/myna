@@ -282,6 +282,25 @@ def create_app(
         reply = await conv.start_outbound(reminder)
         return await keep(conv, api, body.clinic_id, reply)
 
+    @app.post("/v1/calls/{call_id}/hangup")
+    async def hangup(call_id: str) -> dict[str, bool]:
+        """The caller dropped (closed the tab, lost signal). Idempotent."""
+        try:
+            async with sessions_store.lock(call_id):
+                data = await sessions_store.load(call_id)
+                if data is None:
+                    return {"ok": True}  # already finished
+                session = sessions.get(call_id) or await revive(call_id, data)
+                try:
+                    restore(session.conv, data)
+                    await session.conv.hang_up()
+                except IncompatibleSnapshot:
+                    pass
+                await finish(call_id)
+        except LockTimeout as e:
+            raise HTTPException(409, "another turn of this call is still running") from e
+        return {"ok": True}
+
     @app.post("/v1/calls/{call_id}/turns")
     async def turn(call_id: str, body: Turn) -> dict[str, object]:
         try:
@@ -304,6 +323,12 @@ def create_app(
         except LockTimeout as e:
             raise HTTPException(409, "another turn of this call is still running") from e
         return {"reply": out["reply"]}
+
+    if cfg.voice_enabled and cfg.sarvam_api_key:
+        from .voice.pipeline import VoiceSettings
+        from .voice.routes import register_voice_routes
+
+        register_voice_routes(app, VoiceSettings(api_key=cfg.sarvam_api_key), cfg.voice_clinic)
 
     return app
 

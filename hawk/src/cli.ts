@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
+import { SarvamAudio } from './audio.js';
 import { grade, type GradedCall } from './grader.js';
 import { loadSuite } from './load.js';
 import { buildReport, type Report, renderHtml, renderMarkdown } from './report.js';
@@ -28,6 +30,13 @@ async function main(): Promise<void> {
       nlu: { type: 'string', default: 'rules' },
       model: { type: 'string' },
       instances: { type: 'string', default: '1' },
+      /** Audio mode: caller lines go through Sarvam TTS → STT first (needs SARVAM_API_KEY). */
+      audio: { type: 'boolean', default: false },
+      /** Run only N calls, spread evenly over flows and languages (audio runs are slow/metered). */
+      sample: { type: 'string' },
+      'stt-model': { type: 'string' },
+      'stt-mode': { type: 'string' },
+      'run-id': { type: 'string' },
       clock: { type: 'string', default: DEFAULT_CLOCK },
       api: { type: 'string' },
       agent: { type: 'string' },
@@ -50,6 +59,8 @@ async function main(): Promise<void> {
       s.languages.filter((l) => !langs || langs.includes(l)).map((lang) => ({ s, lang })),
     );
   if (jobs.length === 0) throw new Error('no scenarios match');
+  const picked = values.sample ? evenSample(jobs, Number(values.sample)) : jobs;
+  jobs.splice(0, jobs.length, ...picked);
 
   const services =
     values.api && values.agent && values.token
@@ -60,7 +71,9 @@ async function main(): Promise<void> {
           ...(values.model ? { model: values.model } : {}),
           instances: Number(values.instances),
         });
+  const audio = values.audio ? makeAudio(values['stt-model'], values['stt-mode']) : undefined;
   const env: Endpoints = {
+    ...(audio ? { audio } : {}),
     apiUrl: services?.apiUrl ?? values.api ?? '',
     agentUrls: services?.agentUrls ?? (values.agent ? [values.agent] : []),
     token: services?.token ?? values.token ?? '',
@@ -95,7 +108,7 @@ ${agent.slice(-3500)}
 ${api.slice(-1500)}
 `);
     }
-    report = finish(graded, values.clock, values.nlu);
+    report = finish(graded, values.clock, values.nlu, Boolean(audio), values['run-id']);
     const all = await Promise.all(
       env.agentUrls.map((u) =>
         fetch(`${u}/v1/stats`)
@@ -149,19 +162,28 @@ ${api.slice(-1500)}
   }
 }
 
-function finish(graded: GradedCall[], clock: string, nlu: string): Report {
+function finish(
+  graded: GradedCall[],
+  clock: string,
+  nlu: string,
+  audio: boolean,
+  runIdOverride?: string,
+): Report {
   graded.sort(
     (a, b) =>
       a.record.scenarioId.localeCompare(b.record.scenarioId) ||
       a.record.language.localeCompare(b.record.language),
   );
-  const runId = `hawk-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`;
+  const runId =
+    runIdOverride ?? `hawk-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`;
   return buildReport(graded, {
     runId,
     clinic: 'Smile Dental Care (synthetic)',
     clock: `${clock} (Mon 12 Oct 2026, 11:00 IST)`,
     nlu: nlu === 'rules' ? 'rule-based (offline baseline)' : nlu,
-    patient: 'scripted',
+    patient: audio
+      ? 'scripted, spoken through Sarvam TTS and re-transcribed by Saaras'
+      : 'scripted',
   });
 }
 
@@ -169,3 +191,29 @@ main().catch((e: unknown) => {
   console.error(e instanceof Error ? e.message : e);
   process.exit(1);
 });
+
+/** N jobs spread evenly across the list (which is grouped by scenario, so flows and languages mix). */
+function evenSample<T>(items: T[], n: number): T[] {
+  if (!Number.isFinite(n) || n <= 0 || n >= items.length) return items;
+  return Array.from({ length: n }, (_, i) => items[Math.floor((i * items.length) / n)] as T);
+}
+
+function makeAudio(sttModel?: string, sttMode?: string): SarvamAudio {
+  const apiKey = process.env.SARVAM_API_KEY ?? readDotEnv('SARVAM_API_KEY');
+  if (!apiKey) throw new Error('--audio needs SARVAM_API_KEY (in the environment or .env)');
+  return new SarvamAudio({
+    apiKey,
+    ...(sttModel ? { sttModel } : {}),
+    ...(sttMode ? { sttMode } : {}),
+  });
+}
+
+function readDotEnv(name: string): string | undefined {
+  try {
+    const text = readFileSync(join(REPO_ROOT, '.env'), 'utf8');
+    const m = new RegExp(`^${name}=(.*)$`, 'm').exec(text);
+    return m?.[1]?.trim().replace(/^['"]|['"]$/g, '') || undefined;
+  } catch {
+    return undefined;
+  }
+}

@@ -1,5 +1,6 @@
 import type { CreateHawkTenantOutput, HawkTenantState } from '@myna/shared';
 import type { Language, Persona, Scenario } from './schema.js';
+import type { AudioChannel } from './audio.js';
 import { type AgentReply, ScriptedPatient } from './simulator.js';
 
 export interface Endpoints {
@@ -8,6 +9,8 @@ export interface Endpoints {
   agentUrls: string[];
   token: string;
   baseClinicId: string;
+  /** Audio mode: caller lines are spoken and re-transcribed before Myna sees them. */
+  audio?: AudioChannel;
 }
 
 export interface Turn {
@@ -17,6 +20,13 @@ export interface Turn {
   expecting?: string;
   /** Agent turns: caller text sent → reply received, as seen by the caller. */
   latencyMs?: number;
+  /** Audio mode, caller turns: what the simulated patient meant to say (`text` is what Myna heard). */
+  said?: string;
+  asrMs?: number;
+  ttsMs?: number;
+  detected?: string | null;
+  ttsChars?: number;
+  audioSeconds?: number;
 }
 
 export interface CallEventRecord {
@@ -83,7 +93,7 @@ export async function runScenario(
 ): Promise<CallRecord> {
   const tenant = await createTenant(env, scenario, lang);
   const turns: Turn[] = [];
-  const sim = new ScriptedPatient(scenario, persona, lang);
+  const sim = new ScriptedPatient(scenario, persona, lang, Boolean(env.audio));
   const agents = env.agentUrls;
   const nextAgent = rotation(agents);
   let callId = '';
@@ -128,11 +138,27 @@ export async function runScenario(
       }
       const said = sim.respond(reply);
       if (said === null) break;
-      turns.push({ speaker: 'caller', text: said });
+      let toAgent = said;
+      if (env.audio) {
+        const rt = await env.audio.roundTrip(said, lang, `${scenario.id}:${lang}`);
+        toAgent = rt.heard || said; // nothing recognised: the caller repeats themselves
+        turns.push({
+          speaker: 'caller',
+          text: rt.heard,
+          said,
+          asrMs: rt.asrMs,
+          ttsMs: rt.ttsMs,
+          detected: rt.detected,
+          ttsChars: rt.ttsChars,
+          audioSeconds: rt.audioSeconds,
+        });
+      } else {
+        turns.push({ speaker: 'caller', text: said });
+      }
       const t0 = performance.now();
       const next = await json<AgentTurnResponse>(`${nextAgent()}/v1/calls/${callId}/turns`, {
         method: 'POST',
-        body: JSON.stringify({ text: said }),
+        body: JSON.stringify({ text: toAgent }),
       });
       reply = next.reply;
       turns.push({

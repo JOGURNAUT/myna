@@ -1,3 +1,4 @@
+import { cer } from './audio.js';
 import type { Check, GradedCall, Severity } from './grader.js';
 import type { Turn } from './runner.js';
 
@@ -23,6 +24,22 @@ export interface FailureMode {
   example: { scenarioId: string; language: string; detail: string; transcript: Turn[] };
 }
 
+export interface AudioSummary {
+  utterances: number;
+  asrP50Ms: number;
+  asrP95Ms: number;
+  /** Character error rate, only where said and heard use the same script (English, Hindi). */
+  cerByLanguage: Record<string, { utterances: number; meanCer: number | null }>;
+  callerAudioSeconds: number;
+  callerTtsChars: number;
+  agentTtsChars: number;
+  /** Estimated speech cost per call, using assumed list prices (see `costNote`). */
+  estSpeechCostPerCallInr: number;
+  costNote: string;
+  /** The utterances Saaras changed the most, to show what recognition really does. */
+  samples: { language: string; said: string; heard: string }[];
+}
+
 export interface Report {
   runId: string;
   createdAt: string;
@@ -45,6 +62,8 @@ export interface Report {
   failureModes: FailureMode[];
   latency: { p50Ms: number; p95Ms: number; turns: number; note: string };
   cost: { perCallInr: number; note: string };
+  /** Audio mode only: what speech recognition did to the simulated callers' words. */
+  audio?: AudioSummary;
   calls: {
     scenarioId: string;
     title: string;
@@ -111,6 +130,61 @@ function percentile(values: number[], p: number): number {
   return sorted[Math.max(0, idx)] ?? 0;
 }
 
+// Assumed Sarvam list prices, to be confirmed against the dashboard before anyone quotes them.
+const STT_INR_PER_HOUR = 30;
+const TTS_INR_PER_10K_CHARS = 30;
+
+function summariseAudio(graded: GradedCall[]): AudioSummary | undefined {
+  const caller = graded.flatMap((g) =>
+    g.record.turns
+      .filter((t) => t.speaker === 'caller' && t.said !== undefined)
+      .map((t) => ({ t, language: g.record.language })),
+  );
+  if (caller.length === 0) return undefined;
+  const asr = caller.map(({ t }) => t.asrMs ?? 0);
+  const cerByLanguage: AudioSummary['cerByLanguage'] = {};
+  for (const [lang, items] of groupBy(caller, (c) => c.language)) {
+    // Hinglish is typed in Roman script but recognised in Devanagari, so characters can't be
+    // compared; the pass rate (did the call still succeed?) is the honest measure there.
+    const comparable = lang !== 'hinglish';
+    cerByLanguage[lang] = {
+      utterances: items.length,
+      meanCer: comparable
+        ? items.reduce((n, { t }) => n + cer(t.said ?? '', t.text), 0) / items.length
+        : null,
+    };
+  }
+  const callerAudioSeconds = caller.reduce((n, { t }) => n + (t.audioSeconds ?? 0), 0);
+  const callerTtsChars = caller.reduce((n, { t }) => n + (t.ttsChars ?? 0), 0);
+  const agentTtsChars = graded.reduce(
+    (n, g) =>
+      n +
+      g.record.turns.filter((t) => t.speaker === 'agent').reduce((m, t) => m + t.text.length, 0),
+    0,
+  );
+  // What a live call costs: transcribing the caller's audio + speaking Myna's replies.
+  const est =
+    (callerAudioSeconds / 3600) * STT_INR_PER_HOUR +
+    (agentTtsChars / 10_000) * TTS_INR_PER_10K_CHARS;
+  const samples = [...caller]
+    .filter(({ t }) => t.said !== undefined)
+    .sort((a, b) => cer(b.t.said ?? '', b.t.text) - cer(a.t.said ?? '', a.t.text))
+    .slice(0, 6)
+    .map(({ t, language }) => ({ language, said: t.said ?? '', heard: t.text }));
+  return {
+    utterances: caller.length,
+    asrP50Ms: percentile(asr, 50),
+    asrP95Ms: percentile(asr, 95),
+    cerByLanguage,
+    callerAudioSeconds: Math.round(callerAudioSeconds),
+    callerTtsChars,
+    agentTtsChars,
+    estSpeechCostPerCallInr: Math.round((est / Math.max(1, graded.length)) * 100) / 100,
+    costNote: `assumed ₹${STT_INR_PER_HOUR}/hour speech-to-text and ₹${TTS_INR_PER_10K_CHARS}/10k characters text-to-speech; confirm against the Sarvam dashboard`,
+    samples,
+  };
+}
+
 export function buildReport(
   graded: GradedCall[],
   meta: { runId: string; clinic: string; clock: string; nlu: string; patient: string },
@@ -164,6 +238,8 @@ export function buildReport(
       .map((t) => t.latencyMs ?? 0),
   );
 
+  const audio = summariseAudio(graded);
+
   return {
     runId: meta.runId,
     createdAt: new Date().toISOString(),
@@ -178,6 +254,7 @@ export function buildReport(
           ? 'Scripted patients say things the way the scenarios were written, so a high pass rate here is necessary but not sufficient. Real callers are messier: re-run with LLM-played patients and in audio mode before trusting a SAFE verdict for a pilot.'
           : 'LLM-played patients vary between runs; compare spreads, not single numbers.',
     },
+    ...(audio ? { audio } : {}),
     totals: rate(graded),
     flows,
     languages,
@@ -247,6 +324,24 @@ export function renderMarkdown(r: Report): string {
   if (r.setup.instances) {
     lines.push(
       `Scaled out: **${r.setup.instances.agents} agent instances** sharing state via ${r.setup.instances.sharedState}; every turn of a call was served by a different instance than the one before`,
+      '',
+    );
+  }
+  if (r.audio) {
+    const a = r.audio;
+    lines.push(
+      `Audio mode: **${a.utterances} spoken caller turns** through Bulbul → Saaras · recognition p50 ${a.asrP50Ms} ms / p95 ${a.asrP95Ms} ms · est. speech cost ₹${a.estSpeechCostPerCallInr.toFixed(2)} per call (${a.costNote})`,
+      '',
+      '| Language | Spoken turns | Character error rate |',
+      '|---|---|---|',
+      ...Object.entries(a.cerByLanguage).map(
+        ([lang, v]) =>
+          `| ${lang} | ${v.utterances} | ${v.meanCer === null ? 'n/a (spoken Roman, recognised in Devanagari)' : `${(v.meanCer * 100).toFixed(1)}%`} |`,
+      ),
+      '',
+      'What recognition changed most (said → heard):',
+      '',
+      ...a.samples.map((x) => `- [${x.language}] "${x.said}" → "${x.heard}"`),
       '',
     );
   }

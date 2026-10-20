@@ -18,9 +18,9 @@ from .text import normalize
 WEEKDAYS: dict[str, int] = {}
 for idx, names in enumerate(
     [
-        ("monday", "mon", "somvar", "somwar", "सोमवार"),
-        ("tuesday", "tue", "tues", "mangalvar", "mangalwar", "मंगलवार"),
-        ("wednesday", "wed", "budhvar", "budhwar", "बुधवार"),
+        ("monday", "mon", "somvar", "somwar", "सोमवार", "मंडे", "मन्डे"),
+        ("tuesday", "tue", "tues", "mangalvar", "mangalwar", "मंगलवार", "ट्यूसडे", "ट्यूज़डे", "ट्यूजडे"),
+        ("wednesday", "wed", "budhvar", "budhwar", "बुधवार", "वेडनेसडे", "वेनेसडे"),
         (
             "thursday",
             "thu",
@@ -31,10 +31,13 @@ for idx, names in enumerate(
             "brihaspativar",
             "गुरुवार",
             "वीरवार",
+            "थर्सडे",
+            "थर्स्डे",
+            "थरसडे",
         ),
-        ("friday", "fri", "shukravar", "shukrawar", "शुक्रवार"),
-        ("saturday", "sat", "shanivar", "shaniwar", "शनिवार"),
-        ("sunday", "sun", "ravivar", "raviwar", "itvaar", "इतवार", "रविवार"),
+        ("friday", "fri", "shukravar", "shukrawar", "शुक्रवार", "फ्राइडे", "फ्राईडे"),
+        ("saturday", "sat", "shanivar", "shaniwar", "शनिवार", "सैटरडे", "सेटरडे", "सैटर्डे"),
+        ("sunday", "sun", "ravivar", "raviwar", "itvaar", "इतवार", "रविवार", "संडे", "सनडे"),
     ]
 ):
     for n in names:

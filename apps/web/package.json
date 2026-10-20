@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@myna/shared": "workspace:*",
+    "@pipecat-ai/client-js": "1.14.0",
+    "@pipecat-ai/small-webrtc-transport": "1.11.0",
     "ioredis": "^6.0.0",
     "next": "^16.4.2",
     "react": "^19.3.1",

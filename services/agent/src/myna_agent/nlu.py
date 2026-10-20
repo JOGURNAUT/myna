@@ -130,7 +130,18 @@ class NLU(Protocol):
 # ---------------------------------------------------------------- rule-based
 
 SERVICE_SYNONYMS: dict[str, tuple[str, ...]] = {
-    "cleaning": ("cleaning", "clean", "scaling", "safai", "saaf", "सफ़ाई", "सफाई"),
+    "cleaning": (
+        "cleaning",
+        "clean",
+        "scaling",
+        "safai",
+        "saaf",
+        "सफ़ाई",
+        "सफाई",
+        "क्लीनिंग",
+        "क्लीन",
+        "स्केलिंग",
+    ),
     "consultation": (
         "consultation",
         "consult",
@@ -142,9 +153,12 @@ SERVICE_SYNONYMS: dict[str, tuple[str, ...]] = {
         "jaanch",
         "परामर्श",
         "चेकअप",
+        "चेक अप",
+        "कंसल्टेशन",
+        "कन्सल्टेशन",
     ),
     "filling": ("filling", "fill", "cavity", "फिलिंग"),
-    "root-canal": ("root canal", "rct", "रूट कैनाल"),
+    "root-canal": ("root canal", "rct", "रूट कैनाल", "रूटकैनाल", "रूट कनाल"),
     "braces-review": ("braces", "brace", "ब्रेसेस"),
 }
 
@@ -182,8 +196,29 @@ _YES = (
     "बिल्कुल",
     "कर दो",
     "कर दीजिए",
+    "यस",
+    "येस",
+    "ओके",
+    "ठीक",
+    "कंफर्म",
+    "कन्फर्म",
+    "जी हाँ",
 )
-_NO = ("no", "nope", "not", "nahi", "nahin", "mat", "galat", "wrong", "नहीं", "गलत")
+_NO = (
+    "no",
+    "nope",
+    "not",
+    "nahi",
+    "nahin",
+    "mat",
+    "galat",
+    "wrong",
+    "नहीं",
+    "नही",
+    "नाही",
+    "नो",
+    "गलत",
+)
 # "na" is usually a softener ("kar do na" = "please do it"); it means "no" only on its own.
 _BARE_NO = ("na", "naa", "ना")
 _BOOK = (
@@ -199,6 +234,10 @@ _BOOK = (
     "time chahiye",
     "बुक",
     "अपॉइंटमेंट",
+    "बुकिंग",
+    "अपोइंटमेंट",
+    "एपॉइंटमेंट",
+    "अपॉइंमेंट",
 )
 _RESCHEDULE = (
     "reschedule",
@@ -214,6 +253,12 @@ _RESCHEDULE = (
     "peeche kar",
     "बदल",
     "बदलना",
+    "रीशेड्यूल",
+    "रिशेड्यूल",
+    "चेंज",
+    "शिफ्ट",
+    "प्रीपोन",
+    "पोस्टपोन",
 )
 _CANCEL = (
     "cancel",
@@ -224,6 +269,10 @@ _CANCEL = (
     "nahi aa sakti",
     "कैंसल",
     "रद्द",
+    "कैंसिल",
+    "कैन्सिल",
+    "केंसिल",
+    "कैंसल करना",
 )
 _FAQ: dict[str, tuple[str, ...]] = {
     "timings": (
@@ -238,8 +287,23 @@ _FAQ: dict[str, tuple[str, ...]] = {
         "kab band",
         "समय",
         "कब खुलता",
+        "टाइमिंग",
+        "टाइमिंग्स",
+        "कितने बजे",
+        "ओपन",
+        "आवर्स",
     ),
-    "address": ("address", "where is", "location", "kahan hai", "kaha hai", "पता", "कहाँ"),
+    "address": (
+        "address",
+        "where is",
+        "location",
+        "kahan hai",
+        "kaha hai",
+        "पता",
+        "कहाँ",
+        "एड्रेस",
+        "लोकेशन",
+    ),
     "fees": (
         "fee",
         "fees",
@@ -252,8 +316,21 @@ _FAQ: dict[str, tuple[str, ...]] = {
         "kitni hai",
         "फीस",
         "कितना लगेगा",
+        "चार्जेस",
+        "कॉस्ट",
+        "प्राइस",
+        "कितने पैसे",
+        "कितना खर्च",
     ),
-    "insurance": ("insurance", "cashless", "mediclaim", "बीमा", "इंश्योरेंस"),
+    "insurance": (
+        "insurance",
+        "cashless",
+        "mediclaim",
+        "बीमा",
+        "इंश्योरेंस",
+        "मेडिक्लेम",
+        "कैशलेस",
+    ),
 }
 # Flow (b): what a message for staff is about. Order matters: first match wins.
 _CATEGORIES: dict[TaskCategory, tuple[str, ...]] = {
@@ -270,6 +347,10 @@ _CATEGORIES: dict[TaskCategory, tuple[str, ...]] = {
         "दवा खत्म",
         "दवाई खत्म",
         "पर्ची",
+        "रीफिल",
+        "रिफिल",
+        "प्रिस्क्रिप्शन",
+        "दवा चाहिए",
     ),
     "report_status": (
         "report",
@@ -281,6 +362,9 @@ _CATEGORIES: dict[TaskCategory, tuple[str, ...]] = {
         "result",
         "results",
         "रिपोर्ट",
+        "एक्स-रे",
+        "एक्सरे",
+        "रिजल्ट",
     ),
     "billing_question": (
         "bill",
@@ -293,6 +377,10 @@ _CATEGORIES: dict[TaskCategory, tuple[str, ...]] = {
         "paise",
         "बिल",
         "पेमेंट",
+        "बिलिंग",
+        "इनवॉइस",
+        "रिफंड",
+        "रसीद",
     ),
     "doctor_callback": (
         "doctor se baat",
@@ -313,6 +401,9 @@ _CATEGORIES: dict[TaskCategory, tuple[str, ...]] = {
         "मुझे कॉल करे",
         "कॉल करें",
         "से कहिए",
+        "कॉल बैक",
+        "कॉलबैक",
+        "वापस कॉल",
     ),
     # A message with no topic yet: Myna asks what to pass on.
     "other": (
@@ -324,6 +415,7 @@ _CATEGORIES: dict[TaskCategory, tuple[str, ...]] = {
         "message chodna",
         "sandesh",
         "संदेश",
+        "मैसेज",
     ),
 }
 _WRONG_NUMBER = (
@@ -410,6 +502,15 @@ _GOODBYE = (
     "बस",
     "धन्यवाद",
     "शुक्रिया",
+    "बाय",
+    "गुडबाय",
+    "और कुछ नहीं",
+    "बस इतना",
+    "थँक्यू",
+    "थैंक्यू",
+    "थैंक यू",
+    "थैंक्स",
+    "नाही बस",
 )
 _THIRD_PARTY = (
     "my mother",
@@ -572,6 +673,26 @@ def _extract_name(raw: str, expecting: Expecting) -> str | None:
         # A bare answer to "what's the name?": take the leading words before any date/number.
         candidate = _NAME_STOP.split(text, maxsplit=1)[0]
         return _clean_name(candidate)
+    return None
+
+
+# Only unambiguous phrasings: at the read-back, "this is wrong" must never become a name.
+_NAME_CORRECTION_PATTERNS = [
+    re.compile(
+        r"(?:the name is|name is|patient's name is|patient name is|it's spelled|it is spelled)\s+(.+)",
+        re.I,
+    ),
+    re.compile(r"(?:naam|name)\s+(.+?)\s+(?:hai|hain)\b", re.I),
+    re.compile(r"(?:नाम)\s+(.+?)\s+(?:है|हैं)(?:\s|$|[।.])"),
+]
+
+
+def extract_name_correction(raw: str) -> str | None:
+    """A caller fixing the name Myna read back: "no, the name is Neha Kapoor"."""
+    for pattern in _NAME_CORRECTION_PATTERNS:
+        if m := pattern.search(raw.strip()):
+            candidate = _NAME_STOP.split(m.group(1).strip(), maxsplit=1)[0]
+            return _clean_name(candidate)
     return None
 
 

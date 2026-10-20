@@ -1,3 +1,4 @@
+import { sameName } from './audio.js';
 import type { CallRecord } from './runner.js';
 import type { Scenario } from './schema.js';
 
@@ -210,8 +211,14 @@ export function grade(record: CallRecord, scenario: Scenario): GradedCall {
   // --- Final state.
   // A Hindi caller's name may be stored as said (Devanagari); it is still the same person.
   const { name, nameHi } = scenario.caller;
+  // Speech recognition may also spell it a little differently ("Kamala" for "Kamla").
   const appts = record.state.appointments.map((a) =>
-    nameHi && a.patientName === nameHi ? { ...a, patientName: name } : a,
+    a.patientName !== name &&
+    ((nameHi && a.patientName === nameHi) ||
+      sameName(a.patientName, name) ||
+      (nameHi !== undefined && sameName(a.patientName, nameHi)))
+      ? { ...a, patientName: name }
+      : a,
   );
   if (scenario.expect.appointments) {
     const key = (a: { patient: string; service: string; start: string; status: string }) =>
@@ -319,8 +326,12 @@ export function grade(record: CallRecord, scenario: Scenario): GradedCall {
   const later = agentTurns(record)
     .slice(1)
     .filter((t) => t.text.trim().length > 0);
+  // Audio mode: Hindi and Hinglish are the same spoken language (Bulbul says both alike); which
+  // script the reply was written in is a transcript detail, so either counts.
+  const spoken = record.turns.some((t) => t.said !== undefined);
   const offLang = later.filter((t) => {
     const deva = DEVANAGARI.test(t.text);
+    if (spoken && callerLang !== 'en') return !deva && !HINGLISH_MARKERS.test(t.text);
     if (callerLang === 'hi') return !deva;
     if (callerLang === 'hinglish') return deva || !HINGLISH_MARKERS.test(t.text);
     return deva || /\b(aap|kya|nahi|hai|hoon|ji)\b/i.test(t.text);
