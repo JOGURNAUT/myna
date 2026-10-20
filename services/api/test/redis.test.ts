@@ -49,9 +49,13 @@ if (process.env.REDIS_URL) {
   const url = process.env.REDIS_URL;
   backends.push({
     name: 'redis (real)',
-    limiter: () => new RedisRateLimiter(new Redis(url), `t${Math.random()}:`),
+    limiter: () =>
+      new RedisRateLimiter(new Redis(url, { enableReadyCheck: false }), `t${Math.random()}:`),
     // keyPrefix isolates each test's keys (ioredis applies it to EVAL keys too).
-    claims: () => new RedisReminderClaims(new Redis(url, { keyPrefix: `t${Math.random()}:` })),
+    claims: () =>
+      new RedisReminderClaims(
+        new Redis(url, { enableReadyCheck: false, keyPrefix: `t${Math.random()}:` }),
+      ),
   });
 }
 

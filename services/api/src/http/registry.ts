@@ -61,6 +61,11 @@ export class ClinicRegistry {
     }
   }
 
+  /** Re-reads every clinic's override: the backstop if an announcement was missed. */
+  async refreshAll(): Promise<void> {
+    for (const clinicId of this.entries.keys()) await this.refresh(clinicId);
+  }
+
   async setKillSwitch(clinicId: string, on: boolean): Promise<BusinessConfig> {
     const entry = this.entries.get(clinicId);
     if (!entry) throw new Error(`unknown clinic ${clinicId}`);

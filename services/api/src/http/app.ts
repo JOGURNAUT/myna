@@ -52,6 +52,8 @@ export interface AppDeps {
 
 /** How long a worker holds a reminder before others may take it (a crashed worker's grace). */
 export const CLAIM_TTL_MS = 120_000;
+/** How often an instance with a config bus re-reads clinic settings from the database. */
+const CONFIG_REREAD_MS = 30_000;
 
 const ClaimRequest = z.object({
   worker: z.string().min(1).max(100),
@@ -118,6 +120,19 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const configBus = deps.configBus ?? noConfigBus;
   const unsubscribe = await configBus.subscribe((clinicId) => registry.refresh(clinicId));
   app.addHook('onClose', unsubscribe);
+  if (deps.configBus) {
+    // Defense in depth for the kill switch: even if an announcement is lost (Redis blip), every
+    // instance converges on the database's value within this interval.
+    const backstop = setInterval(() => {
+      registry.refreshAll().catch((e: unknown) => {
+        app.log.error({ err: e }, 'config re-read failed');
+      });
+    }, CONFIG_REREAD_MS);
+    backstop.unref();
+    app.addHook('onClose', () => {
+      clearInterval(backstop);
+    });
+  }
 
   app.setErrorHandler((err, req, reply) => {
     if (isToolFailure(err)) return sendError(reply, err.toJSON());

@@ -10,6 +10,7 @@ dependencies = [
   "uvicorn>=0.32",
   "tzdata>=2026.4",
   "redis>=8.1.0",
+  "pipecat-ai[sarvam,webrtc]>=1.13.0",
 ]
 
 [project.scripts]

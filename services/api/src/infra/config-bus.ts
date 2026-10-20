@@ -34,15 +34,21 @@ export class RedisConfigBus implements ConfigBus {
     await this.redis.publish(CHANNEL, clinicId);
   }
 
-  async subscribe(handler: (clinicId: string) => Promise<void> | void) {
-    const sub = this.redis.duplicate();
+  subscribe(handler: (clinicId: string) => Promise<void> | void): Promise<() => Promise<void>> {
+    // The publisher fails fast (no offline queue) so a request never hangs on a dead Redis. The
+    // subscriber is the opposite: it is set up once at startup, possibly before the connection
+    // is open, so it must queue the SUBSCRIBE and re-subscribe by itself after any reconnect.
+    const sub = this.redis.duplicate({ enableOfflineQueue: true, maxRetriesPerRequest: null });
     sub.on('error', this.onError);
     sub.on('message', (_channel: string, clinicId: string) => {
       Promise.resolve(handler(clinicId)).catch(this.onError);
     });
-    await sub.subscribe(CHANNEL);
-    return async () => {
+    // A Redis that is down at startup must not stop the API from starting: it keeps retrying in
+    // the background and the app serves in the meantime. Missed announcements are caught by the
+    // periodic re-read in app.ts (the backstop for the kill switch).
+    sub.subscribe(CHANNEL).catch(this.onError);
+    return Promise.resolve(async () => {
       await sub.quit().catch(() => undefined);
-    };
+    });
   }
 }
