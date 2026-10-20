@@ -188,6 +188,30 @@
             "hybrid"
           ]
         },
+        "scheduleStore": {
+          "default": {
+            "backend": "sqlite"
+          },
+          "type": "object",
+          "properties": {
+            "backend": {
+              "default": "sqlite",
+              "type": "string",
+              "enum": [
+                "sqlite",
+                "gsheets"
+              ]
+            },
+            "spreadsheetId": {
+              "type": "string",
+              "minLength": 10
+            }
+          },
+          "required": [
+            "backend"
+          ],
+          "additionalProperties": false
+        },
         "hours": {
           "type": "object",
           "propertyNames": {
@@ -566,6 +590,7 @@
         "languages",
         "greetingLanguage",
         "schedulingMode",
+        "scheduleStore",
         "hours",
         "closedDates",
         "resources",

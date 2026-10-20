@@ -114,3 +114,22 @@ def test_refills_and_staff_requests_and_opt_outs() -> None:
 )
 def test_change_and_cancel_in_transliterated_speech(heard: str, intent: Intent) -> None:
     assert RuleBasedNLU().parse(heard, ctx("intent")).intent == intent
+
+
+@pytest.mark.parametrize(
+    ("heard", "hhmm"),
+    [
+        ("tomorrow at eleven a.m.", "11:00"),
+        ("ten a.m. please", "10:00"),
+        ("two p.m.", "14:00"),
+        ("twelve thirty p.m.", "12:30"),
+        ("half past two in the afternoon", "14:30"),
+        ("quarter past ten", "10:15"),
+        ("quarter to eleven", "10:45"),
+        ("at 11 a.m.", "11:00"),
+        ("eleven o'clock", "11:00"),
+    ],
+)
+def test_english_times_the_way_they_are_transcribed(heard: str, hhmm: str) -> None:
+    t = parse_time(heard)
+    assert t is not None and t.as_hhmm() == hhmm

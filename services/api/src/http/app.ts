@@ -23,6 +23,7 @@ import { noConfigBus, type ConfigBus } from '../infra/config-bus.js';
 import { MemoryReminderClaims, type ReminderClaims } from '../core/reminder-claims.js';
 import { completeTask, listTasks } from '../core/tasks.js';
 import { type ToolContext, toolHandlers } from '../core/tools.js';
+import type { SchedulingAdapter } from '../adapters/types.js';
 import type { Db } from '../db/client.js';
 import { hawkReports } from '../db/schema.js';
 import { registerHawkRoutes } from './hawk.js';
@@ -48,6 +49,8 @@ export interface AppDeps {
   claims?: ReminderClaims;
   /** Tells other API instances (and the agent's cache) that a clinic's settings changed. */
   configBus?: ConfigBus;
+  /** Chooses a clinic's schedule store (Google Sheets, ...). Default: built-in SQLite. */
+  adapterFor?: (config: BusinessConfig) => SchedulingAdapter | undefined;
 }
 
 /** How long a worker holds a reminder before others may take it (a crashed worker's grace). */
@@ -115,7 +118,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     logger: deps.logger ? { redact: ['req.headers.authorization'] } : false,
   });
 
-  const registry = new ClinicRegistry(deps.db, deps.clinics.values());
+  const registry = new ClinicRegistry(deps.db, deps.clinics.values(), deps.adapterFor);
   await registry.loadOverrides();
   const configBus = deps.configBus ?? noConfigBus;
   const unsubscribe = await configBus.subscribe((clinicId) => registry.refresh(clinicId));

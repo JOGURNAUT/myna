@@ -3,6 +3,27 @@
 Real-world and test findings, newest first: what happened, why, and what changed.
 Every bug found in a real call also becomes a Hawk regression scenario.
 
+## 2026-10-20 - Voice and audio mode (M3): what real speech recognition does
+Hawk audio mode (Bulbul speaks the simulated caller, Saaras transcribes, Myna answers) found, in
+order of impact:
+- Saaras writes Hinglish in Devanagari and spells English words phonetically ("क्लीनिंग",
+  "फ्राइडे", "चेकअप", "कैंसिल"), so rules-based Myna misread bookings, cancels and (in principle)
+  emergencies. Fixed in the rule vocabulary, including emergency/medicine/staff/opt-out phrases.
+  The safety lists matter most: "चेस्ट पेन" must trigger 112 exactly like "chest pain".
+- Numbers arrive as words ("eleven a.m.", "twelve thirty p.m."); time parsing now converts them.
+- Names get mangled ("Neha" -> "Deha", "Asha" -> "काशा"). The read-back catches it only if the
+  caller listens, so a spoken correction at the read-back ("no, the name is X") is now accepted.
+- Saaras sometimes switches script or even language mid-call (a "haan ji" came back in Gurmukhi;
+  one Hindi sentence came back translated into English). Myna re-asks and hands off after two
+  misses, which is the safe behaviour; pinning the STT language per call is a follow-up.
+- Doc vs API: Sarvam's production guide says TTS min_buffer_size 15-25; the API rejects < 30.
+- Real model, 24-call audio sample: 79% pass (reminders SAFE, booking/messages not yet). Text-only
+  Hawk is 100%, so audio is where the remaining risk is. Reports: run-06 (rules), run-07 (Sarvam).
+- Open: the live WebRTC test passes alone but intermittently gets no microphone audio when run in
+  the same pytest session as the other live voice test, in either order. Live tests are therefore
+  opt-in and run one file at a time. Not yet known whether this is test isolation or a real
+  second-call-in-one-process problem; check this before the pilot.
+
 ## 2026-10-20 — Scaling out: Hawk with two agent instances (run 05)
 `pnpm hawk run --instances 2` starts two agents sharing one Redis and sends every turn of every
 call to the *other* instance than the previous turn. 106/106 pass, so a call's state genuinely

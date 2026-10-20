@@ -53,7 +53,6 @@ export class SarvamAudio implements AudioChannel {
   async roundTrip(text: string, lang: Language, seed: string): Promise<Heard> {
     const voice =
       VOICES[Array.from(seed).reduce((n, ch) => n + (ch.codePointAt(0) ?? 0), 0) % VOICES.length];
-    const t0 = performance.now();
     const speech = await this.call<{ audios: string[] }>('/text-to-speech', {
       json: {
         text,
@@ -64,11 +63,10 @@ export class SarvamAudio implements AudioChannel {
         output_audio_codec: 'wav',
       },
     });
-    const ttsMs = performance.now() - t0;
+    const ttsMs = speech.ms;
     const wav = Buffer.from(speech.audios[0] ?? '', 'base64');
     if (wav.length === 0) throw new Error('Sarvam TTS returned no audio');
 
-    const t1 = performance.now();
     const form = new FormData();
     form.set('file', new Blob([wav], { type: 'audio/wav' }), 'caller.wav');
     form.set('model', this.opts.sttModel);
@@ -78,7 +76,7 @@ export class SarvamAudio implements AudioChannel {
       '/speech-to-text',
       { form },
     );
-    const asrMs = performance.now() - t1;
+    const asrMs = out.ms;
 
     return {
       heard: (out.transcript ?? '').trim(),
@@ -101,9 +99,14 @@ export class SarvamAudio implements AudioChannel {
   }
 
   /** POST with 429/5xx retry and backoff: the Starter plan rate-limits chat and speech alike. */
-  private async call<T>(path: string, body: { json: unknown } | { form: FormData }): Promise<T> {
+  /** Returns the response plus how long the SUCCESSFUL request took (not the pacing or retries). */
+  private async call<T>(
+    path: string,
+    body: { json: unknown } | { form: FormData },
+  ): Promise<T & { ms: number }> {
     for (let attempt = 0; ; attempt++) {
       await this.pace();
+      const started = performance.now();
       const res = await fetch(`${BASE}${path}`, {
         method: 'POST',
         headers: {
@@ -113,7 +116,10 @@ export class SarvamAudio implements AudioChannel {
         body: 'json' in body ? JSON.stringify(body.json) : body.form,
         signal: AbortSignal.timeout(45_000),
       });
-      if (res.ok) return (await res.json()) as T;
+      if (res.ok) {
+        const json = (await res.json()) as T;
+        return { ...json, ms: performance.now() - started };
+      }
       const retryable = res.status === 429 || res.status >= 500;
       if (!retryable || attempt >= 8) {
         throw new Error(`Sarvam ${path} → ${res.status}: ${(await res.text()).slice(0, 200)}`);

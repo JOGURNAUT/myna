@@ -9,7 +9,7 @@ from pipecat.frames.frames import TTSSpeakFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import WorkerRunner
 from pipecat.pipeline.task import PipelineParams, PipelineWorker
-from pipecat.processors.frameworks.rtvi import RTVIProcessor
+from pipecat.processors.frameworks.rtvi import RTVIObserver, RTVIProcessor
 from pipecat.transports.base_transport import TransportParams
 from pipecat.transports.smallwebrtc.connection import SmallWebRTCConnection
 from pipecat.transports.smallwebrtc.transport import SmallWebRTCTransport
@@ -55,6 +55,8 @@ async def run_bot(
             audio_out_sample_rate=cfg.sample_rate,
             enable_metrics=True,
         ),
+        # The browser's RTVI client needs both the processor and its observer.
+        observers=[RTVIObserver(rtvi)],
     )
 
     @rtvi.event_handler("on_client_ready")

@@ -68,6 +68,20 @@ class SchedulingMode(StrEnum):
     hybrid = "hybrid"
 
 
+class Backend(StrEnum):
+    sqlite = "sqlite"
+    gsheets = "gsheets"
+
+
+class ScheduleStore(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    backend: Backend
+    spreadsheet_id: Annotated[str | None, Field(alias="spreadsheetId", min_length=10)] = None
+
+
 class Hour(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -187,6 +201,7 @@ class BusinessConfig(BaseModel):
     languages: Annotated[list[Language], Field(min_length=1)]
     greeting_language: Annotated[GreetingLanguage, Field(alias="greetingLanguage")]
     scheduling_mode: Annotated[SchedulingMode, Field(alias="schedulingMode")]
+    schedule_store: Annotated[ScheduleStore, Field(alias="scheduleStore")]
     hours: dict[Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"], list[Hour]]
     closed_dates: Annotated[list[date], Field(alias="closedDates")]
     resources: Annotated[list[Resource], Field(min_length=1)]

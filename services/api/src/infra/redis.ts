@@ -2,9 +2,11 @@ import { Redis } from 'ioredis';
 import { FallbackRateLimiter, MemoryRateLimiter, RedisRateLimiter } from '@myna/shared/rate-limit';
 import { type ConfigBus, RedisConfigBus } from './config-bus.js';
 import { RedisReminderClaims, type ReminderClaims } from '../core/reminder-claims.js';
-import type { RateLimiter } from '@myna/shared/rate-limit';
+import type { RateLimiter, RedisLike } from '@myna/shared/rate-limit';
 
 export interface Infra {
+  /** For features that need Redis directly (the schedule lock). */
+  redis: RedisLike;
   configBus: ConfigBus;
   limiter: RateLimiter;
   claims: ReminderClaims;
@@ -35,6 +37,7 @@ export function connectRedis(url: string | undefined): Infra | undefined {
   };
   redis.on('error', onError);
   return {
+    redis,
     configBus: new RedisConfigBus(redis, onError),
     limiter: new FallbackRateLimiter(new RedisRateLimiter(redis), new MemoryRateLimiter(), onError),
     claims: new RedisReminderClaims(redis, onError),

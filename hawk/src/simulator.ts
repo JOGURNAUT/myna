@@ -522,6 +522,9 @@ export class ScriptedPatient {
   private readBackNameProblem(): string | null {
     if (!this.checkReadBack || this.correctedName) return null;
     const who = this.scenario.caller;
+    // A Devanagari read-back of a name we only know in Roman letters can't be judged by letters;
+    // object only when we have the Devanagari spelling to compare with.
+    if (/[ऀ-ॿ]/.test(this.lastReply) && who.nameHi === undefined) return null;
     const heardOk =
       mentionsName(this.lastReply, who.name) ||
       (who.nameHi !== undefined && mentionsName(this.lastReply, who.nameHi));

@@ -35,7 +35,13 @@ def _key() -> str | None:
 
 
 KEY = _key()
-needs_key = pytest.mark.skipif(not KEY, reason="SARVAM_API_KEY not set")
+# Live tests spend Sarvam credits and open real sockets, so they are opt-in, and run ONE FILE AT A
+# TIME (`RUN_LIVE_VOICE=1 uv run pytest tests/test_voice_live.py`): in one session the WebRTC test
+# intermittently receives no microphone audio (open question in docs/findings.md).
+needs_key = pytest.mark.skipif(
+    not KEY or not os.environ.get("RUN_LIVE_VOICE"),
+    reason="set SARVAM_API_KEY and RUN_LIVE_VOICE=1 to run the live voice tests",
+)
 SAMPLE_RATE = 16000
 
 

@@ -4,6 +4,7 @@ import { loadDotEnv, readEnv } from './env.js';
 import { parseClinicLogins } from './core/staff-auth.js';
 import { buildApp } from './http/app.js';
 import { connectRedis } from './infra/redis.js';
+import { parseServiceAccount, ScheduleStores } from './infra/schedule-stores.js';
 import { seedDemo } from './seed.js';
 
 loadDotEnv();
@@ -34,6 +35,11 @@ if (hawk && process.env.NODE_ENV === 'production') {
 }
 
 const infra = connectRedis(process.env.REDIS_URL);
+const stores = new ScheduleStores(
+  parseServiceAccount(process.env.GOOGLE_SERVICE_ACCOUNT_JSON),
+  infra?.redis,
+);
+await stores.prepare(clinics.values());
 const app = await buildApp({
   db,
   clinics,
@@ -41,6 +47,7 @@ const app = await buildApp({
   logger: true,
   clock,
   hawk,
+  adapterFor: (config) => stores.adapterFor(config),
   ...(infra ? { limiter: infra.limiter, claims: infra.claims, configBus: infra.configBus } : {}),
   ...(env.STAFF_SESSION_SECRET
     ? { staff: { secret: env.STAFF_SESSION_SECRET, logins: parseClinicLogins(env.CLINIC_LOGINS) } }

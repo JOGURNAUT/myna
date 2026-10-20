@@ -20,12 +20,15 @@ export class ClinicRegistry {
   constructor(
     private readonly db: Db,
     configs: Iterable<BusinessConfig> = [],
+    /** Chooses each clinic's schedule store. Default: the built-in SQLite one. */
+    private readonly makeAdapter?: (config: BusinessConfig) => SchedulingAdapter | undefined,
   ) {
     for (const c of configs) this.add(c);
   }
 
   add(config: BusinessConfig): ClinicEntry {
-    const entry = { config, adapter: new SqliteSchedulingAdapter(this.db, config) };
+    const adapter = this.makeAdapter?.(config) ?? new SqliteSchedulingAdapter(this.db, config);
+    const entry = { config, adapter };
     this.entries.set(config.id, entry);
     return entry;
   }

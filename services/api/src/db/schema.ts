@@ -87,9 +87,8 @@ export const idempotencyKeys = sqliteTable(
 export const verifications = sqliteTable('verifications', {
   id: text('id').primaryKey(),
   tenantId: text('tenant_id').notNull(),
-  patientId: text('patient_id')
-    .notNull()
-    .references(() => patients.id),
+  // No foreign key: patients live in the clinic's schedule store, which may be a Google Sheet.
+  patientId: text('patient_id').notNull(),
   callId: text('call_id').notNull(),
   /** UTC ISO instant. */
   expiresAt: text('expires_at').notNull(),
@@ -133,9 +132,8 @@ export const callEvents = sqliteTable(
 export const smsOutbox = sqliteTable('sms_outbox', {
   id: text('id').primaryKey(),
   tenantId: text('tenant_id').notNull(),
-  appointmentId: text('appointment_id')
-    .notNull()
-    .references(() => appointments.id),
+  // No foreign key: appointments live in the clinic's schedule store (SQLite or a Google Sheet).
+  appointmentId: text('appointment_id').notNull(),
   language: text('language').notNull(),
   status: text('status', { enum: ['queued', 'sent', 'failed'] })
     .notNull()
@@ -150,7 +148,7 @@ export const staffTasks = sqliteTable(
     id: text('id').primaryKey(),
     tenantId: text('tenant_id').notNull(),
     callId: text('call_id').notNull(),
-    patientId: text('patient_id').references(() => patients.id),
+    patientId: text('patient_id'), // no foreign key: see verifications
     callerName: text('caller_name'),
     category: text('category').notNull(),
     summary: text('summary').notNull(),
@@ -173,9 +171,7 @@ export const reminderAttempts = sqliteTable(
   {
     id: text('id').primaryKey(),
     tenantId: text('tenant_id').notNull(),
-    appointmentId: text('appointment_id')
-      .notNull()
-      .references(() => appointments.id),
+    appointmentId: text('appointment_id').notNull(), // no foreign key: see sms_outbox
     callId: text('call_id').notNull(),
     outcome: text('outcome').notNull(),
     /** UTC ISO instant, used for the retry gap. */

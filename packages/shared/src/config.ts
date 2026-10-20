@@ -60,6 +60,18 @@ export const BusinessConfig = z
     languages: z.array(Language).min(1),
     greetingLanguage: Language,
     schedulingMode: z.enum(['slots', 'tokens', 'hybrid']).default('slots'),
+    /**
+     * Where this clinic's appointments live. `gsheets` is a Google Sheet the clinic already
+     * uses (the pilot default: most small clinics run on paper or Sheets); `sqlite` is the
+     * built-in store (dev, Hawk, and clinics with no spreadsheet).
+     */
+    scheduleStore: z
+      .object({
+        backend: z.enum(['sqlite', 'gsheets']).default('sqlite'),
+        /** The id in the sheet's URL. Credentials are NOT config: they come from the environment. */
+        spreadsheetId: z.string().min(10).optional(),
+      })
+      .default({ backend: 'sqlite' }),
     hours: WeeklyHours,
     /** Dates the business is closed (holidays). */
     closedDates: z.array(LocalDate).default([]),
@@ -128,6 +140,13 @@ export const BusinessConfig = z
         code: 'custom',
         path: ['greetingLanguage'],
         message: 'must be one of languages',
+      });
+    }
+    if (cfg.scheduleStore.backend === 'gsheets' && !cfg.scheduleStore.spreadsheetId) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['scheduleStore', 'spreadsheetId'],
+        message: 'a Google Sheets schedule needs the spreadsheet id',
       });
     }
     const serviceIds = new Set(cfg.services.map((s) => s.id));

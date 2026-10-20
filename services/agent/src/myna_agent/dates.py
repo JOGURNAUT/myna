@@ -293,13 +293,18 @@ def _resolve(kind: str, m: re.Match[str], today: date) -> DateRef | None:
 
 _HOUR_ALT = "|".join(sorted((re.escape(w) for w in HOUR_WORDS), key=len, reverse=True))
 _HOUR = rf"(\d{{1,2}}|{_HOUR_ALT})"
-_BAJE = r"(?:baje|bje|baj|o'?clock|बजे)"
+_BAJE = r"(?:baje|bje|baj|o['\s]?clock|बजे)"
 _POD_ALT = "|".join(sorted((re.escape(w) for w in PART_OF_DAY_WORDS), key=len, reverse=True))
 
 _TIME_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(rf"{_B}(saade|sade|sadhe|साढ़े|साढे)\s+{_HOUR}{_E}"), "plus30"),
     (re.compile(rf"{_B}(sawa|sava|सवा)\s+{_HOUR}{_E}"), "plus15"),
     (re.compile(rf"{_B}(paune|pone|पौने)\s+{_HOUR}{_E}"), "minus15"),
+    (re.compile(rf"{_B}half\s+past\s+(\d{{1,2}}){_E}"), "half_past"),
+    (re.compile(rf"{_B}quarter\s+past\s+(\d{{1,2}}){_E}"), "quarter_past"),
+    (re.compile(rf"{_B}quarter\s+to\s+(\d{{1,2}}){_E}"), "quarter_to"),
+    # "twelve thirty p.m." arrives from number-word conversion as "1230 p.m."
+    (re.compile(rf"{_B}(\d{{1,2}})(\d{{2}})\s*(am|pm|a\.m\.|p\.m\.){_E}"), "hhmm_ampm"),
     (re.compile(rf"{_B}(dhai|dhaai|ढाई){_E}"), "two_thirty"),
     (re.compile(rf"{_B}(dedh|डेढ़){_E}"), "one_thirty"),
     (re.compile(rf"{_B}(\d{{1,2}})[:.](\d{{2}})\s*(am|pm|a\.m\.|p\.m\.)?{_E}"), "hh_mm"),
@@ -337,7 +342,8 @@ def _to_24h(hour: int, ampm: str | None, part_of_day: str | None) -> int:
 
 def parse_time(text: str) -> TimeRef | None:
     """Last time of day mentioned in `text` (an hour, or just a part of the day)."""
-    t = normalize(text)
+    # Speech recognition writes numbers as words half the time ("eleven a.m.").
+    t = normalize(words_to_digits(text))
     pods = [
         (m.start(), PART_OF_DAY_WORDS[m.group(1)]) for m in re.finditer(rf"{_B}({_POD_ALT}){_E}", t)
     ]
@@ -371,6 +377,15 @@ def _time_hit(kind: str, m: re.Match[str]) -> tuple[int, int, str | None] | None
             if kind == "plus15":
                 return h, 15, None
             return (h - 1 if h > 1 else 12), 45, None
+        case "half_past" | "quarter_past":
+            h = int(m.group(1))
+            return (h, 30 if kind == "half_past" else 15, None) if 1 <= h <= 12 else None
+        case "quarter_to":
+            h = int(m.group(1))
+            return ((h - 1) or 12, 45, None) if 1 <= h <= 12 else None
+        case "hhmm_ampm":
+            h, mi = int(m.group(1)), int(m.group(2))
+            return (h, mi, m.group(3)) if 1 <= h <= 12 and mi <= 59 else None
         case "two_thirty":
             return 2, 30, None
         case "one_thirty":
