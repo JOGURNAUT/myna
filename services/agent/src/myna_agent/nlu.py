@@ -314,6 +314,19 @@ _FAQ: dict[str, tuple[str, ...]] = {
         "how much",
         "kitna lagega",
         "kitne paise",
+        "kitna kharcha",
+        "kharcha",
+        "kharch",
+        "kitna aayega",
+        "kitna padega",
+        "kitna charge",
+        "rate",
+        "rates",
+        "कितना खर्चा",
+        "खर्चा",
+        "कितना आएगा",
+        "कितना पड़ेगा",
+        "रेट",
         "kitni hai",
         "फीस",
         "कितना लगेगा",
@@ -619,13 +632,26 @@ _PHONE = re.compile(r"(?<!\d)(?:\+?91[\s-]?)?([6-9]\d{4}[\s-]?\d{5})(?!\d)")
 _DIGIT_RUN = re.compile(r"\d(?:[\s,.-]*\d)+")
 
 
+_REPEATS = {"double": 2, "dabal": 2, "डबल": 2, "triple": 3, "tripal": 3, "ट्रिपल": 3}
+_REPEAT = re.compile(r"(?<![\w])(" + "|".join(_REPEATS) + r")\s+(\S+)", re.I)
+
+
+def _expand_repeats(text: str) -> str:
+    """ "double nine" → "nine nine": how people read out phone numbers."""
+
+    def repeat(m: re.Match[str]) -> str:
+        return " ".join([m.group(2)] * _REPEATS[m.group(1).lower()])
+
+    return _REPEAT.sub(repeat, text)
+
+
 def parse_phone(text: str) -> str | None:
     """A 10-digit Indian mobile number, written or spoken ("eight seven eight seven two ...")."""
     m = _PHONE.search(text)
     if m:
         return re.sub(r"\D", "", m.group(1))
     # Speech-to-text often returns digits one by one, as words or as "8 7 8 7 2 ...".
-    for run in _DIGIT_RUN.finditer(words_to_digits(text)):
+    for run in _DIGIT_RUN.finditer(words_to_digits(_expand_repeats(text))):
         digits = re.sub(r"\D", "", run.group())
         if len(digits) == 12 and digits.startswith("91"):
             digits = digits[2:]
@@ -774,6 +800,11 @@ class RuleBasedNLU:
         )
         if name and (service_id and name.lower() in " ".join(services[service_id])):
             name = None
+        if name and resource_id and not re.search(r"\b(?:dr|doctor|doc)\b|डॉ", t):
+            # "Rohan Mehta" is a patient who shares Dr. Mehta's surname, not a request for her.
+            doctor_words = set(" ".join(ctx.facts.resources[resource_id]).lower().split())
+            if doctor_words & set(name.lower().split()):
+                resource_id = None
 
         faq_id = None
         for fid, words in _FAQ.items():

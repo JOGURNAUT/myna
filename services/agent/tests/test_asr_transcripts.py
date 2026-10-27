@@ -148,3 +148,12 @@ def test_english_times_the_way_they_are_transcribed(heard: str, hhmm: str) -> No
 def test_phone_numbers_said_digit_by_digit(heard: str, phone: str | None) -> None:
     """Saaras returns spoken digits as English words; the booking must still get the number."""
     assert parse_phone(heard) == phone
+
+
+def test_patient_sharing_a_doctors_surname_is_not_asking_for_that_doctor() -> None:
+    """ "Rohan Mehta" answers "what is the name?"; it does not pick Dr. Mehta."""
+    surname = next(n for names in FACTS.resources.values() for n in names).split()[-1]
+    u = RuleBasedNLU().parse(f"Rohan {surname.capitalize()}", ctx("name"))
+    assert u.name is not None and u.resource_id is None
+    # ...but "Dr. Mehta" still does.
+    assert RuleBasedNLU().parse(f"I want to see Dr {surname}", ctx("when")).resource_id is not None

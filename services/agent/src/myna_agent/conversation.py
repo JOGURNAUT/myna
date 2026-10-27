@@ -45,12 +45,14 @@ from .nlu import (
 )
 from .text import has_devanagari, normalize
 from .tools import ApiClient, ToolError
+from .turn_kinds import classify_turn
 
 log = logging.getLogger("myna.conversation")
 
 MAX_FAILED_UNDERSTANDING = 2
 #: The same question this many times in a row means we are stuck: hand over to a person.
 MAX_SAME_QUESTION = 3
+MAX_NOISE_STREAK = 4
 MAX_OFFERS = 3
 
 # Evidence that a caller is speaking English rather than giving a bare name, date or number.
@@ -227,6 +229,7 @@ class Conversation:
         self.identity = Identity()
         self.draft = Draft()
         self.failed_understanding = 0
+        self.noise_streak = 0
         self.ended = False
         self.outcomes: list[str] = []
         self.handoff_reason: str | None = None
@@ -333,6 +336,14 @@ class Conversation:
             return await self._handoff("caller_asked", line("handoff", self.lang))
         if flags.opt_out and self.mode == "outbound":
             return await self._end_reminder("opted_out", State.CLOSE, line("opted_out", self.lang))
+
+        # 1b. Turns that carry no answer ("hmm", "one minute", "sorry, what?") are not failures.
+        kind = classify_turn(text) if not taking_message else None
+        if kind == "noise" and self.mode == "outbound":
+            kind = None  # an answered phone says "hello?"; the reminder flow handles that
+        if kind is not None:
+            return await self._on_non_answer(kind)
+        self.noise_streak = 0
 
         # 2. Understand.
         u = await self._understand(text)
@@ -1280,6 +1291,18 @@ class Conversation:
         except Exception:  # a model outage counts as not understanding, never as a crash
             log.exception("NLU failed")
             return None
+
+    async def _on_non_answer(self, kind: str) -> Reply:
+        if kind == "hold":
+            return await self._say(line("hold", self.lang))
+        if kind == "repeat":
+            return await self._say(line("repeat", self.lang, reprompt=self._reprompt()))
+        self.noise_streak += 1  # nothing but noise: a few in a row means a bad line
+        if self.noise_streak >= MAX_NOISE_STREAK:
+            return await self._handoff(
+                "repeated_misunderstanding", line("handoff_confused", self.lang)
+            )
+        return await self._say(line("not_heard", self.lang, reprompt=self._reprompt()))
 
     async def _not_understood(self) -> Reply:
         self.failed_understanding += 1

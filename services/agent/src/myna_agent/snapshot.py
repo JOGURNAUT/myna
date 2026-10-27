@@ -76,6 +76,7 @@ def snapshot(conv: Conversation, *, clinic_id: str, rev: int) -> Json:
             "newPatient": d.new_patient,
         },
         "failedUnderstanding": conv.failed_understanding,
+        "noiseStreak": conv.noise_streak,
         "ended": conv.ended,
         "outcomes": list(conv.outcomes),
         "handoffReason": conv.handoff_reason,
@@ -140,6 +141,7 @@ def _apply(conv: Conversation, data: Json) -> None:
         new_patient=d["newPatient"],
     )
     conv.failed_understanding = data["failedUnderstanding"]
+    conv.noise_streak = data.get("noiseStreak", 0)
     conv.ended = data["ended"]
     conv.outcomes = list(data["outcomes"])
     conv.handoff_reason = data["handoffReason"]

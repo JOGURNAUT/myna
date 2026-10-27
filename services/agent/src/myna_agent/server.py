@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
@@ -328,7 +329,11 @@ def create_app(
         from .voice.pipeline import VoiceSettings
         from .voice.routes import register_voice_routes
 
-        register_voice_routes(app, VoiceSettings(api_key=cfg.sarvam_api_key), cfg.voice_clinic)
+        voice = VoiceSettings(
+            api_key=cfg.sarvam_api_key,
+            stt_mode=os.environ.get("VOICE_STT_MODE", "translit"),
+        )
+        register_voice_routes(app, voice, cfg.voice_clinic)
 
     return app
 

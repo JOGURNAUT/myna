@@ -116,6 +116,21 @@ LINES: dict[str, dict[Lang, str]] = {
         "hi": "माफ़ कीजिए, मैं समझ नहीं पाई। {reprompt}",
         "hinglish": "Sorry, main samajh nahi paayi. {reprompt}",
     },
+    "hold": {
+        "en": "Of course, take your time. I'm here.",
+        "hi": "ज़रूर, आप आराम से बताइए। मैं यहीं हूँ।",
+        "hinglish": "Zaroor, aap aaram se boliye. Main yahin hoon.",
+    },
+    "repeat": {
+        "en": "Sure. {reprompt}",
+        "hi": "ज़रूर। {reprompt}",
+        "hinglish": "Zaroor. {reprompt}",
+    },
+    "not_heard": {
+        "en": "I couldn't hear you clearly. {reprompt}",
+        "hi": "आपकी आवाज़ साफ़ नहीं आई। {reprompt}",
+        "hinglish": "Aapki awaaz saaf nahi aayi. {reprompt}",
+    },
     # --- intent
     "ask_intent": {
         "en": "Would you like to book, change or cancel an appointment?",

@@ -264,7 +264,7 @@ async def test_model_outage_is_treated_as_not_understood(make_call) -> None:
 
     call = await make_call(nlu=Broken())
     await call.start()
-    r = await call.say("hello?")
+    r = await call.say("what is the thing with the thing")
     assert "didn't catch" in r.text or "samajh" in r.text
 
 
@@ -325,3 +325,41 @@ async def test_a_conversation_that_cannot_progress_hands_off_instead_of_looping(
     assert [e["handoffReason"] for e in events if e["type"] == "end"] == [
         "repeated_misunderstanding"
     ]
+
+
+# ------------------------------------------------------- turns that are not answers
+
+
+async def test_hold_repeat_and_noise_are_not_failures(make_call) -> None:
+    """Found in the first real-microphone test: "hmm", "one minute", "sorry what?" counted
+    towards the two-strikes handoff and a caller was passed to staff for breathing."""
+    call = await make_call()
+    await call.start()
+    await call.say("appointment chahiye")
+    for said in ("hmm", "ek minute ruko", "sorry what", "uh"):
+        r = await call.say(said)
+        assert not r.ended, said
+    assert call.conv.failed_understanding == 0
+    r = await call.say("cleaning")
+    assert not r.ended
+
+
+async def test_a_run_of_pure_noise_still_ends_with_a_handoff(make_call) -> None:
+    call = await make_call()
+    await call.start()
+    replies = [await call.say(w) for w in ("hmm", "uh", "hmm", "um", "hmm", "uh")]
+    assert replies[-1].ended and call.conv.handoff_reason == "repeated_misunderstanding"
+
+
+async def test_wait_tuesday_is_an_answer_not_a_hold(make_call) -> None:
+    call = await make_call()
+    await call.start()
+    r = await call.say("wait, I want a cleaning on Tuesday")
+    assert "Tuesday" in r.text or "Mangalvar" in r.text or "मंगल" in r.text
+
+
+async def test_cost_of_a_service_is_a_fees_question_not_a_booking(make_call) -> None:
+    call = await make_call()
+    await call.start()
+    r = await call.say("root canal ka kitna kharcha aayega")
+    assert "500" in r.text and r.state.value == "ANYTHING_ELSE"

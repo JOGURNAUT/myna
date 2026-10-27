@@ -124,3 +124,31 @@ Open questions for Hawk (M2):
 - Saaras returned a spoken phone number as English words ("Eight seven eight seven ..."), which the
   phone regex missed, so Myna asked for the number twice and then handed off. `parse_phone` now
   accepts digits spoken one by one (English and Hinglish words). Regression test added.
+
+## 2026-10-27 — deep scan of realistic conversations (rules NLU, ASR-style transcripts)
+
+Why a caller turn looked "half Hindi, half English": Saaras `transcribe` writes Hindi words in
+Devanagari and English words in Latin, so one sentence is two scripts ("मुझे कल शाम को clean का
+appointment चाहिए"). `codemix` does the same; `verbatim` spells English in Devanagari ("ट्वेल्व
+मार्च"). `translit` writes everything in Roman ("Mujhe kal shaam ko clean ka appointment chahiye",
+"12 March 1985"). The voice pipeline now defaults to `translit` (`VOICE_STT_MODE` to change it).
+Two further sources remain: Myna's own Hinglish templates mix Roman Hindi with English words on
+purpose, and FAQ answers come from the clinic config in English only.
+
+Fixed (each has a test):
+- "hmm", "uh", "hello?" counted as failed understanding and handed the call to staff after two.
+  They are now noise (own streak, handoff after 4); "one minute / ruko" and "sorry what / dobara
+  bolo / bolo" are a hold and a repeat, never a failure.
+- "root canal ka kitna kharcha aayega" was treated as a booking (service word) instead of a fees
+  question; Hindi price words added ("kharcha", "rate", "kitna aayega").
+- A patient called Mehta was matched to Dr. Mehta (surname = doctor name) while giving their name.
+- Spoken zero ("shunya", "shoonya", "sifar"), "double nine" / "triple five" in phone numbers.
+
+Known, not fixed (candidates for Hawk scenarios):
+- Information volunteered out of order is dropped when the question is something else (a name
+  given while Myna asks for the service is not kept; broadening it risks "I am fine" as a name).
+- Third-party callers ("meri mummy ke liye ... unki last appointment batao") end in a vague
+  handoff instead of explaining that the patient's own name and date of birth are needed.
+- FAQ answers are English-only in the clinic config, so a Hindi/Hinglish call gets one English line.
+- "Dr. X" spoken without a title, and "evening 5" (part of day + hour) lose the hour.
+- Frustration words end the call in a handoff on the first sighting (by design, rule 5).
