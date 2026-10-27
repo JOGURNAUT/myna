@@ -87,6 +87,9 @@ faq:
     question: What are the clinic timings?
     answer: >-
       Monday to Friday, 10 am to 1 pm and 5 to 8:30 pm. Saturday 10 am to 2 pm. Closed on Sunday.
+    answers:
+      hinglish: Somvar se Shukravar subah 10 se 1 baje aur shaam 5 se 8:30 baje tak. Shanivar subah 10 se 2 baje. Ravivar band rehta hai.
+      hi: सोमवार से शुक्रवार सुबह 10 से 1 बजे और शाम 5 से 8:30 बजे तक। शनिवार सुबह 10 से 2 बजे। रविवार बंद रहता है।
   - id: address
     question: Where is the clinic?
     answer: >-
@@ -94,6 +97,9 @@ faq:
   - id: fees
     question: How much is a consultation?
     answer: A consultation is 500 rupees. Cleaning starts at 1,200 rupees.
+    answers:
+      hinglish: Consultation 500 rupees hai. Cleaning 1,200 rupees se shuru hoti hai.
+      hi: परामर्श 500 रुपये है। सफ़ाई 1,200 रुपये से शुरू होती है.
   - id: insurance
     question: Do you take insurance or cashless?
     answer: '' # left blank on purpose: Myna takes a message instead of guessing

@@ -705,6 +705,21 @@ def detect_language(text: str) -> Lang:
     return "hinglish" if any(m in words for m in _HINGLISH_MARKERS) else "en"
 
 
+# Said out of turn, only an unmistakable introduction counts: "I am fine" must never be a name.
+_VOLUNTEERED_NAME = re.compile(
+    r"(?:my name is|patient'?s? name is|mera naam|unka naam|patient ka naam|मेरा नाम|उनका नाम)\s+(.+)",
+    re.I,
+)
+
+
+def _volunteered_name(text: str) -> str | None:
+    if not (m := _VOLUNTEERED_NAME.search(text)):
+        return None
+    candidate = _NAME_STOP.split(m.group(1).strip(), maxsplit=1)[0]
+    candidate = re.sub(r"\s+(?:hai|है)$", "", candidate.strip())
+    return _clean_name(candidate)
+
+
 def _extract_name(raw: str, expecting: Expecting) -> str | None:
     # "ji main Neha Kapoor bol rahi hoon": drop the leading "ji" so the patterns can anchor.
     # (Found by the live demo: neither Hawk's scripts nor the real model handled this very
@@ -796,7 +811,7 @@ class RuleBasedNLU:
         name = (
             _extract_name(text, ctx.expecting)
             if ctx.expecting in ("name", "intent", "dob")
-            else None
+            else _volunteered_name(text)
         )
         if name and (service_id and name.lower() in " ".join(services[service_id])):
             name = None

@@ -1241,7 +1241,9 @@ class Conversation:
         if entry is None or not entry.answer.strip():
             # Blank on purpose in the config: never guess.
             return await self._handoff("unanswered_question", line("faq_unknown", self.lang))
-        return await self._after_done(entry.answer)
+        answers = entry.answers or {}
+        spoken = answers.get(self.lang) or entry.answer  # falls back to the English answer
+        return await self._after_done(spoken)
 
     async def _emergency(self, summary: str) -> Reply:
         return await self._handoff("emergency", line("emergency", self.lang), summary=summary)

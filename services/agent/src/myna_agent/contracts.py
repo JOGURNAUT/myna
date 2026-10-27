@@ -136,6 +136,7 @@ class FaqItem(BaseModel):
     id: Annotated[str, Field(pattern="^[a-z0-9][a-z0-9-]{0,63}$")]
     question: Annotated[str, Field(min_length=1)]
     answer: str
+    answers: dict[Literal["hi", "hinglish"], str]
 
 
 class BookingApproval(StrEnum):

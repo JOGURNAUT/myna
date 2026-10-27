@@ -42,6 +42,8 @@ export const FaqEntry = z.object({
   question: z.string().min(1),
   /** Empty answer means "don't guess, take a message" — on purpose. */
   answer: z.string().default(''),
+  /** The same answer for callers in another language, keyed 'hi' or 'hinglish'. Falls back to `answer`. */
+  answers: z.partialRecord(z.enum(['hi', 'hinglish']), z.string()).default({}),
 });
 export type FaqEntry = z.infer<typeof FaqEntry>;
 

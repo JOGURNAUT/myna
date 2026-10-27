@@ -425,12 +425,27 @@
               "answer": {
                 "default": "",
                 "type": "string"
+              },
+              "answers": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "enum": [
+                    "hi",
+                    "hinglish"
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
               }
             },
             "required": [
               "id",
               "question",
-              "answer"
+              "answer",
+              "answers"
             ],
             "additionalProperties": false
           }

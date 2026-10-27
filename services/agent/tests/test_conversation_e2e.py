@@ -363,3 +363,36 @@ async def test_cost_of_a_service_is_a_fees_question_not_a_booking(make_call) -> 
     await call.start()
     r = await call.say("root canal ka kitna kharcha aayega")
     assert "500" in r.text and r.state.value == "ANYTHING_ELSE"
+
+
+async def test_a_name_given_before_it_is_asked_for_is_kept(make_call) -> None:
+    """Callers volunteer "mera naam X hai" while Myna is asking something else."""
+    call = await make_call()
+    await call.start()
+    await call.say("meri mummy ke liye appointment chahiye")  # Myna now asks for the service
+    await call.say("unka naam Sunita Verma hai")
+    assert call.conv.identity.name == "Sunita Verma"
+    r = await call.say("cleaning")
+    assert not r.ended
+    r = await call.say("kal subah 11 baje")
+    # The name is already known, so the next question is the date of birth, not the name.
+    assert "naam" not in r.text.lower() or "date of birth" in r.text.lower()
+
+
+async def test_i_am_fine_is_not_a_volunteered_name(make_call) -> None:
+    call = await make_call()
+    await call.start()
+    await call.say("appointment chahiye")
+    await call.say("I am fine")
+    assert call.conv.identity.name is None
+
+
+async def test_faq_answer_follows_the_callers_language(make_call) -> None:
+    call = await make_call()
+    await call.start()
+    r = await call.say("consultation ki fees kitni hai")
+    assert "rupees hai" in r.text  # the Hinglish answer, not the English one
+    call2 = await make_call()
+    await call2.start()
+    r2 = await call2.say("how much are your fees")
+    assert "A consultation is 500 rupees" in r2.text
