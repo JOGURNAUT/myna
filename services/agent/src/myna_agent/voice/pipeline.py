@@ -13,6 +13,7 @@ the pipeline so a test can drive it with recorded audio instead of a browser.
 from __future__ import annotations
 
 import logging
+from array import array
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
@@ -87,8 +88,10 @@ class MynaTurn(FrameProcessor):
     async def process_frame(self, frame: Frame, direction: FrameDirection) -> None:
         await super().process_frame(frame, direction)
         if isinstance(frame, VADUserStoppedSpeakingFrame):
+            log.info("call %s: caller stopped speaking, waiting for transcript", self._call_id)
             self._clock.caller_stopped()
         if isinstance(frame, TranscriptionFrame):
+            log.info("call %s: transcript received (%d chars)", self._call_id, len(frame.text))
             if frame.text.strip():
                 await self._take_turn(frame.text.strip())
             return  # the transcript is consumed here; only Myna's reply goes on to the speaker
@@ -146,11 +149,18 @@ class CallerAudioMeter(FrameProcessor):
         super().__init__(name="CallerAudioMeter")
         self._clock = clock
         self.seconds = 0.0
+        self._peak = 0
 
     async def process_frame(self, frame: Frame, direction: FrameDirection) -> None:
         await super().process_frame(frame, direction)
         if isinstance(frame, InputAudioRawFrame):
+            before = int(self.seconds)
             self.seconds += frame.num_frames / max(1, frame.sample_rate)
+            samples = array("h", frame.audio[: len(frame.audio) // 2 * 2])
+            self._peak = max(self._peak, max((abs(x) for x in samples), default=0))
+            if int(self.seconds) != before and int(self.seconds) % 5 == 0:
+                log.info("caller audio: %ds, peak %d/32767", int(self.seconds), self._peak)
+                self._peak = 0
         await self.push_frame(frame, direction)
 
 
@@ -194,7 +204,7 @@ def build_processors(
             min_buffer_size=30,  # the API rejects < 30, though the guide says 15-25
         ),
     )
-    parts: list[FrameProcessor] = [vad]
+    parts: list[FrameProcessor] = [CallerAudioMeter(clock), vad]
     if rtvi is not None:
         parts.append(rtvi)
     parts += [stt, turns, myna, tts, FirstAudioTap(clock, notify)]

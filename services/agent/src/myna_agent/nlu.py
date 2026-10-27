@@ -17,6 +17,7 @@ from typing import Literal, Protocol
 from pydantic import BaseModel, Field
 
 from .dates import parse_date, parse_dob, parse_time
+from .numbers import words_to_digits
 from .text import any_phrase, has_devanagari, normalize
 
 Lang = Literal["en", "hi", "hinglish"]
@@ -615,6 +616,24 @@ _ORDINALS: dict[str, int] = {
     "तीसरी": 3,
 }
 _PHONE = re.compile(r"(?<!\d)(?:\+?91[\s-]?)?([6-9]\d{4}[\s-]?\d{5})(?!\d)")
+_DIGIT_RUN = re.compile(r"\d(?:[\s,.-]*\d)+")
+
+
+def parse_phone(text: str) -> str | None:
+    """A 10-digit Indian mobile number, written or spoken ("eight seven eight seven two ...")."""
+    m = _PHONE.search(text)
+    if m:
+        return re.sub(r"\D", "", m.group(1))
+    # Speech-to-text often returns digits one by one, as words or as "8 7 8 7 2 ...".
+    for run in _DIGIT_RUN.finditer(words_to_digits(text)):
+        digits = re.sub(r"\D", "", run.group())
+        if len(digits) == 12 and digits.startswith("91"):
+            digits = digits[2:]
+        if len(digits) == 10 and digits[0] in "6789":
+            return digits
+    return None
+
+
 _NAME_PATTERNS = [
     re.compile(
         r"(?:my name is|name is|this is|i am|i'm|patient is|patient's name is|patient name is)\s+(.+)",
@@ -737,8 +756,7 @@ class RuleBasedNLU:
         when_text = text if dob is None else None
         date_ref = parse_date(when_text, ctx.today) if when_text else None
         time_ref = parse_time(when_text) if when_text else None
-        phone_m = _PHONE.search(text)
-        phone = re.sub(r"\D", "", phone_m.group(1)) if phone_m else None
+        phone = parse_phone(text)
         services = {k: [*v, *SERVICE_SYNONYMS.get(k, ())] for k, v in ctx.facts.services.items()}
         service_id = _match_id(t, services)
         resource_id = _match_id(t, ctx.facts.resources)

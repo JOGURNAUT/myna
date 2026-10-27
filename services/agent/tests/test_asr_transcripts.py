@@ -11,7 +11,7 @@ from datetime import date
 import pytest
 
 from myna_agent.dates import parse_date, parse_time
-from myna_agent.nlu import ClinicFacts, Intent, RuleBasedNLU, TurnContext
+from myna_agent.nlu import ClinicFacts, Intent, RuleBasedNLU, TurnContext, parse_phone
 from myna_agent.safety import check
 
 TODAY = date(2026, 10, 12)  # a Monday
@@ -133,3 +133,18 @@ def test_change_and_cancel_in_transliterated_speech(heard: str, intent: Intent) 
 def test_english_times_the_way_they_are_transcribed(heard: str, hhmm: str) -> None:
     t = parse_time(heard)
     assert t is not None and t.as_hhmm() == hhmm
+
+
+@pytest.mark.parametrize(
+    ("heard", "phone"),
+    [
+        ("Eight seven eight seven two eight five six one six.", "8787285616"),
+        ("mera number 98765 43210 hai", "9876543210"),
+        ("plus nine one nine eight seven six five four three two one zero", "9876543210"),
+        ("aath saat aath saat do aath paanch chhe ek chhe", "8787285616"),
+        ("my date of birth is 12 03 1990", None),
+    ],
+)
+def test_phone_numbers_said_digit_by_digit(heard: str, phone: str | None) -> None:
+    """Saaras returns spoken digits as English words; the booking must still get the number."""
+    assert parse_phone(heard) == phone

@@ -115,3 +115,12 @@ Open questions for Hawk (M2):
   not tomorrow. Callers split on this; the read-back with the absolute date is our safety net.
   Measure how often callers correct it.
 - ~~**Name matching is strict**~~ — confirmed by Hawk run 1 (Hindi names) and fixed, see above.
+
+## 2026-10-27 — first real-microphone test (browser voice)
+
+- Mic reached the agent but at peak level 1-10 of 32767: Windows input volume was low and Chrome
+  may have picked another device. Fix on the user side (volume 100, correct device). Added a
+  per-5-second caller-audio peak log and VAD/transcript log lines so this is diagnosable next time.
+- Saaras returned a spoken phone number as English words ("Eight seven eight seven ..."), which the
+  phone regex missed, so Myna asked for the number twice and then handed off. `parse_phone` now
+  accepts digits spoken one by one (English and Hinglish words). Regression test added.
