@@ -23,8 +23,10 @@ export function LoginForm() {
           Clinic ID
         </label>
         <input
+          key={state?.clinicId ?? ''}
           id="clinicId"
           name="clinicId"
+          defaultValue={state?.clinicId ?? ''}
           autoComplete="username"
           autoCapitalize="none"
           spellCheck={false}

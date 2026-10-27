@@ -4,14 +4,14 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { ApiError, login, SESSION_COOKIE } from '@/lib/api';
 
-export async function signIn(_prev: { error: string } | null, form: FormData) {
+export async function signIn(_prev: { error: string; clinicId: string } | null, form: FormData) {
   const field = (name: string) => {
     const value = form.get(name);
     return typeof value === 'string' ? value : '';
   };
   const clinicId = field('clinicId').trim();
   const password = field('password');
-  if (!clinicId || !password) return { error: 'Enter your clinic ID and password.' };
+  if (!clinicId || !password) return { error: 'Enter your clinic ID and password.', clinicId };
 
   try {
     const session = await login(clinicId, password);
@@ -28,9 +28,10 @@ export async function signIn(_prev: { error: string } | null, form: FormData) {
         error: e.message.includes('too many')
           ? e.message
           : 'That clinic ID and password don’t match. Check both and try again.',
+        clinicId,
       };
     }
-    return { error: 'Sign-in isn’t available right now. Try again in a minute.' };
+    return { error: 'Sign-in isn’t available right now. Try again in a minute.', clinicId };
   }
   redirect('/dashboard');
 }
