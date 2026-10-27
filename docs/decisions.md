@@ -148,3 +148,11 @@ and a pytest test fails if they are stale. One source of truth, two drift alarms
 phone match. Every patient-specific tool requires it, and the API refuses without it. A prompt
 bug in the agent therefore cannot leak appointment details. `find_patient` returns the same
 `not_verified` answer for every failure, so it can't be used to probe whether a name exists.
+
+## 2026-10-27 — Hawk LLM judge is informational, and measured against people
+
+Soft criteria (politeness, language, clarity) are scored by an LLM judge inside Hawk. It never
+changes a verdict; a call it cannot score is reported as unscored, not as a pass. Its trust is the
+agreement % against the labels staff put on calls (`hawk judge-labels`), shown in the report.
+The rubric exempts Myna's opening greeting, which the first smoke run wrongly flagged. See
+`docs/plan-judge.md`.

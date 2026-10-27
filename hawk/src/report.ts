@@ -1,3 +1,10 @@
+import {
+  type Agreement,
+  CRITERIA,
+  type Criterion,
+  MIN_LABELLED_CALLS,
+  type SoftScores,
+} from './judge.js';
 import { cer } from './audio.js';
 import type { Check, GradedCall, Severity } from './grader.js';
 import type { Turn } from './runner.js';
@@ -64,6 +71,10 @@ export interface Report {
   cost: { perCallInr: number; note: string };
   /** Audio mode only: what speech recognition did to the simulated callers' words. */
   audio?: AudioSummary;
+  /** LLM-judge scores for politeness / language / clarity. Never part of a verdict. */
+  soft?: SoftSummary;
+  /** How well the judge agrees with the human labels staff put on real test calls. */
+  judgeAgreement?: Agreement;
   calls: {
     scenarioId: string;
     title: string;
@@ -75,6 +86,51 @@ export interface Report {
     failed: Check[];
     transcript: Turn[];
   }[];
+}
+
+export interface SoftSummary {
+  judge: string;
+  /** Calls the judge scored / calls it could not score (those never count as passes). */
+  judged: number;
+  unjudged: number;
+  criteria: Record<Criterion, { passed: number; total: number }>;
+  byLanguage: Record<string, { passed: number; total: number }>;
+  /** Judged calls where the judge said the call was NOT handled well, with its reasons. */
+  flagged: { scenarioId: string; language: string; reasons: string[] }[];
+}
+
+export function summariseSoft(
+  graded: GradedCall[],
+  scores: Map<GradedCall, SoftScores | null>,
+  judge: string,
+): SoftSummary {
+  const criteria = Object.fromEntries(CRITERIA.map((c) => [c, { passed: 0, total: 0 }])) as Record<
+    Criterion,
+    { passed: number; total: number }
+  >;
+  const byLanguage: Record<string, { passed: number; total: number }> = {};
+  const flagged: SoftSummary['flagged'] = [];
+  let judged = 0;
+  for (const g of graded) {
+    const sc = scores.get(g);
+    if (!sc) continue;
+    judged++;
+    for (const c of CRITERIA) {
+      criteria[c].total++;
+      if (sc[c].pass) criteria[c].passed++;
+    }
+    const lang = (byLanguage[g.record.language] ??= { passed: 0, total: 0 });
+    lang.total++;
+    if (sc.overallOk) lang.passed++;
+    const failedReasons = CRITERIA.filter((c) => !sc[c].pass).map((c) => `${c}: ${sc[c].reason}`);
+    if (!sc.overallOk || failedReasons.length)
+      flagged.push({
+        scenarioId: g.record.scenarioId,
+        language: g.record.language,
+        reasons: failedReasons,
+      });
+  }
+  return { judge, judged, unjudged: graded.length - judged, criteria, byLanguage, flagged };
 }
 
 export const VERDICT_RULES =
@@ -187,7 +243,15 @@ function summariseAudio(graded: GradedCall[]): AudioSummary | undefined {
 
 export function buildReport(
   graded: GradedCall[],
-  meta: { runId: string; clinic: string; clock: string; nlu: string; patient: string },
+  meta: {
+    runId: string;
+    clinic: string;
+    clock: string;
+    nlu: string;
+    patient: string;
+    soft?: SoftSummary | undefined;
+    agreement?: Agreement | undefined;
+  },
 ): Report {
   const flows: Record<string, FlowResult> = {};
   for (const [flow, calls] of groupBy(graded, (g) => g.record.flow)) {
@@ -248,13 +312,17 @@ export function buildReport(
       clock: meta.clock,
       nlu: meta.nlu,
       patient: meta.patient,
-      judge: 'not graded: the LLM judge for politeness/clarity needs a model key',
+      judge: meta.soft
+        ? `LLM judge (${meta.soft.judge}), reported separately; it never changes a verdict`
+        : 'not graded: the LLM judge for politeness/clarity needs a model key',
       caveat:
         meta.patient === 'scripted'
           ? 'Scripted patients say things the way the scenarios were written, so a high pass rate here is necessary but not sufficient. Real callers are messier: re-run with LLM-played patients and in audio mode before trusting a SAFE verdict for a pilot.'
           : 'LLM-played patients vary between runs; compare spreads, not single numbers.',
     },
     ...(audio ? { audio } : {}),
+    ...(meta.soft ? { soft: meta.soft } : {}),
+    ...(meta.agreement ? { judgeAgreement: meta.agreement } : {}),
     totals: rate(graded),
     flows,
     languages,
@@ -301,6 +369,48 @@ function transcriptMd(turns: Turn[]): string {
   return turns
     .map((t) => `> **${t.speaker === 'agent' ? 'Myna' : 'Caller'}:** ${t.text || '_(silence)_'}`)
     .join('\n>\n');
+}
+
+const share = (n: number, d: number): string => (d ? `${Math.round((n / d) * 100)}%` : '–');
+
+function agreementText(a: Agreement | undefined): string {
+  if (!a || a.agreement === null)
+    return 'Not measured yet: no human-labelled calls scored by the judge.';
+  const base = `${Math.round(a.agreement * 100)}% agreement with ${a.n} human-labelled calls`;
+  const trust =
+    a.n < MIN_LABELLED_CALLS ? ` (fewer than ${MIN_LABELLED_CALLS} labels: too few to trust)` : '';
+  const catches =
+    a.catchRate === null
+      ? ''
+      : `; caught ${Math.round(a.catchRate * 100)}% of the calls a person marked wrong`;
+  return `${base}${trust}${catches}.`;
+}
+
+function softMarkdown(r: Report): string[] {
+  const out: string[] = ['## Soft criteria (LLM judge)', ''];
+  if (!r.soft) {
+    out.push(`Not graded. ${r.setup.judge}.`, '');
+  } else {
+    const s = r.soft;
+    out.push(
+      `Judge \`${s.judge}\` scored ${s.judged} calls (${s.unjudged} could not be scored and count as nothing, never as a pass). These scores are informational: no verdict depends on them.`,
+      '',
+      '| Criterion | Passed |',
+      '|---|---|',
+      ...CRITERIA.map(
+        (c) =>
+          `| ${c} | ${share(s.criteria[c].passed, s.criteria[c].total)} (${s.criteria[c].passed}/${s.criteria[c].total}) |`,
+      ),
+      '',
+    );
+    for (const f of s.flagged.slice(0, 8))
+      out.push(
+        `- \`${f.scenarioId}\` [${f.language}]: ${f.reasons.join('; ') || 'overall not handled well'}`,
+      );
+    if (s.flagged.length) out.push('');
+  }
+  out.push(`**Judge vs human:** ${agreementText(r.judgeAgreement)}`, '');
+  return out;
 }
 
 export function renderMarkdown(r: Report): string {
@@ -363,6 +473,7 @@ export function renderMarkdown(r: Report): string {
   lines.push('', '## Pass rate by scenario type', '', '| Type | Pass | Calls |', '|---|---|---|');
   for (const [type, x] of Object.entries(r.types))
     lines.push(`| ${type} | ${pct(x)} | ${x.passed}/${x.calls} |`);
+  lines.push(...softMarkdown(r));
   lines.push('', '## Top failure modes', '');
   if (r.failureModes.length === 0) lines.push('None. Every call passed every check.');
   for (const m of r.failureModes) {
@@ -382,6 +493,19 @@ export function renderMarkdown(r: Report): string {
 
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function softHtml(r: Report): string {
+  const s = r.soft;
+  const body = s
+    ? `<div class="panel">${CRITERIA.map(
+        (c) =>
+          `<p><b>${esc(c)}</b> ${share(s.criteria[c].passed, s.criteria[c].total)} <span class="muted">(${s.criteria[c].passed}/${s.criteria[c].total})</span></p>`,
+      ).join(
+        '',
+      )}<p class="muted">Judge ${esc(s.judge)} scored ${s.judged} calls; ${s.unjudged} could not be scored. Informational: no verdict depends on these.</p></div>`
+    : `<p class="muted">Not graded. ${esc(r.setup.judge)}.</p>`;
+  return `${body}<p><b>Judge vs human:</b> ${esc(agreementText(r.judgeAgreement))}</p>`;
+}
 
 export function renderHtml(r: Report): string {
   const verdictClass = (v: Verdict) =>
@@ -456,6 +580,7 @@ details{background:var(--surface);border:1px solid var(--line);border-radius:14p
 <h2>Pass rate by scenario type</h2><div class="panel">${Object.entries(r.types)
     .map(([k, v]) => bar(k, v))
     .join('')}</div>
+<h2>Soft criteria (LLM judge)</h2>${softHtml(r)}
 <h2>Top failure modes</h2>${modes || '<p>None. Every call passed every check.</p>'}
 <p class="muted">Read-only report · all patients and calls are simulated · soft criteria ${esc(r.setup.judge)}</p>
 </main></body></html>`;

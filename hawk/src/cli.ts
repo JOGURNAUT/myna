@@ -1,11 +1,20 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { SarvamAudio } from './audio.js';
 import { grade, type GradedCall } from './grader.js';
+import {
+  type Agreement,
+  agreement,
+  judgeTranscript,
+  type JudgeModel,
+  SarvamJudgeModel,
+  type SoftScores,
+} from './judge.js';
+import { judgeHumanLabelled } from './labels.js';
 import { loadSuite } from './load.js';
-import { buildReport, type Report, renderHtml, renderMarkdown } from './report.js';
+import { buildReport, type Report, renderHtml, renderMarkdown, summariseSoft } from './report.js';
 import { type Endpoints, runScenario } from './runner.js';
 import { Language } from './schema.js';
 import { REPO_ROOT, startServices } from './services.js';
@@ -42,12 +51,24 @@ async function main(): Promise<void> {
       agent: { type: 'string' },
       token: { type: 'string' },
       clinic: { type: 'string', default: 'smile-dental' },
+      /** Score politeness / language / clarity with the LLM judge (needs SARVAM_API_KEY). */
+      judge: { type: 'boolean', default: false },
+      'judge-model': { type: 'string' },
+      /** judge-agreement.json from `hawk judge-labels`, shown as "judge vs human" in the report. */
+      agreement: { type: 'string' },
       /** CI: exit non-zero if any flow is NOT SAFE. */
       gate: { type: 'boolean', default: false },
     },
   });
+  if (positionals[0] === 'judge-labels') {
+    await judgeLabels(values);
+    return;
+  }
   if (positionals[0] !== 'run') {
     console.log('usage: pnpm hawk run [--filter text] [--lang en,hinglish,hi] [--concurrency 6]');
+    console.log(
+      '       pnpm hawk judge-labels --api URL --clinic ID  (HAWK_STAFF_PASSWORD in env)',
+    );
     process.exit(2);
   }
 
@@ -108,7 +129,19 @@ ${agent.slice(-3500)}
 ${api.slice(-1500)}
 `);
     }
-    report = finish(graded, values.clock, values.nlu, Boolean(audio), values['run-id']);
+    const judge = values.judge ? makeJudge(values['judge-model']) : null;
+    const scores = new Map<GradedCall, SoftScores | null>();
+    if (judge) {
+      console.log(`Judging ${graded.length} calls with ${judge.name}...`);
+      for (const g of graded) {
+        const turns = g.record.turns.map((t) => ({ speaker: t.speaker, text: t.said ?? t.text }));
+        scores.set(g, await judgeTranscript(judge, turns, g.record.language));
+      }
+    }
+    report = finish(graded, values.clock, values.nlu, Boolean(audio), values['run-id'], {
+      soft: judge ? summariseSoft(graded, scores, judge.name) : undefined,
+      agreement: values.agreement ? readAgreement(values.agreement) : undefined,
+    });
     const all = await Promise.all(
       env.agentUrls.map((u) =>
         fetch(`${u}/v1/stats`)
@@ -168,6 +201,10 @@ function finish(
   nlu: string,
   audio: boolean,
   runIdOverride?: string,
+  extra: {
+    soft?: ReturnType<typeof summariseSoft> | undefined;
+    agreement?: Agreement | undefined;
+  } = {},
 ): Report {
   graded.sort(
     (a, b) =>
@@ -184,7 +221,53 @@ function finish(
     patient: audio
       ? 'scripted, spoken through Sarvam TTS and re-transcribed by Saaras'
       : 'scripted',
+    soft: extra.soft,
+    agreement: extra.agreement,
   });
+}
+
+function sarvamKey(): string {
+  const key = process.env.SARVAM_API_KEY ?? readDotEnv('SARVAM_API_KEY');
+  if (!key) throw new Error('the judge needs SARVAM_API_KEY (in the environment or .env)');
+  return key;
+}
+
+function makeJudge(model?: string): JudgeModel {
+  return new SarvamJudgeModel(sarvamKey(), model);
+}
+
+function readAgreement(file: string): Agreement | undefined {
+  return existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as Agreement) : undefined;
+}
+
+/** `hawk judge-labels`: how often does the judge agree with the labels a person put on calls? */
+async function judgeLabels(values: {
+  api?: string | undefined;
+  clinic: string;
+  out: string;
+  'judge-model'?: string | undefined;
+}): Promise<void> {
+  const password = process.env.HAWK_STAFF_PASSWORD;
+  if (!password) throw new Error('set HAWK_STAFF_PASSWORD (the clinic dashboard password)');
+  const judge = makeJudge(values['judge-model']);
+  const pairs = await judgeHumanLabelled({
+    apiUrl: values.api ?? 'http://127.0.0.1:4000',
+    clinicId: values.clinic,
+    password,
+    judge,
+    log: (l) => {
+      console.log(l);
+    },
+  });
+  const result = agreement(pairs, judge.name, new Date());
+  await mkdir(values.out, { recursive: true });
+  const file = join(values.out, 'judge-agreement.json');
+  await writeFile(file, `${JSON.stringify(result, null, 2)}\n`);
+  console.log(
+    result.agreement === null
+      ? 'No labelled calls were scored. Label some calls in the dashboard first.'
+      : `Agreement ${Math.round(result.agreement * 100)}% on ${result.n} calls -> ${file}`,
+  );
 }
 
 main().catch((e: unknown) => {

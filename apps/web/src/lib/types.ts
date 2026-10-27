@@ -131,6 +131,20 @@ export interface HawkReport {
     modelUse?: { model: string | null; calls: number; fallbacks: number; retries: number };
     instances?: { agents: number; sharedState: string };
   };
+  soft?: {
+    judge: string;
+    judged: number;
+    unjudged: number;
+    criteria: Record<'politeness' | 'language' | 'clarity', { passed: number; total: number }>;
+    flagged: { scenarioId: string; language: string; reasons: string[] }[];
+  };
+  judgeAgreement?: {
+    n: number;
+    agreement: number | null;
+    catchRate: number | null;
+    precision: number | null;
+    judgeModel: string;
+  };
   audio?: {
     utterances: number;
     asrP50Ms: number;

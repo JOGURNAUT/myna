@@ -312,14 +312,56 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             <h2 id="gr" className="text-xl font-bold">
               Grader reliability
             </h2>
-            <Card className="flex flex-col gap-3">
-              <Badge tone="muted">Not measured yet</Badge>
-              <p className="text-ink-2">
-                Hard checks (final schedule, double bookings, verification, emergencies) are
-                deterministic code, so they need no judge. Soft criteria (politeness, clarity) need
-                an LLM judge, and the judge is only trustworthy once its verdicts agree with a
-                person’s. That comparison needs the judge plus calls you have labelled on the call
-                page; {r.setup.judge}
+            <Card className="tnum flex flex-col gap-3">
+              {r.judgeAgreement?.agreement != null ? (
+                <>
+                  <p>
+                    <b className="text-2xl">{Math.round(r.judgeAgreement.agreement * 100)}%</b>{' '}
+                    <span className="text-ink-3">
+                      judge vs human, on {r.judgeAgreement.n} calls you labelled
+                    </span>
+                  </p>
+                  {r.judgeAgreement.n < 20 && (
+                    <Badge tone="warn">Too few labels to trust yet (20 or more)</Badge>
+                  )}
+                  {r.judgeAgreement.catchRate != null && (
+                    <p className="text-sm text-ink-2">
+                      The judge flagged {Math.round(r.judgeAgreement.catchRate * 100)}% of the calls
+                      you marked wrong.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Badge tone="muted">Not measured yet</Badge>
+                  <p className="text-ink-2">
+                    The judge is only trustworthy once its verdicts agree with a person’s. Label
+                    calls on the call page, then run <code>hawk judge-labels</code>.
+                  </p>
+                </>
+              )}
+              {r.soft ? (
+                <ul className="flex flex-col gap-1 text-sm">
+                  {(['politeness', 'language', 'clarity'] as const).map((c) => (
+                    <li key={c} className="flex justify-between gap-4">
+                      <span className="capitalize">{c}</span>
+                      <span>
+                        {r.soft && r.soft.criteria[c].total
+                          ? Math.round((r.soft.criteria[c].passed / r.soft.criteria[c].total) * 100)
+                          : 0}
+                        % <span className="text-ink-3">of {r.soft?.judged} calls</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-ink-3">
+                  Politeness, language and clarity were not graded in this run.
+                </p>
+              )}
+              <p className="text-sm text-ink-3">
+                Hard checks (schedule, double bookings, verification, emergencies) are plain code
+                and need no judge. The judge’s scores never change a verdict.
               </p>
             </Card>
           </section>
