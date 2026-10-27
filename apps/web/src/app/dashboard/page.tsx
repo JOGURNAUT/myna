@@ -192,7 +192,9 @@ export default async function TodayPage({
           <SectionTitle count={pending.pending.length}>
             <span id="pc">Confirm bookings</span>
           </SectionTitle>
-          <p className="text-[13px] text-ink-3">Made after hours</p>
+          <p className="text-[13px] text-ink-3">
+            Made after hours. Rejecting creates a call-back task so someone offers other times.
+          </p>
           {pending.pending.length === 0 ? (
             <Empty title="Nothing to confirm">
               Bookings Myna takes after hours wait here until someone approves them.
@@ -230,9 +232,6 @@ export default async function TodayPage({
               </article>
             ))
           )}
-          <p className="text-[13px] text-ink-3">
-            Rejecting creates a call-back task so someone offers the patient other times.
-          </p>
         </section>
       </div>
 

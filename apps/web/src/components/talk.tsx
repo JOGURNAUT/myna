@@ -179,7 +179,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
           </h3>
           <p className="text-xs text-ink-3">Language is detected every turn</p>
         </div>
-        <div className="flex min-h-[420px] flex-col gap-3 rounded-[20px] border border-line bg-surface p-4">
+        <div className="flex min-h-[420px] flex-1 flex-col gap-3 rounded-[20px] border border-line bg-surface p-4">
           {messages.length === 0 ? (
             <div className="m-auto flex max-w-md flex-col items-center gap-4 text-center">
               <p className="text-ink-2">

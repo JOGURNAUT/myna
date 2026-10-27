@@ -175,7 +175,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           </div>
         </section>
 
-        <p className="max-w-3xl rounded-2xl border border-line bg-surface p-4 text-ink-2">
+        <p className="rounded-2xl border border-line bg-surface p-4 text-ink-2">
           <b className="text-ink">Read this first.</b> {r.setup.caveat}
         </p>
 

@@ -130,7 +130,7 @@ export function SectionTitle({ children, count }: { children: ReactNode; count?:
 
 export function Empty({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div className="rounded-[20px] border border-dashed border-line-strong bg-surface p-6">
+    <div className="flex-1 rounded-[20px] border border-dashed border-line-strong bg-surface p-6">
       <p className="font-bold">{title}</p>
       {children && <p className="text-ink-2">{children}</p>}
     </div>
