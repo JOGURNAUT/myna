@@ -13,6 +13,19 @@ export function Logo({ size = 32 }: { size?: number }) {
   );
 }
 
+/** Hawk, the tester: ink, never teal (the thing that judges should never be mistaken for Myna). */
+export function HawkLogo({ size = 32 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden="true">
+      <path d="M9.5 21.5L3 30L14 25.5Z" fill="var(--mark-hawk)" />
+      <path d="M13 4.5L23 5.5L27.5 11L26.5 20L19 27.5L8 25.5L4.5 14Z" fill="var(--mark-hawk)" />
+      <path d="M25 8.5L31 11L30 17L28 13.5L25.8 14Z" fill="var(--accent)" />
+      <path d="M15.6 11L23 9.2L20.8 13.2Z" fill="var(--accent)" />
+      <circle cx="20.4" cy="11" r="1.15" fill="var(--bg)" />
+    </svg>
+  );
+}
+
 type Tone = 'safe' | 'warn' | 'danger' | 'muted' | 'primary' | 'accent';
 const TONE: Record<Tone, string> = {
   safe: 'bg-safe-soft text-safe-ink',

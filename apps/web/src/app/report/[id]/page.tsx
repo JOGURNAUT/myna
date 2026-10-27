@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Badge, Card, Icon, ICONS, Logo } from '@/components/ui';
+import { Badge, Card, HawkLogo, Icon, ICONS } from '@/components/ui';
 import { ApiError, publicApi } from '@/lib/api';
 import { LANG_LABEL, pct } from '@/lib/format';
 import type { HawkReport, Rate, Verdict } from '@/lib/types';
@@ -81,9 +81,9 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     <>
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 sm:px-8">
-          <Logo />
+          <HawkLogo size={36} />
           <div className="mr-auto leading-tight">
-            <p className="font-bold">Hawk go-live report</p>
+            <p className="font-bold">hawk · go-live report</p>
             <p className="text-xs text-ink-3">Myna for {r.clinic} · Myna talks, Hawk watches.</p>
           </div>
           <Link

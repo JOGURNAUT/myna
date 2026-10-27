@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Talk } from '@/components/talk';
-import { Card, Icon, ICONS, Logo } from '@/components/ui';
+import { Card, HawkLogo, Icon, ICONS, Logo } from '@/components/ui';
 import { DEMO_CLINIC, publicApi } from '@/lib/api';
 import type { Demo } from '@/lib/types';
 
@@ -20,8 +20,9 @@ export default async function HomePage() {
           <nav aria-label="Main" className="flex items-center gap-1 text-sm font-semibold">
             <Link
               href="/hawk"
-              className="flex h-11 items-center rounded-lg px-3 text-ink-2 hover:bg-sunken"
+              className="flex h-11 items-center gap-2 rounded-lg px-3 text-ink-2 hover:bg-sunken"
             >
+              <HawkLogo size={20} />
               How Hawk tests Myna
             </Link>
             <Link

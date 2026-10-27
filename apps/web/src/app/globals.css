@@ -27,6 +27,7 @@
   --danger-ink: #9e2a1f;
   --muted-soft: #ece9e1;
   --muted-ink: #4a5552;
+  --mark-hawk: #1c2a28;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -54,6 +55,7 @@
     --danger-ink: #f49a8f;
     --muted-soft: #222d2b;
     --muted-ink: #b8c2bf;
+    --mark-hawk: #eaefec;
   }
 }
 
