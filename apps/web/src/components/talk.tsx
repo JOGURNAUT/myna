@@ -166,11 +166,19 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-bold">Talk to Myna</h2>
           <span className="tnum flex items-center gap-4 text-[13px] text-ink-3" aria-live="off">
-            <span>Last reply {last === undefined ? '—' : latency(last)}</span>
+            <span title="From the end of your sentence to the start of her reply">
+              Last reply {last === undefined ? '—' : latency(last)}
+            </span>
             <span>Average {avg === null ? '—' : latency(avg)}</span>
           </span>
         </div>
 
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="text-[13px] font-semibold tracking-wider text-ink-3 uppercase">
+            Live transcript
+          </h3>
+          <p className="text-xs text-ink-3">Language is detected every turn</p>
+        </div>
         <div className="flex min-h-[420px] flex-col gap-3 rounded-[20px] border border-line bg-surface p-4">
           {messages.length === 0 ? (
             <div className="m-auto flex max-w-md flex-col items-center gap-4 text-center">

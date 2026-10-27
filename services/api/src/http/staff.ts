@@ -128,6 +128,34 @@ export function registerStaffRoutes(
       };
     });
 
+    // The clinic's own configuration, read-only: what Myna was set up to do (the YAML is the
+    // source of truth; changing it is a deliberate, reviewed act, not a dashboard form).
+    staff.get('/setup', (req) => {
+      const { config: c } = clinic(req);
+      return {
+        ok: true,
+        data: {
+          name: c.name,
+          timezone: c.timezone,
+          phone: c.phone,
+          humanHandoffNumber: c.humanHandoffNumber,
+          languages: c.languages,
+          schedulingMode: c.schedulingMode,
+          scheduleStore: c.scheduleStore.backend,
+          hours: c.hours,
+          closedDates: c.closedDates,
+          resources: c.resources,
+          services: c.services,
+          booking: c.booking,
+          bookingApproval: c.bookingApproval,
+          faq: c.faq,
+          callbackPromiseHours: c.callbackPromiseHours,
+          outboundReminders: c.outboundReminders,
+          recordCalls: c.recordCalls,
+        },
+      };
+    });
+
     staff.get('/calls', async (req) => {
       const { config } = clinic(req);
       const q = parseOrFail(DateQuery, req.query);

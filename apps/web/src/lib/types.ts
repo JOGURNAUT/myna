@@ -122,7 +122,24 @@ export interface HawkReport {
   runId: string;
   createdAt: string;
   clinic: string;
-  setup: { clock: string; nlu: string; patient: string; judge: string; caveat: string };
+  setup: {
+    clock: string;
+    nlu: string;
+    patient: string;
+    judge: string;
+    caveat: string;
+    modelUse?: { model: string | null; calls: number; fallbacks: number; retries: number };
+    instances?: { agents: number; sharedState: string };
+  };
+  audio?: {
+    utterances: number;
+    asrP50Ms: number;
+    asrP95Ms: number;
+    cerByLanguage: Record<string, { utterances: number; meanCer: number | null }>;
+    estSpeechCostPerCallInr: number;
+    costNote: string;
+    samples: { language: string; said: string; heard: string }[];
+  };
   totals: Rate;
   flows: Record<string, Rate & { verdict: Verdict; why: string }>;
   languages: Record<string, Rate>;
@@ -136,4 +153,30 @@ export interface HawkReport {
   }[];
   latency: { p50Ms: number; p95Ms: number; note: string };
   cost: { perCallInr: number; note: string };
+}
+
+export interface Setup {
+  name: string;
+  timezone: string;
+  phone: string;
+  humanHandoffNumber: string;
+  languages: string[];
+  schedulingMode: 'slots' | 'tokens' | 'hybrid';
+  scheduleStore: 'sqlite' | 'gsheets';
+  hours: Hours;
+  closedDates: string[];
+  resources: { id: string; name: string; services: string[]; hours?: Hours }[];
+  services: { id: string; name: string; durationMin: number }[];
+  booking: { slotStepMin: number; minNoticeMin: number; maxDaysAhead: number };
+  bookingApproval: 'none' | 'after_hours';
+  faq: { id: string; question: string; answer: string }[];
+  callbackPromiseHours: number;
+  outboundReminders: {
+    enabled: boolean;
+    callWindow: { start: string; end: string };
+    maxAttempts: number;
+    retryGapMin: number;
+    daysBefore: number;
+  };
+  recordCalls: boolean;
 }

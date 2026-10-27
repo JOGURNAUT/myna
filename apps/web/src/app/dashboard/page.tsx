@@ -11,8 +11,9 @@ import {
   btnPrimary,
 } from '@/components/ui';
 import { staffApi } from '@/lib/api';
-import { CATEGORY_LABEL, duration, HANDOFF_LABEL, OUTCOME_LABEL, when } from '@/lib/format';
+import { CATEGORY_LABEL, duration, HANDOFF_LABEL, when } from '@/lib/format';
 import type { CallSummary, Metric, PendingBooking, Task } from '@/lib/types';
+import { OutcomeBadge } from '@/components/outcome-badge';
 import { approveBooking, markHandoffSeen, markTaskDone, rejectBooking } from './actions';
 
 export const metadata = { title: 'Today' };
@@ -394,25 +395,4 @@ export default async function TodayPage({
       </section>
     </>
   );
-}
-
-function OutcomeBadge({ call: c }: { call: CallSummary }) {
-  if (c.handoffReason) {
-    return (
-      <Badge tone="warn" icon={<Icon d={ICONS.person} size={14} />}>
-        {HANDOFF_LABEL[c.handoffReason] ?? 'Handed to staff'}
-      </Badge>
-    );
-  }
-  if (c.outcome) {
-    return (
-      <Badge tone={c.outcome.includes('booked') ? 'safe' : 'muted'}>
-        {c.outcome
-          .split(',')
-          .map((o) => OUTCOME_LABEL[o] ?? o.replaceAll('_', ' '))
-          .join(', ')}
-      </Badge>
-    );
-  }
-  return <Badge tone="accent">In progress</Badge>;
 }

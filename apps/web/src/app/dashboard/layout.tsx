@@ -1,10 +1,10 @@
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { signOut } from '@/app/login/actions';
 import { btnGhost, Icon, ICONS, Logo } from '@/components/ui';
 import { staffApi } from '@/lib/api';
 import type { Me } from '@/lib/types';
 import { setKillSwitch } from './actions';
+import { NavTabs } from './nav-tabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,20 +21,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               <p className="text-xs text-ink-3">Myna receptionist</p>
             </div>
           </div>
-          <nav aria-label="Main" className="mr-auto flex gap-1 text-sm font-semibold">
-            <Link
-              href="/dashboard"
-              className="flex h-11 items-center rounded-lg bg-primary-soft px-3.5 text-primary-ink"
-            >
-              Today
-            </Link>
-            <Link
-              href="/"
-              className="flex h-11 items-center rounded-lg px-3.5 text-ink-2 hover:bg-sunken"
-            >
-              Public demo
-            </Link>
-          </nav>
+          <NavTabs />
 
           {me.killSwitch ? (
             <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-muted-soft px-3 text-[13px] font-semibold text-muted-ink">
