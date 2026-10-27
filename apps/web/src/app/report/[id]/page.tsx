@@ -164,7 +164,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             />
             <Stat
               label="Cost per call"
-              value={`₹${r.cost.perCallInr.toFixed(2)}`}
+              value={r.cost.perCallInr > 0 ? `₹${r.cost.perCallInr.toFixed(2)}` : 'Not measured'}
               sub={r.audio ? `+ ~₹${r.audio.estSpeechCostPerCallInr.toFixed(2)} speech` : undefined}
             />
             <Stat
@@ -336,7 +336,9 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
               </p>
               <p className="text-sm text-ink-3">{r.latency.note}</p>
               <p>
-                <b className="text-2xl">₹{r.cost.perCallInr.toFixed(2)}</b>{' '}
+                <b className="text-2xl">
+                  {r.cost.perCallInr > 0 ? `₹${r.cost.perCallInr.toFixed(2)}` : 'Not measured'}
+                </b>{' '}
                 <span className="text-ink-3">per call</span>
               </p>
               <p className="text-sm text-ink-3">{r.cost.note}</p>
