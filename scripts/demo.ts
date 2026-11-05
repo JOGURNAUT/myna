@@ -74,7 +74,8 @@ async function waitFor(url: string, label: string) {
 }
 
 mkdirSync(resolve(ROOT, 'services/api/data'), { recursive: true });
-const login = `smile-dental=${hashPassword(password)}`;
+const hash = hashPassword(password);
+const login = `smile-dental=${hash};spice-route=${hash}`;
 
 run('api', process.execPath, ['--import', 'tsx', 'src/main.ts'], resolve(ROOT, 'services/api'), {
   AGENT_API_TOKEN: token,
@@ -126,7 +127,7 @@ console.log(`
    Talk to Myna (public)   http://localhost:3000
    Hawk go-live report     http://localhost:3000/hawk
    Clinic dashboard        http://localhost:3000/login
-                           clinic ID: smile-dental   password: ${password}
+                           clinic ID: smile-dental (or spice-route)   password: ${password}
 
    Voice: press "Talk with your voice" (needs the microphone; ${hasKey ? 'enabled' : 'off without SARVAM_API_KEY'}).
    Try:  "Mujhe cleaning ka appointment chahiye kal subah"
