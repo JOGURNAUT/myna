@@ -4,6 +4,7 @@ import { OutcomeBadge } from '@/components/outcome-badge';
 import { staffApi } from '@/lib/api';
 import { duration } from '@/lib/format';
 import type { CallSummary, Me, Setup } from '@/lib/types';
+import { DASH } from '@/lib/vocab';
 
 export const metadata = { title: 'Reminders' };
 
@@ -20,6 +21,7 @@ export default async function RemindersPage() {
     staffApi<{ calls: CallSummary[] }>(`/calls?from=${addDays(me.today, -6)}&to=${me.today}`),
   ]);
   const r = setup.outboundReminders;
+  const dv = DASH[setup.vertical];
   const mine = calls.filter((c) => c.direction === 'outbound');
   return (
     <section aria-labelledby="rm" className="flex flex-col gap-6">
@@ -38,13 +40,13 @@ export default async function RemindersPage() {
           )}
           <span className="text-ink-2">
             {r.enabled
-              ? `Myna calls patients ${r.daysBefore} day before, between ${r.callWindow.start} and ${r.callWindow.end}, up to ${r.maxAttempts} tries ${r.retryGapMin} minutes apart.`
-              : 'Myna only starts calling after the clinic owner turns this on. Nothing is dialled until then.'}
+              ? `Myna calls ${dv.people} ${r.daysBefore} day before, between ${r.callWindow.start} and ${r.callWindow.end}, up to ${r.maxAttempts} tries ${r.retryGapMin} minutes apart.`
+              : `Myna only starts calling after the ${dv.business} owner turns this on. Nothing is dialled until then.`}
           </span>
         </div>
         <p className="text-sm text-ink-3">
           The opening line says it is an automated assistant. Details are shared only after the
-          right person is confirmed; a family member is asked to have the patient call back. A
+          right person is confirmed; a family member is asked to have the {dv.person} call back. A
           request not to be called is honoured at once and for good.
         </p>
       </Card>
@@ -54,8 +56,8 @@ export default async function RemindersPage() {
         {mine.length === 0 ? (
           <Empty title="No reminder calls yet">
             {r.enabled
-              ? 'The next batch goes out for the following day’s patients.'
-              : 'Turn reminders on in the clinic configuration to start.'}
+              ? `The next batch goes out for the following day’s ${dv.people}.`
+              : `Turn reminders on in the ${dv.business} configuration to start.`}
           </Empty>
         ) : (
           <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">

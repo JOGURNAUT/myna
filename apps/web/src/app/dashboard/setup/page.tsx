@@ -1,6 +1,7 @@
 import { Badge, Card } from '@/components/ui';
 import { staffApi } from '@/lib/api';
 import type { Hours, Setup } from '@/lib/types';
+import { DASH } from '@/lib/vocab';
 
 export const metadata = { title: 'Setup' };
 
@@ -27,23 +28,27 @@ function hoursText(h: Hours, d: (typeof DAYS)[number][0]): string {
 
 export default async function SetupPage() {
   const s = await staffApi<Setup>('/setup');
+  const dv = DASH[s.vertical];
   return (
     <section aria-labelledby="su" className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 id="su" className="text-2xl font-bold">
-          Clinic setup
+          {dv.setupTitle}
         </h1>
         <p className="max-w-2xl text-ink-2">
           This is what Myna was set up to do for {s.name}. It is read-only here on purpose: changes
-          go through your Myna contact, so a typo can never quietly change what she tells patients.
+          go through your Myna contact, so a typo can never quietly change what she tells{' '}
+          {dv.people}.
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="flex flex-col gap-3">
-          <h2 className="font-bold">How patients get seen</h2>
+          <h2 className="font-bold">{dv.howServed}</h2>
           <div className="flex flex-wrap gap-2">
-            <Badge tone="primary">{MODE[s.schedulingMode]}</Badge>
+            <Badge tone="primary">
+              {s.schedulingMode === 'slots' ? dv.slotsMode : MODE[s.schedulingMode]}
+            </Badge>
             <Badge tone="muted">
               Schedule kept in{' '}
               {s.scheduleStore === 'gsheets' ? 'Google Sheets' : 'Myna’s own store'}
@@ -76,7 +81,7 @@ export default async function SetupPage() {
         </Card>
 
         <Card className="flex flex-col gap-3">
-          <h2 className="font-bold">Doctors</h2>
+          <h2 className="font-bold">{dv.resources}</h2>
           <ul className="flex flex-col gap-2">
             {s.resources.map((r) => (
               <li key={r.id} className="flex flex-col gap-0.5">

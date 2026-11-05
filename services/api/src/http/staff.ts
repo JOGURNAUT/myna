@@ -121,6 +121,7 @@ export function registerStaffRoutes(
         data: {
           clinicId: config.id,
           name: config.name,
+          vertical: config.vertical,
           timezone: config.timezone,
           killSwitch: config.killSwitch,
           hours: config.hours,
@@ -137,6 +138,7 @@ export function registerStaffRoutes(
         ok: true,
         data: {
           name: c.name,
+          vertical: c.vertical,
           timezone: c.timezone,
           phone: c.phone,
           humanHandoffNumber: c.humanHandoffNumber,

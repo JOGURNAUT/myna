@@ -7,6 +7,7 @@ export type Hours = Partial<
 export interface Me {
   clinicId: string;
   name: string;
+  vertical: 'clinic' | 'restaurant';
   timezone: string;
   killSwitch: boolean;
   hours: Hours;
@@ -173,6 +174,7 @@ export interface HawkReport {
 
 export interface Setup {
   name: string;
+  vertical: 'clinic' | 'restaurant';
   timezone: string;
   phone: string;
   humanHandoffNumber: string;

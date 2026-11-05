@@ -17,6 +17,38 @@ export interface Vocab {
   disclaimer: string;
 }
 
+/** Words the staff dashboard uses for the people and things a business deals with. */
+export interface DashVocab {
+  business: string;
+  people: string;
+  person: string;
+  resources: string;
+  setupTitle: string;
+  howServed: string;
+  slotsMode: string;
+}
+
+export const DASH: Record<DemoKind, DashVocab> = {
+  clinic: {
+    business: 'clinic',
+    people: 'patients',
+    person: 'patient',
+    resources: 'Doctors',
+    setupTitle: 'Clinic setup',
+    howServed: 'How patients get seen',
+    slotsMode: 'Appointment slots',
+  },
+  restaurant: {
+    business: 'restaurant',
+    people: 'guests',
+    person: 'guest',
+    resources: 'Tables',
+    setupTitle: 'Restaurant setup',
+    howServed: 'How guests are seated',
+    slotsMode: 'Table reservations',
+  },
+};
+
 export const VOCAB: Record<DemoKind, Vocab> = {
   clinic: {
     tab: 'Dental clinic',

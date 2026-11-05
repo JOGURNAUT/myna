@@ -50,7 +50,7 @@ export const HANDOFF_LABEL: Record<string, string> = {
   caller_asked: 'Caller asked for a person',
   kill_switch: 'Kill switch on',
   tool_failure: 'System error',
-  verification_failed: "Couldn't verify the patient",
+  verification_failed: "Couldn't verify the caller",
   unanswered_question: 'Question the business left blank',
   party_too_large: 'Party too big for any table',
 };
@@ -66,7 +66,7 @@ export const OUTCOME_LABEL: Record<string, string> = {
 
 export const FAILURE_TYPES: [string, string][] = [
   ['wrong_date_or_time', 'Wrong date or time'],
-  ['wrong_patient_or_doctor', 'Wrong patient or doctor'],
+  ['wrong_patient_or_doctor', 'Wrong patient/guest or doctor/table'],
   ['misheard', 'Misheard the caller'],
   ['should_have_handed_off', 'Should have handed to staff'],
   ['disclosed_too_much', 'Gave information it should not have'],

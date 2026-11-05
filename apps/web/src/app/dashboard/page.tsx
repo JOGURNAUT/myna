@@ -11,8 +11,9 @@ import {
   btnPrimary,
 } from '@/components/ui';
 import { staffApi } from '@/lib/api';
+import { DASH } from '@/lib/vocab';
 import { CATEGORY_LABEL, duration, HANDOFF_LABEL, when } from '@/lib/format';
-import type { CallSummary, Metric, PendingBooking, Task } from '@/lib/types';
+import type { CallSummary, Me, Metric, PendingBooking, Task } from '@/lib/types';
 import { OutcomeBadge } from '@/components/outcome-badge';
 import { approveBooking, markHandoffSeen, markTaskDone, rejectBooking } from './actions';
 
@@ -45,7 +46,8 @@ export default async function TodayPage({
   const { show } = await searchParams;
   const filter: Filter = FILTERS.some(([k]) => k === show) ? (show as Filter) : 'all';
 
-  const [handoffs, tasks, pending, m, calls] = await Promise.all([
+  const [me, handoffs, tasks, pending, m, calls] = await Promise.all([
+    staffApi<Me>('/me'),
     staffApi<{ handoffs: CallSummary[] }>('/handoffs'),
     staffApi<{ tasks: Task[] }>('/tasks?status=open'),
     staffApi<{ pending: PendingBooking[] }>('/pending'),
@@ -259,7 +261,8 @@ export default async function TodayPage({
           <p className="text-[13px] font-semibold text-ink-2">Reminder calls · outcomes</p>
           {reminderTotal === 0 ? (
             <p className="text-ink-2">
-              No reminder calls yet. Outbound reminders are off until the clinic turns them on.
+              No reminder calls yet. Outbound reminders are off until the{' '}
+              {DASH[me.vertical].business} turns them on.
             </p>
           ) : (
             <p className="tnum flex flex-wrap gap-x-5 gap-y-1 text-ink-2">
