@@ -121,4 +121,40 @@ LINES_RESTAURANT: dict[str, dict[str, str]] = {
         "hi": "हो गया, बुकिंग कैंसल हो गई है।",
         "hinglish": "Ho gaya, booking cancel ho gayi hai.",
     },
+    "waitlist_offer": {
+        "en": "Sorry, nothing is free then. Shall I put you on the waitlist? If a table opens, "
+        "we'll call you.",
+        "hi": "माफ़ कीजिए, उस समय कुछ खाली नहीं है। क्या मैं आपको वेटलिस्ट में डाल दूँ? मेज़ खाली होते ही "
+        "हम आपको कॉल करेंगे।",
+        "hinglish": "Sorry, us time kuch available nahi hai. Kya main aapko waitlist mein daal doon? "
+        "Table khaali hote hi hum aapko call karenge.",
+    },
+    "waitlist_joined": {
+        "en": "You're on the waitlist. If a table opens, we'll call you on your number.",
+        "hi": "आप वेटलिस्ट में हैं। मेज़ खाली होते ही हम आपके नंबर पर कॉल करेंगे।",
+        "hinglish": "Aap waitlist mein hain. Table khaali hote hi hum aapke number pe call karenge.",
+    },
+    "outbound_waitlist_offer": {
+        "en": "Good news: {service} at {doctor} has opened on {date} at {time}. We'll hold it for "
+        "a few minutes. Shall I confirm it for you?",
+        "hi": "खुशखबरी: {date} को {time} {doctor} पर {service} खाली हो गई है। हम इसे कुछ मिनट रोक "
+        "रहे हैं। क्या मैं आपके लिए पक्की कर दूँ?",
+        "hinglish": "Good news: {date} ko {time} {doctor} par {service} khaali ho gayi hai. Hum ise "
+        "kuch minute hold kar rahe hain. Kya main aapke liye confirm kar doon?",
+    },
+    "outbound_offer_taken": {
+        "en": "Done, your table is confirmed. You'll get an SMS. See you then!",
+        "hi": "हो गया, आपकी मेज़ पक्की है। आपको SMS आ जाएगा। तब मिलते हैं!",
+        "hinglish": "Ho gaya, aapki table confirm hai. Aapko SMS aa jayega. Tab milte hain!",
+    },
+    "outbound_offer_declined": {
+        "en": "No problem, thank you. Goodbye!",
+        "hi": "कोई बात नहीं, धन्यवाद। नमस्ते!",
+        "hinglish": "Koi baat nahi, thank you. Namaste!",
+    },
+    "outbound_remind": {
+        "en": "You have {service} at {doctor} on {date} at {time}. Will you be able to come?",
+        "hi": "{date} को {time} {doctor} पर आपकी {service} है। क्या आप आ पाएँगे?",
+        "hinglish": "{date} ko {time} {doctor} par aapki {service} hai. Kya aap aa payenge?",
+    },
 }

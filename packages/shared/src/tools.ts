@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Appointment, DueReminder, NewPatient, PatientSummary, Slot, StaffTask } from './domain.js';
 import { ToolError } from './errors.js';
-import { Language, LocalDate, LocalDateTime, Slug } from './primitives.js';
+import { Language, LocalDate, LocalDateTime, LocalTime, Slug } from './primitives.js';
 
 /**
  * Tool contracts between the agent and the API. These are the ONLY way the agent can read
@@ -164,6 +164,24 @@ export const MarkReminderOutcomeInput = z.object({
 });
 export const MarkReminderOutcomeOutput = z.object({ recorded: z.boolean() });
 
+// ---------- join_waitlist (restaurants)
+export const JoinWaitlistInput = z.object({
+  callId: z.string().min(1),
+  name: z.string().trim().min(2),
+  phone: z.string(),
+  /** The party-size service the guest wants (a table for 2 / 4 / 6). */
+  serviceId: z.string().min(1),
+  date: LocalDate,
+  /** Earliest and latest start the guest would take. Omit for any time that day. */
+  from: LocalTime.optional(),
+  to: LocalTime.optional(),
+});
+export const JoinWaitlistOutput = z.object({
+  waitlistId: z.string(),
+  /** How many guests are ahead of this one for that day and table size. */
+  ahead: z.number().int().nonnegative(),
+});
+
 /** Registry: tool name → schemas. The API mounts one route per entry. */
 export const TOOLS = {
   find_patient: { input: FindPatientInput, output: FindPatientOutput },
@@ -176,6 +194,7 @@ export const TOOLS = {
   send_sms_confirmation: { input: SendSmsInput, output: SendSmsOutput },
   create_staff_task: { input: CreateStaffTaskInput, output: CreateStaffTaskOutput },
   mark_reminder_outcome: { input: MarkReminderOutcomeInput, output: MarkReminderOutcomeOutput },
+  join_waitlist: { input: JoinWaitlistInput, output: JoinWaitlistOutput },
 } as const;
 
 export type ToolName = keyof typeof TOOLS;

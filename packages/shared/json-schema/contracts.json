@@ -577,7 +577,8 @@
             },
             "maxAttempts": 2,
             "retryGapMin": 90,
-            "daysBefore": 1
+            "daysBefore": 1,
+            "waitlistHoldMin": 15
           },
           "type": "object",
           "properties": {
@@ -624,6 +625,12 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 3
+            },
+            "waitlistHoldMin": {
+              "default": 15,
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 60
             }
           },
           "required": [
@@ -631,7 +638,8 @@
             "callWindow",
             "maxAttempts",
             "retryGapMin",
-            "daysBefore"
+            "daysBefore",
+            "waitlistHoldMin"
           ],
           "additionalProperties": false
         },
@@ -891,6 +899,14 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 9007199254740991
+        },
+        "kind": {
+          "default": "reminder",
+          "type": "string",
+          "enum": [
+            "reminder",
+            "waitlist_offer"
+          ]
         }
       },
       "required": [
@@ -898,7 +914,8 @@
         "patientId",
         "patientName",
         "phone",
-        "attempts"
+        "attempts",
+        "kind"
       ],
       "additionalProperties": false
     },
@@ -1095,6 +1112,63 @@
       },
       "required": [
         "transferTo"
+      ],
+      "additionalProperties": false
+    },
+    "JoinWaitlistInput": {
+      "type": "object",
+      "properties": {
+        "callId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2
+        },
+        "phone": {
+          "type": "string"
+        },
+        "serviceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "from": {
+          "type": "string",
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+        },
+        "to": {
+          "type": "string",
+          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+        }
+      },
+      "required": [
+        "callId",
+        "name",
+        "phone",
+        "serviceId",
+        "date"
+      ]
+    },
+    "JoinWaitlistOutput": {
+      "type": "object",
+      "properties": {
+        "waitlistId": {
+          "type": "string"
+        },
+        "ahead": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "waitlistId",
+        "ahead"
       ],
       "additionalProperties": false
     },

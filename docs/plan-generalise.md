@@ -1,6 +1,6 @@
 # Plan: one engine, two verticals (clinics + restaurants), and a voice-layer spike
 
-Status: **draft, waiting for OK to start code** (CLAUDE.md: plan first, then wait).
+Status: **A, B and C built (2026-11-05); D (LiveKit spike) not started** (CLAUDE.md: plan first, then wait).
 Decided with the user on 2026-11-05: make Myna general-purpose, add restaurant reservations as a
 second vertical in the same repo; evaluate LiveKit instead of Pipecat (advice from an FDE contact).
 Defaults assumed where not answered: India-first (EN / Hindi / Hinglish) for restaurants too; a
@@ -105,3 +105,15 @@ Deposits and payments, menu ordering / POS, delivery, a third vertical.
 1. Walk-in tokens for restaurants? [no]
 2. Per-table or per-section booking? [per table, with a seating tag]
 3. Does the demo restaurant keep Hawk's fake clock (Mon 12 Oct 2026)? [yes]
+
+## What was built for C (how it differs from the sketch above)
+A freed table is held as a **pending booking** for the first waiting guest it fits (so the slot
+engine, double-booking guard and dashboard approval queue all keep working). The "a table
+opened" call is the existing outbound reminder call with `kind: waitlist_offer`: it is listed by
+`/reminders/due` (so claims, call window, attempts and opt-out are shared), the guest is
+identified by the dialled number (name + phone), yes confirms the pending booking, no or a
+wrong number releases it to the next guest, and a hold that runs out (default 15 minutes,
+`outboundReminders.waitlistHoldMin`) does the same. Nothing is held while outbound calls are
+off. Call window: a clinic must end by 19:00, a restaurant by 21:00.
+Not done: a staff view of the waitlist, a staff task when nobody can be called, and Hawk
+scenarios that run the offer call itself (the Python end-to-end tests cover it).

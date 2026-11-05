@@ -12,6 +12,7 @@ self-contained HTML page. Regenerate with `pnpm hawk run` (offline) or
 | [04 live, final](run-04-live-final.md) | **Sarvam** (all 103 calls) | Myna made robust to a noisy model (`docs/findings.md`) | SAFE 98% | SAFE 100% | SAFE 100% | 100 / 97 / 100 % |
 | [05 two instances](run-05-two-instances.md) | rules, **2 agent instances + shared Redis** | Every turn of every call hops to the other instance | SAFE 100% | SAFE 100% | SAFE 100% | 100 / 100 / 100 % |
 | [10 two verticals](run-10-two-verticals.md) | rules, scripted | Restaurant vertical added: 36 more calls (tables for 2/4/6, name + phone verification, party too large, allergy, FAQ) | SAFE 100% | SAFE 100% | SAFE 100% | – |
+| [11 + waitlist](run-11-waitlist.md) | rules, scripted | Restaurant waitlist scenario (full evening), 145 calls over two businesses | SAFE 100% | SAFE 100% | SAFE 100% | – |
 | [06 audio, first](run-06-audio-rules.md) | rules, **spoken callers** (Saaras `transcribe`) | First valid audio run, 24 calls | NOT SAFE 60% | NOT SAFE 50% | NOT SAFE 80% | – |
 | [07 audio, after fixes](run-07-audio-rules.md) | rules, spoken | Language no longer flips on a short English phrase; "Patient's name X" | NOT SAFE 80% | NOT SAFE 75% | SAFE 100% | – |
 | [08 audio, voice STT mode](run-08-audio-translit.md) | rules, spoken (Saaras `translit`, as in the live voice) | Harness now uses the same STT mode as the voice pipeline | NOT SAFE 87% | NOT SAFE 75% | NOT SAFE 80% | – |

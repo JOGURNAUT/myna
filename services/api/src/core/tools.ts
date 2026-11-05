@@ -13,6 +13,7 @@ import { smsOutbox } from '../db/schema.js';
 import { recordHandoff } from './calls.js';
 import { nameKey, phoneKey } from './identity.js';
 import { markReminderOutcome } from './reminders.js';
+import { joinWaitlist, offerFreedSlot } from './waitlist.js';
 import { assertBookable, findResource, findService } from './slots.js';
 import { createStaffTask } from './tasks.js';
 import { isOpenAt } from './hours.js';
@@ -146,6 +147,7 @@ export const toolHandlers: ToolHandlers = {
       start: slot.start,
       end: slot.end,
     });
+    await offerFreedSlot(ctx, current); // the table the guest gave up
     return { appointment: toAppointment(ctx.config, stored) };
   },
 
@@ -157,6 +159,8 @@ export const toolHandlers: ToolHandlers = {
       appointmentId: args.appointmentId,
       patientId,
     });
+    // A table that frees up goes to the first guest on the waitlist it fits.
+    await offerFreedSlot(ctx, stored);
     return { appointment: toAppointment(ctx.config, stored) };
   },
 
@@ -180,4 +184,5 @@ export const toolHandlers: ToolHandlers = {
 
   create_staff_task: createStaffTask,
   mark_reminder_outcome: markReminderOutcome,
+  join_waitlist: joinWaitlist,
 };

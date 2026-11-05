@@ -15,6 +15,7 @@ import type { SchedulingAdapter } from '../adapters/types.js';
 import { type Db, writeTransaction } from '../db/client.js';
 import { contactPreferences, reminderAttempts } from '../db/schema.js';
 import { insideWindow } from './hours.js';
+import { dueWaitlistOffers, settleOffer } from './waitlist.js';
 import type { ToolContext } from './tool-context.js';
 
 /** Outcomes after which we try again later. Everything else closes the reminder. */
@@ -41,8 +42,10 @@ export async function dueReminders(
 ): Promise<DueReminder[]> {
   const rules = config.outboundReminders;
   if (!rules.enabled || config.killSwitch) return [];
+  // A table that opened for a waiting guest is more urgent than tomorrow's reminders.
+  const offers = await dueWaitlistOffers({ db, adapter, config, clock: () => now });
   const local = nowIn(config.timezone, now);
-  if (!insideWindow(local, rules.callWindow)) return [];
+  if (!insideWindow(local, rules.callWindow)) return offers;
 
   const day = addDays(splitDateTime(local).date, rules.daysBefore);
   const appts = (
@@ -77,9 +80,10 @@ export async function dueReminders(
       patientName: patient.name,
       phone: patient.phone,
       attempts: attempts.length,
+      kind: 'reminder',
     });
   }
-  return due;
+  return [...offers, ...due];
 }
 
 /** Records one reminder call's outcome. An opt-out marks the number do-not-call. */
@@ -110,6 +114,7 @@ export async function markReminderOutcome(
         });
     }
   });
+  await settleOffer(ctx, appt, args.outcome);
   return { recorded: true };
 }
 

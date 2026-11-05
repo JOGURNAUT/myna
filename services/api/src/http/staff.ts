@@ -21,6 +21,7 @@ import {
   verifyPassword,
   verifySession,
 } from '../core/staff-auth.js';
+import { offerFreedSlot } from '../core/waitlist.js';
 import { completeTask, insertTask, listTasks } from '../core/tasks.js';
 import type { Db } from '../db/client.js';
 import type { ClinicRegistry } from './registry.js';
@@ -225,6 +226,8 @@ export function registerStaffRoutes(
       async (req) => {
         const { config, adapter } = clinic(req);
         const appt = await adapter.decidePending(req.params.appointmentId, 'cancelled');
+        // A rejected table goes to the first guest waiting for one like it.
+        await offerFreedSlot({ db: deps.db, adapter, config, clock: deps.clock }, appt);
         // The patient thinks they're booked: someone must call them with other times.
         const patient = await adapter.getPatient(appt.patientId);
         const phone = patient ? phoneKey(patient.phone) : null;

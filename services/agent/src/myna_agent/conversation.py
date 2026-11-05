@@ -125,7 +125,7 @@ class State(StrEnum):
     VOICEMAIL = "VOICEMAIL"
 
 
-Goal = Literal["book", "reschedule", "cancel"]
+Goal = Literal["book", "reschedule", "cancel", "waitlist"]
 
 # Text-mode stand-ins for telephony events on reminder calls (Hawk sends these).
 NO_ANSWER_MARKER = "[no answer]"
@@ -198,6 +198,20 @@ def _d(local_dt: str) -> date:
 
 def _hhmm(local_dt: str) -> str:
     return local_dt[11:16]
+
+
+def _waitlist_window(t: TimeRef | None) -> tuple[str | None, str | None]:
+    """The start times a waitlisted guest would take: an hour and a half either side of the
+    time they asked for, or the part of the day they named, or the whole day."""
+    if t is None:
+        return None, None
+    if t.hour is not None:
+        centre = t.hour * 60 + t.minute
+        lo, hi = max(0, centre - 90), min(23 * 60 + 59, centre + 90)
+        return f"{lo // 60:02d}:{lo % 60:02d}", f"{hi // 60:02d}:{hi % 60:02d}"
+    return {"morning": ("00:00", "11:59"), "afternoon": ("12:00", "16:59")}.get(
+        t.part_of_day or "", ("17:00", "23:59") if t.part_of_day == "evening" else (None, None)
+    )
 
 
 class Conversation:
@@ -409,6 +423,8 @@ class Conversation:
                 return await self._on_message_text(u, text)
             case "callback_confirm":
                 return await self._on_callback_confirm(u)
+            case "waitlist_offer":
+                return await self._on_waitlist_offer(u)
         if self.mode == "outbound" and self.state == State.IDENTITY_CHECK:
             return await self._outbound_verify(u)
         if self.message is not None and self.expecting in ("name", "dob", "phone"):
@@ -541,7 +557,7 @@ class Conversation:
         """ "Actually we are 4 people" while Myna waits for a name is not a name."""
         if self.config.vertical != c.Vertical.restaurant or parse_party_size(text) is None:
             return False
-        return re.search(r"(?:name|naam)|नाम", text, re.I) is None
+        return re.search(r"\b(?:name|naam)\b|नाम", text, re.I) is None
 
     def _take_party_size(self, text: str, d: Draft) -> None:
         """Restaurants: "table for 4" picks the table size; a party no table fits is a handoff."""
@@ -584,6 +600,9 @@ class Conversation:
                     return prompt
             return await self._confirm_booking()
 
+        if d.goal == "waitlist":
+            return await self._join_waitlist()
+
         if d.goal in ("reschedule", "cancel"):
             self.state = State.RESCHEDULE if d.goal == "reschedule" else State.CANCEL
             if not self.identity.verified:
@@ -601,6 +620,43 @@ class Conversation:
             return await self._confirm_reschedule()
 
         return await self._ask("intent", line("ask_intent", self.lang))
+
+    async def _on_waitlist_offer(self, u: Understanding) -> Reply:
+        if u.intent == Intent.yes:
+            self.draft.goal = "waitlist"
+            return await self._advance()
+        if u.intent in (Intent.no, Intent.goodbye):
+            self.draft.date_ref = None
+            return await self._ask("when", line("no_slots", self.lang))
+        return await self._not_understood()
+
+    async def _join_waitlist(self) -> Reply:
+        """Name + phone, then onto the waitlist for that day and size, in a time window."""
+        d, ident = self.draft, self.identity
+        self.state = State.BOOK
+        if ident.name is None:
+            return await self._ask("name", line("ask_name", self.lang))
+        phone = ident.phone or self.caller_phone
+        if phone is None:
+            return await self._ask("phone", line("ask_phone", self.lang))
+        assert d.service_id is not None and d.date_ref is not None
+        lo, hi = _waitlist_window(d.time_ref)
+        out = await self._tool(
+            "join_waitlist",
+            c.JoinWaitlistInput(
+                call_id=self.call_id,
+                name=ident.name,
+                phone=phone,
+                service_id=d.service_id,
+                date=d.date_ref.start,
+                **({"from": lo} if lo else {}),
+                **({"to": hi} if hi else {}),
+            ),
+            c.JoinWaitlistOutput,
+        )
+        log.info("waitlist joined (%d ahead)", out.ahead)
+        self.outcomes.append("waitlisted")
+        return await self._after_done(line("waitlist_joined", self.lang))
 
     # ================================================================ verification (rule 4)
 
@@ -676,6 +732,15 @@ class Conversation:
         d = self.draft
         slots = await self._find_slots(service_id, resource_id, d.date_ref, d.time_ref)
         prefix = ""
+        if (
+            not slots
+            and self.config.vertical == c.Vertical.restaurant
+            and d.goal == "book"
+            and d.date_ref is not None
+            and d.date_ref.start == d.date_ref.end
+        ):
+            # A full evening is not a dead end: offer to ring the guest if a table opens.
+            return await self._ask("waitlist_offer", line("waitlist_offer", self.lang))
         if not slots and d.date_ref is not None:
             # Nothing then: look at the following week instead of a dead end.
             later = DateRef(d.date_ref.end + timedelta(days=1), d.date_ref.end + timedelta(days=7))
@@ -745,6 +810,9 @@ class Conversation:
     @staticmethod
     def _spread(slots: list[c.Slot], want: str | None) -> list[c.Slot]:
         """Up to 3 options: nearest to the wanted time, else spaced at least an hour apart."""
+        # Several tables free at the same time are one option, not "9:30, 9:30 or 9:30".
+        seen: set[str] = set()
+        slots = [s for s in slots if not (s.start in seen or seen.add(s.start))]
         if want:
 
             def gap(s: c.Slot) -> int:
@@ -1198,6 +1266,18 @@ class Conversation:
             assert self.reminder is not None
             self.state = State.IDENTITY_CHECK
             self.identity.name = self.reminder.patient_name
+            if self.config.verification.mode.value == "name_phone":
+                # We dialled the number the guest gave us and they confirmed their name.
+                result = await self._tool(
+                    "find_patient",
+                    c.FindPatientInput(
+                        call_id=self.call_id,
+                        name=self.reminder.patient_name,
+                        phone=self.reminder.phone,
+                    ),
+                    c.FindPatientOutput,
+                )
+                return await self._outbound_verified(result)
             return await self._ask("dob", line("outbound_ask_dob", self.lang))
         return await self._not_understood()
 
@@ -1222,6 +1302,17 @@ class Conversation:
                 )
             return await self._ask("dob", line("outbound_dob_retry", self.lang))
 
+        return await self._outbound_verified(result)
+
+    async def _outbound_verified(self, result: c.FindPatientOutput) -> Reply:
+        reminder, ident = self.reminder, self.identity
+        assert reminder is not None
+        if not isinstance(result.root, c.FindPatientOutput1) or (
+            result.root.patient.id != reminder.patient_id
+        ):
+            return await self._end_reminder(
+                "not_verified", State.CLOSE, self._reminder_line("outbound_not_verified")
+            )
         ident.verification_id = result.root.verification_id
         ident.patient_name = result.root.patient.name
         listed = await self._tool(
@@ -1237,8 +1328,9 @@ class Conversation:
         return await self._ask("attendance", self._remind_text(target))
 
     def _remind_text(self, a: c.Appointment) -> str:
+        offer = self.reminder is not None and self.reminder.kind.value == "waitlist_offer"
         return line(
-            "outbound_remind",
+            "outbound_waitlist_offer" if offer else "outbound_remind",
             self.lang,
             service=self._service_name(a.service_id),
             doctor=a.resource_name,
@@ -1249,6 +1341,17 @@ class Conversation:
     async def _on_attendance(self, u: Understanding, text: str) -> Reply:
         target = self.draft.target
         assert target is not None
+        if self.reminder is not None and self.reminder.kind.value == "waitlist_offer":
+            # "A table opened": yes takes it, no gives it to the next guest. Nothing else applies.
+            if u.intent == Intent.yes:
+                return await self._end_reminder(
+                    "confirmed", State.CONFIRM_ATTENDANCE, line("outbound_offer_taken", self.lang)
+                )
+            if u.intent in (Intent.no, Intent.cancel):
+                return await self._end_reminder(
+                    "cancelled", State.CLOSE, line("outbound_offer_declined", self.lang)
+                )
+            return await self._not_understood()
         if u.intent == Intent.yes:
             return await self._end_reminder(
                 "confirmed", State.CONFIRM_ATTENDANCE, line("outbound_confirmed", self.lang)
@@ -1407,6 +1510,8 @@ class Conversation:
                 return self._reminder_line("outbound_opening", recording="")
             case "attendance" if d.target is not None:
                 return self._remind_text(d.target)
+            case "waitlist_offer":
+                return line("waitlist_offer", self.lang)
         if self.mode == "outbound" and self.state == State.IDENTITY_CHECK:
             return line("outbound_ask_dob", self.lang)
         return line("ask_intent", self.lang)

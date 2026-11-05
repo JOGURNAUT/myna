@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Annotated, Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 from enum import StrEnum
-from datetime import date
+from datetime import date as date_aliased
 
 
 class MynaContracts(RootModel[Any]):
@@ -215,6 +215,7 @@ class OutboundReminders(BaseModel):
     max_attempts: Annotated[int, Field(alias="maxAttempts", ge=1, le=3)]
     retry_gap_min: Annotated[int, Field(alias="retryGapMin", ge=15, le=9007199254740991)]
     days_before: Annotated[int, Field(alias="daysBefore", ge=1, le=3)]
+    waitlist_hold_min: Annotated[int, Field(alias="waitlistHoldMin", ge=5, le=60)]
 
 
 class BusinessConfig(BaseModel):
@@ -238,7 +239,7 @@ class BusinessConfig(BaseModel):
     scheduling_mode: Annotated[SchedulingMode, Field(alias="schedulingMode")]
     schedule_store: Annotated[ScheduleStore, Field(alias="scheduleStore")]
     hours: dict[Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"], list[Hour]]
-    closed_dates: Annotated[list[date], Field(alias="closedDates")]
+    closed_dates: Annotated[list[date_aliased], Field(alias="closedDates")]
     resources: Annotated[list[Resource], Field(min_length=1)]
     services: Annotated[list[Service1], Field(min_length=1)]
     booking: Booking
@@ -352,6 +353,11 @@ class CreateStaffTaskOutput(BaseModel):
     ]
 
 
+class Kind(StrEnum):
+    reminder = "reminder"
+    waitlist_offer = "waitlist_offer"
+
+
 class DueReminder(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -362,6 +368,7 @@ class DueReminder(BaseModel):
     patient_name: Annotated[str, Field(alias="patientName")]
     phone: str
     attempts: Annotated[int, Field(ge=0, le=9007199254740991)]
+    kind: Kind
 
 
 class DueRemindersOutput(BaseModel):
@@ -378,7 +385,7 @@ class FindPatientInput(BaseModel):
     )
     call_id: Annotated[str, Field(alias="callId", min_length=1)]
     name: Annotated[str, Field(min_length=2)]
-    dob: date | None = None
+    dob: date_aliased | None = None
     phone: str | None = None
 
 
@@ -404,8 +411,8 @@ class FindSlotsInput(BaseModel):
     resource_id: Annotated[
         str | None, Field(alias="resourceId", pattern="^[a-z0-9][a-z0-9-]{0,63}$")
     ] = None
-    date_from: Annotated[date, Field(alias="dateFrom")]
-    date_to: Annotated[date, Field(alias="dateTo")]
+    date_from: Annotated[date_aliased, Field(alias="dateFrom")]
+    date_to: Annotated[date_aliased, Field(alias="dateTo")]
     part_of_day: Annotated[PartOfDay | None, Field(alias="partOfDay")] = None
     limit: Annotated[int | None, Field(ge=1, le=20)] = 5
 
@@ -439,6 +446,28 @@ class HandoffToHumanOutput(BaseModel):
         populate_by_name=True,
     )
     transfer_to: Annotated[str, Field(alias="transferTo")]
+
+
+class JoinWaitlistInput(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    call_id: Annotated[str, Field(alias="callId", min_length=1)]
+    name: Annotated[str, Field(min_length=2)]
+    phone: str
+    service_id: Annotated[str, Field(alias="serviceId", min_length=1)]
+    date: date_aliased
+    from_: Annotated[str | None, Field(alias="from", pattern="^([01]\\d|2[0-3]):[0-5]\\d$")] = None
+    to: Annotated[str | None, Field(pattern="^([01]\\d|2[0-3]):[0-5]\\d$")] = None
+
+
+class JoinWaitlistOutput(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    waitlist_id: Annotated[str, Field(alias="waitlistId")]
+    ahead: Annotated[int, Field(ge=0, le=9007199254740991)]
 
 
 class ListAppointmentsInput(BaseModel):
@@ -491,7 +520,7 @@ class NewPatient(BaseModel):
     )
     name: Annotated[str, Field(min_length=2)]
     phone: str
-    dob: date | None = None
+    dob: date_aliased | None = None
 
 
 class PatientSummary(BaseModel):

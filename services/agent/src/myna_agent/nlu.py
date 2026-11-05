@@ -102,6 +102,8 @@ Expecting = Literal[
     # flow (c)
     "identity_who",
     "attendance",
+    # restaurants: "nothing is free then, shall I put you on the waitlist?"
+    "waitlist_offer",
 ]
 
 
@@ -907,7 +909,13 @@ class RuleBasedNLU:
             return Intent.cancel
         if any_phrase(t, _RESCHEDULE) and ctx.expecting in choosing:
             return Intent.reschedule
-        if ctx.expecting in ("confirm", "anything_else", "callback_confirm", "attendance"):
+        if ctx.expecting in (
+            "confirm",
+            "anything_else",
+            "callback_confirm",
+            "attendance",
+            "waitlist_offer",
+        ):
             if any_phrase(t, _NO) or t in _BARE_NO:
                 return Intent.no
             if any_phrase(t, _YES) or any_phrase(

@@ -62,6 +62,11 @@ export const DueReminder = z.object({
   /** Full number: the dialler needs it. Never logged. */
   phone: z.string(),
   attempts: z.number().int().nonnegative(),
+  /**
+   * `reminder`: confirm an existing appointment. `waitlist_offer`: a table the guest was
+   * waiting for has opened and is held (as a pending booking) for them until they answer.
+   */
+  kind: z.enum(['reminder', 'waitlist_offer']).default('reminder'),
 });
 export type DueReminder = z.infer<typeof DueReminder>;
 

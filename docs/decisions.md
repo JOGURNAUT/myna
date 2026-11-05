@@ -178,3 +178,15 @@ slot engine needed no change; name + phone verification for restaurants (no date
 the new tests: "actually we are 4 people" at the name prompt was being stored as the guest's name.
 Hawk: 12 restaurant scenarios (36 calls), a `vertical` field on scenarios, and a "by business"
 cut in the report. Clinic results unchanged (106/106). Waitlist + callback is phase C.
+
+## 2026-11-05 — Waitlist + "a table opened" callback (restaurant phase C)
+
+Hold the freed table as a pending booking rather than inventing a new reservation state: the
+slot engine and the unique-start index already stop anyone else taking it, staff can see and
+approve or reject it on the existing pending queue, and a hold that expires is a plain cancel. The
+callback is the outbound reminder machinery with a `kind`, so claims (no double calls across
+instances), call windows, attempts and do-not-call come for free. Restaurants verify the callee by
+the number we dialled plus the confirmed name, not a date of birth. Outbound window cap moved from
+19:00 to 21:00 for restaurants only (a clinic config above 19:00 is still rejected).
+Bug found on the way: "9:30 pm, 9:30 pm or 9:30 pm" when three tables were free at once; options
+are now distinct times.

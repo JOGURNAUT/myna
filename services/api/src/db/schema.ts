@@ -227,3 +227,33 @@ export const clinicSettings = sqliteTable('clinic_settings', {
   killSwitch: integer('kill_switch', { mode: 'boolean' }),
   updatedAt: utcNow('updated_at'),
 });
+
+/**
+ * Restaurants: guests waiting for a table that is full. When a table frees up, the first guest
+ * whose party size and time window fit gets it HELD (as a pending booking, `appointmentId`) and a
+ * callback; if they say yes it is confirmed, if not (or `holdUntil` passes) it goes to the next.
+ * `patientId` is a plain text id, not a foreign key: the guest lives in whichever schedule store
+ * the business uses.
+ */
+export const waitlist = sqliteTable(
+  'waitlist',
+  {
+    id: text('id').primaryKey(),
+    tenantId: text('tenant_id').notNull(),
+    patientId: text('patient_id').notNull(),
+    serviceId: text('service_id').notNull(),
+    /** Business-local date wanted, YYYY-MM-DD. */
+    date: text('date').notNull(),
+    /** Earliest / latest acceptable start (HH:mm); null = any time that day. */
+    fromTime: text('from_time'),
+    toTime: text('to_time'),
+    status: text('status', { enum: ['waiting', 'held', 'booked', 'released'] })
+      .notNull()
+      .default('waiting'),
+    /** The pending booking holding the table while the guest is called. */
+    appointmentId: text('appointment_id'),
+    holdUntil: text('hold_until'),
+    createdAt: utcNow('created_at'),
+  },
+  (t) => [index('waitlist_tenant_status_date').on(t.tenantId, t.status, t.date)],
+);

@@ -91,28 +91,17 @@
       "indexes": {
         "appointments_tenant_resource_start": {
           "name": "appointments_tenant_resource_start",
-          "columns": [
-            "tenant_id",
-            "resource_id",
-            "start"
-          ],
+          "columns": ["tenant_id", "resource_id", "start"],
           "isUnique": false
         },
         "appointments_tenant_patient": {
           "name": "appointments_tenant_patient",
-          "columns": [
-            "tenant_id",
-            "patient_id"
-          ],
+          "columns": ["tenant_id", "patient_id"],
           "isUnique": false
         },
         "appointments_no_double_start": {
           "name": "appointments_no_double_start",
-          "columns": [
-            "tenant_id",
-            "resource_id",
-            "start"
-          ],
+          "columns": ["tenant_id", "resource_id", "start"],
           "isUnique": true,
           "where": "status <> 'cancelled'"
         }
@@ -122,12 +111,8 @@
           "name": "appointments_patient_id_patients_id_fk",
           "tableFrom": "appointments",
           "tableTo": "patients",
-          "columnsFrom": [
-            "patient_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["patient_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -186,11 +171,7 @@
       "indexes": {
         "call_events_call": {
           "name": "call_events_call",
-          "columns": [
-            "tenant_id",
-            "call_id",
-            "id"
-          ],
+          "columns": ["tenant_id", "call_id", "id"],
           "isUnique": false
         }
       },
@@ -199,12 +180,8 @@
           "name": "call_events_call_id_calls_id_fk",
           "tableFrom": "call_events",
           "tableTo": "calls",
-          "columnsFrom": [
-            "call_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["call_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -266,12 +243,8 @@
           "name": "call_labels_call_id_calls_id_fk",
           "tableFrom": "call_labels",
           "tableTo": "calls",
-          "columnsFrom": [
-            "call_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["call_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -358,10 +331,7 @@
       "indexes": {
         "calls_tenant_started": {
           "name": "calls_tenant_started",
-          "columns": [
-            "tenant_id",
-            "started_at"
-          ],
+          "columns": ["tenant_id", "started_at"],
           "isUnique": false
         }
       },
@@ -486,10 +456,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "contact_preferences_tenant_id_phone_pk": {
-          "columns": [
-            "tenant_id",
-            "phone"
-          ],
+          "columns": ["tenant_id", "phone"],
           "name": "contact_preferences_tenant_id_phone_pk"
         }
       },
@@ -532,10 +499,7 @@
       "indexes": {
         "hawk_reports_tenant_created": {
           "name": "hawk_reports_tenant_created",
-          "columns": [
-            "tenant_id",
-            "created_at"
-          ],
+          "columns": ["tenant_id", "created_at"],
           "isUnique": false
         }
       },
@@ -595,10 +559,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "idempotency_keys_tenant_id_key_pk": {
-          "columns": [
-            "tenant_id",
-            "key"
-          ],
+          "columns": ["tenant_id", "key"],
           "name": "idempotency_keys_tenant_id_key_pk"
         }
       },
@@ -662,18 +623,12 @@
       "indexes": {
         "patients_tenant_phone": {
           "name": "patients_tenant_phone",
-          "columns": [
-            "tenant_id",
-            "phone"
-          ],
+          "columns": ["tenant_id", "phone"],
           "isUnique": false
         },
         "patients_tenant_dob": {
           "name": "patients_tenant_dob",
-          "columns": [
-            "tenant_id",
-            "dob"
-          ],
+          "columns": ["tenant_id", "dob"],
           "isUnique": false
         }
       },
@@ -732,10 +687,7 @@
       "indexes": {
         "reminder_attempts_appt": {
           "name": "reminder_attempts_appt",
-          "columns": [
-            "tenant_id",
-            "appointment_id"
-          ],
+          "columns": ["tenant_id", "appointment_id"],
           "isUnique": false
         }
       },
@@ -898,11 +850,7 @@
       "indexes": {
         "staff_tasks_tenant_status": {
           "name": "staff_tasks_tenant_status",
-          "columns": [
-            "tenant_id",
-            "status",
-            "callback_by"
-          ],
+          "columns": ["tenant_id", "status", "callback_by"],
           "isUnique": false
         }
       },

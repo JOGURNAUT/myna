@@ -33,6 +33,8 @@ export const HawkConfigOverrides = z
     greetingLanguage: z.enum(['en', 'hi', 'hinglish']),
     callbackPromiseHours: z.number().int(),
     outboundReminders: z.record(z.string(), z.unknown()),
+    /** A different week, e.g. one short sitting, so a scenario can make a day truly full. */
+    hours: z.record(z.string(), z.unknown()),
   })
   .partial();
 

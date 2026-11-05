@@ -196,3 +196,37 @@
   expect:
     appointments: []
     handoff: unanswered_question
+
+- id: rest-full-evening-waitlist
+  title: 'The evening is full: Myna offers the waitlist, takes name and number, books nothing'
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: waitlist
+  callerPhone: '9822200321'
+  caller: { name: Farah Siddiqui, nameHi: फ़राह सिद्दीक़ी, phone: '9822200321' }
+  seed:
+    config:
+      hours:
+        mon: [{ start: '12:00', end: '15:00' }]
+        tue: [{ start: '20:00', end: '21:30' }]
+    patients:
+      - { key: g1, name: Ananya Kulkarni, phone: '9822200401' }
+      - { key: g2, name: Bilal Khan, phone: '9822200402' }
+      - { key: g3, name: Chitra Rao, phone: '9822200403' }
+      - { key: g4, name: Dev Malhotra, phone: '9822200404' }
+      - { key: g5, name: Esha Gill, phone: '9822200405' }
+    appointments:
+      - { key: a1, patient: g1, serviceId: table-2, resourceId: table-1, start: 2026-10-13T20:00 }
+      - { key: a2, patient: g2, serviceId: table-2, resourceId: table-2, start: 2026-10-13T20:00 }
+      - { key: a3, patient: g3, serviceId: table-4, resourceId: table-3, start: 2026-10-13T20:00 }
+      - { key: a4, patient: g4, serviceId: table-4, resourceId: table-4, start: 2026-10-13T20:00 }
+      - { key: a5, patient: g5, serviceId: table-4, resourceId: table-5, start: 2026-10-13T20:00 }
+  goal: { intent: book, service: table-2, partySize: 2, when: { day: tomorrow, time: '20:00' } }
+  expect:
+    appointments:
+      - { patient: Ananya Kulkarni, service: table-2, start: 2026-10-13T20:00 }
+      - { patient: Bilal Khan, service: table-2, start: 2026-10-13T20:00 }
+      - { patient: Chitra Rao, service: table-4, start: 2026-10-13T20:00 }
+      - { patient: Dev Malhotra, service: table-4, start: 2026-10-13T20:00 }
+      - { patient: Esha Gill, service: table-4, start: 2026-10-13T20:00 }

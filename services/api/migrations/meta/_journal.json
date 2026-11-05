@@ -29,6 +29,13 @@
       "when": 1792511217109,
       "tag": "0003_no_cross_store_foreign_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1793877670050,
+      "tag": "0004_waitlist",
+      "breakpoints": true
     }
   ]
 }
