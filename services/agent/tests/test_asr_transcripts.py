@@ -171,3 +171,32 @@ def test_patient_sharing_a_doctors_surname_is_not_asking_for_that_doctor() -> No
 def test_patient_name_written_the_way_saaras_writes_it(heard: str, name: str) -> None:
     """Run 06 stored "Patient's Name Kamala Devi" as the patient's name."""
     assert RuleBasedNLU().parse(heard, ctx("name")).name == name
+
+
+@pytest.mark.parametrize(
+    ("heard", "expected"),
+    [
+        ("Guruvaar dopahar 12:00 baje", date(2026, 10, 15)),
+        ("shukravaar subah", date(2026, 10, 16)),
+        ("mangalwaar 5 baje", date(2026, 10, 13)),
+        ("ravivaar ko", date(2026, 10, 18)),
+    ],
+)
+def test_weekdays_spelled_with_a_long_vowel(heard: str, expected: date) -> None:
+    """Run 08: "Guruvaar" was not a weekday, so Myna offered today and moved the booking there."""
+    ref = parse_date(heard, TODAY)
+    assert ref is not None and ref.start == expected
+
+
+@pytest.mark.parametrize(
+    "heard", ["Clinic ka samay kya hai", "clinic kitne baje khulta hai", "kab tak khula rehta hai"]
+)
+def test_clinic_timings_asked_in_roman_hindi(heard: str) -> None:
+    facts = ClinicFacts(
+        services=FACTS.services,
+        resources=FACTS.resources,
+        faqs={"timings": "What are the clinic timings?"},
+    )
+    context = TurnContext(expecting="intent", today=TODAY, facts=facts, language="hinglish")
+    u = RuleBasedNLU().parse(heard, context)
+    assert u.intent == Intent.faq and u.faq_id == "timings"

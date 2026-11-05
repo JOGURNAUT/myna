@@ -1,0 +1,2726 @@
+{
+  "runId": "run-08-audio-translit",
+  "createdAt": "2026-11-05T10:28:21.667Z",
+  "clinic": "Smile Dental Care (synthetic)",
+  "setup": {
+    "clock": "2026-10-12T05:30:00Z (Mon 12 Oct 2026, 11:00 IST)",
+    "nlu": "rule-based (offline baseline)",
+    "patient": "scripted, spoken through Sarvam TTS and re-transcribed by Saaras",
+    "judge": "not graded: the LLM judge for politeness/clarity needs a model key",
+    "caveat": "LLM-played patients vary between runs; compare spreads, not single numbers."
+  },
+  "audio": {
+    "utterances": 96,
+    "asrP50Ms": 202,
+    "asrP95Ms": 302,
+    "cerByLanguage": {
+      "hi": {
+        "utterances": 33,
+        "meanCer": 0.9811734821299144
+      },
+      "hinglish": {
+        "utterances": 29,
+        "meanCer": null
+      },
+      "en": {
+        "utterances": 34,
+        "meanCer": 0.06802929364679347
+      }
+    },
+    "callerAudioSeconds": 222,
+    "callerTtsChars": 2326,
+    "agentTtsChars": 11943,
+    "estSpeechCostPerCallInr": 1.57,
+    "costNote": "assumed ₹30/hour speech-to-text and ₹30/10k characters text-to-speech; confirm against the Sarvam dashboard",
+    "samples": [
+      {
+        "language": "hi",
+        "said": "1 जनवरी 1991",
+        "heard": "Ek January unnis sau ikyaanve"
+      },
+      {
+        "language": "hi",
+        "said": "नहीं, बस। धन्यवाद।",
+        "heard": "Nahi bas dhanyavaad"
+      },
+      {
+        "language": "hi",
+        "said": "नहीं, बस। धन्यवाद।",
+        "heard": "Nahi bas dhanyavaad"
+      },
+      {
+        "language": "hi",
+        "said": "नहीं, बस। धन्यवाद।",
+        "heard": "Nahi, bas. Dhanyavaad."
+      },
+      {
+        "language": "hi",
+        "said": "नहीं, बस। धन्यवाद।",
+        "heard": "Nahi bas dhanyavaad"
+      },
+      {
+        "language": "hi",
+        "said": "मुझे सफ़ाई का अपॉइंटमेंट चाहिए कल दोपहर 12 बजे।",
+        "heard": "Mujhe safai ka appointment chahiye kal dopahar baarah baje"
+      }
+    ]
+  },
+  "totals": {
+    "calls": 24,
+    "passed": 20,
+    "passRate": 0.8333333333333334
+  },
+  "flows": {
+    "booking": {
+      "calls": 15,
+      "passed": 13,
+      "passRate": 0.8666666666666667,
+      "verdict": "NOT SAFE",
+      "critical": 1,
+      "why": "1 critical failure"
+    },
+    "messages": {
+      "calls": 4,
+      "passed": 3,
+      "passRate": 0.75,
+      "verdict": "NOT SAFE",
+      "critical": 0,
+      "why": "75% pass (< 80%)"
+    },
+    "reminders": {
+      "calls": 5,
+      "passed": 4,
+      "passRate": 0.8,
+      "verdict": "NOT SAFE",
+      "critical": 0,
+      "why": "some failures did not end with a person"
+    }
+  },
+  "languages": {
+    "hi": {
+      "calls": 9,
+      "passed": 7,
+      "passRate": 0.7777777777777778
+    },
+    "hinglish": {
+      "calls": 8,
+      "passed": 6,
+      "passRate": 0.75
+    },
+    "en": {
+      "calls": 7,
+      "passed": 7,
+      "passRate": 1
+    }
+  },
+  "types": {
+    "book_new": {
+      "calls": 2,
+      "passed": 2,
+      "passRate": 1
+    },
+    "book_returning": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "doctor_callback": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "faq": {
+      "calls": 2,
+      "passed": 1,
+      "passRate": 0.5
+    },
+    "handoff_request": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "kill_switch": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "medical": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "mind_change": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "mixed": {
+      "calls": 1,
+      "passed": 0,
+      "passRate": 0
+    },
+    "persona_style": {
+      "calls": 2,
+      "passed": 2,
+      "passRate": 1
+    },
+    "refill": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "reminder_cancel": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "reminder_confirm": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "reminder_opt_out": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "reminder_verification": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "reminder_wrong_number": {
+      "calls": 1,
+      "passed": 0,
+      "passRate": 0
+    },
+    "report_status": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "reschedule": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    },
+    "third_party": {
+      "calls": 2,
+      "passed": 1,
+      "passRate": 0.5
+    },
+    "verification": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    }
+  },
+  "failureModes": [
+    {
+      "check": "schedule_end_state",
+      "severity": "critical",
+      "count": 1,
+      "scenarios": [
+        "reschedule-for-father (hi)"
+      ],
+      "example": {
+        "scenarioId": "reschedule-for-father",
+        "language": "hi",
+        "detail": "missing [Arjun Verma|consultation|2026-10-15T12:00|confirmed] unexpected [Arjun Verma|consultation|2026-10-12T12:00|confirmed]",
+        "transcript": [
+          {
+            "speaker": "agent",
+            "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+            "state": "IDENTIFY_INTENT",
+            "expecting": "intent",
+            "latencyMs": 33
+          },
+          {
+            "speaker": "caller",
+            "text": "Papa ka appointment badalna hai.",
+            "said": "पापा का अपॉइंटमेंट बदलना है।",
+            "asrMs": 157,
+            "ttsMs": 634,
+            "detected": "hi-IN",
+            "ttsChars": 28,
+            "audioSeconds": 2.4746875
+          },
+          {
+            "speaker": "agent",
+            "text": "Zaroor. Patient ka poora naam kya hai? Mujhe unki details chahiye, aapki nahi.",
+            "state": "VERIFY_PATIENT",
+            "expecting": "name",
+            "latencyMs": 44
+          },
+          {
+            "speaker": "caller",
+            "text": "Mariz ka naam Arjun Verma hai.",
+            "said": "मरीज़ का नाम अर्जुन वर्मा है।",
+            "asrMs": 231,
+            "ttsMs": 689,
+            "detected": "hi-IN",
+            "ttsChars": 29,
+            "audioSeconds": 2.4746875
+          },
+          {
+            "speaker": "agent",
+            "text": "Thank you. Aur patient ki date of birth?",
+            "state": "VERIFY_PATIENT",
+            "expecting": "dob",
+            "latencyMs": 82
+          },
+          {
+            "speaker": "caller",
+            "text": "2 November 1985",
+            "said": "2 नवंबर 1985",
+            "asrMs": 166,
+            "ttsMs": 601,
+            "detected": "hi-IN",
+            "ttsChars": 12,
+            "audioSeconds": 2.2186875
+          },
+          {
+            "speaker": "agent",
+            "text": "Mujhe Dr. Mehta ke saath Friday, 16 October ko subah 10 baje consultation dikh raha hai. Iski jagah kaunsa din aur time chahiye?",
+            "state": "RESCHEDULE",
+            "expecting": "when",
+            "latencyMs": 80
+          },
+          {
+            "speaker": "caller",
+            "text": "Guruvaar dopahar 12:00 baje",
+            "said": "गुरुवार दोपहर 12 बजे",
+            "asrMs": 209,
+            "ttsMs": 619,
+            "detected": "hi-IN",
+            "ttsChars": 20,
+            "audioSeconds": 2.1333125
+          },
+          {
+            "speaker": "agent",
+            "text": "Dr. Mehta ke saath Monday, 12 October, dopahar 12 baje available hai. Confirm kar loon: Arjun Verma ka consultation, Dr. Mehta ke saath, Friday, 16 October subah 10 baje se badal kar Monday, 12 October ko dopahar 12 baje. Kya main badal doon?",
+            "state": "CONFIRM",
+            "expecting": "confirm",
+            "latencyMs": 66
+          },
+          {
+            "speaker": "caller",
+            "text": "Haan ji.",
+            "said": "हाँ जी।",
+            "asrMs": 310,
+            "ttsMs": 314,
+            "detected": "hi-IN",
+            "ttsChars": 7,
+            "audioSeconds": 0.8533125
+          },
+          {
+            "speaker": "agent",
+            "text": "Ho gaya. Appointment ab Monday, 12 October ko dopahar 12 baje Dr. Mehta ke saath hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+            "state": "ANYTHING_ELSE",
+            "expecting": "anything_else",
+            "latencyMs": 86
+          },
+          {
+            "speaker": "caller",
+            "text": "Nahi bas dhanyavaad",
+            "said": "नहीं, बस। धन्यवाद।",
+            "asrMs": 216,
+            "ttsMs": 646,
+            "detected": "hi-IN",
+            "ttsChars": 18,
+            "audioSeconds": 2.2186875
+          },
+          {
+            "speaker": "agent",
+            "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+            "state": "CLOSE",
+            "expecting": "intent",
+            "latencyMs": 38
+          }
+        ]
+      }
+    },
+    {
+      "check": "schedule_end_state",
+      "severity": "high",
+      "count": 1,
+      "scenarios": [
+        "msg-booking-and-report (hinglish)"
+      ],
+      "example": {
+        "scenarioId": "msg-booking-and-report",
+        "language": "hinglish",
+        "detail": "missing [Pooja Malhotra|cleaning|2026-10-13T12:00|confirmed] unexpected []",
+        "transcript": [
+          {
+            "speaker": "agent",
+            "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+            "state": "IDENTIFY_INTENT",
+            "expecting": "intent",
+            "latencyMs": 40
+          },
+          {
+            "speaker": "caller",
+            "text": "Mujhe clinic ka appointment chahiye kal dobhar 12:00 baje aur ek baat meri report aa gayi kya?",
+            "said": "Mujhe cleaning ka appointment chahiye kal dopahar 12 baje, aur ek baat, meri report aa gayi kya?",
+            "asrMs": 290,
+            "ttsMs": 1563,
+            "detected": "hi-IN",
+            "ttsChars": 96,
+            "audioSeconds": 6.8266875
+          },
+          {
+            "speaker": "agent",
+            "text": "Visit kis liye hai? Jaise consultation, cleaning ya filling.",
+            "state": "BOOK",
+            "expecting": "service",
+            "latencyMs": 65
+          },
+          {
+            "speaker": "caller",
+            "text": "Haan ji,",
+            "said": "Haan ji.",
+            "asrMs": 155,
+            "ttsMs": 267,
+            "detected": "hi-IN",
+            "ttsChars": 8,
+            "audioSeconds": 0.6826875
+          },
+          {
+            "speaker": "agent",
+            "text": "Sorry, main samajh nahi paayi. Visit kis liye hai? Jaise consultation, cleaning ya filling.",
+            "state": "BOOK",
+            "expecting": "service",
+            "latencyMs": 48
+          },
+          {
+            "speaker": "caller",
+            "text": "Haan ji,",
+            "said": "Haan ji.",
+            "asrMs": 296,
+            "ttsMs": 305,
+            "detected": "hi-IN",
+            "ttsChars": 8,
+            "audioSeconds": 0.6826875
+          },
+          {
+            "speaker": "agent",
+            "text": "Sorry, mujhe theek se samajh nahi aa raha. Main aapko staff se jod rahi hoon.",
+            "state": "HANDOFF",
+            "expecting": "intent",
+            "latencyMs": 41
+          }
+        ]
+      }
+    },
+    {
+      "check": "tasks_end_state",
+      "severity": "high",
+      "count": 1,
+      "scenarios": [
+        "msg-booking-and-report (hinglish)"
+      ],
+      "example": {
+        "scenarioId": "msg-booking-and-report",
+        "language": "hinglish",
+        "detail": "expected 1 tasks, got 0",
+        "transcript": [
+          {
+            "speaker": "agent",
+            "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+            "state": "IDENTIFY_INTENT",
+            "expecting": "intent",
+            "latencyMs": 40
+          },
+          {
+            "speaker": "caller",
+            "text": "Mujhe clinic ka appointment chahiye kal dobhar 12:00 baje aur ek baat meri report aa gayi kya?",
+            "said": "Mujhe cleaning ka appointment chahiye kal dopahar 12 baje, aur ek baat, meri report aa gayi kya?",
+            "asrMs": 290,
+            "ttsMs": 1563,
+            "detected": "hi-IN",
+            "ttsChars": 96,
+            "audioSeconds": 6.8266875
+          },
+          {
+            "speaker": "agent",
+            "text": "Visit kis liye hai? Jaise consultation, cleaning ya filling.",
+            "state": "BOOK",
+            "expecting": "service",
+            "latencyMs": 65
+          },
+          {
+            "speaker": "caller",
+            "text": "Haan ji,",
+            "said": "Haan ji.",
+            "asrMs": 155,
+            "ttsMs": 267,
+            "detected": "hi-IN",
+            "ttsChars": 8,
+            "audioSeconds": 0.6826875
+          },
+          {
+            "speaker": "agent",
+            "text": "Sorry, main samajh nahi paayi. Visit kis liye hai? Jaise consultation, cleaning ya filling.",
+            "state": "BOOK",
+            "expecting": "service",
+            "latencyMs": 48
+          },
+          {
+            "speaker": "caller",
+            "text": "Haan ji,",
+            "said": "Haan ji.",
+            "asrMs": 296,
+            "ttsMs": 305,
+            "detected": "hi-IN",
+            "ttsChars": 8,
+            "audioSeconds": 0.6826875
+          },
+          {
+            "speaker": "agent",
+            "text": "Sorry, mujhe theek se samajh nahi aa raha. Main aapko staff se jod rahi hoon.",
+            "state": "HANDOFF",
+            "expecting": "intent",
+            "latencyMs": 41
+          }
+        ]
+      }
+    },
+    {
+      "check": "reminder_outcome",
+      "severity": "high",
+      "count": 1,
+      "scenarios": [
+        "rem-wrong-number (hinglish)"
+      ],
+      "example": {
+        "scenarioId": "rem-wrong-number",
+        "language": "hinglish",
+        "detail": "recorded: [reached_family]",
+        "transcript": [
+          {
+            "speaker": "agent",
+            "text": "Namaste, main Myna hoon, Smile Dental Care ki taraf se automated assistant. Kya meri baat Pooja se ho rahi hai?",
+            "state": "DIAL",
+            "expecting": "identity_who",
+            "latencyMs": 39
+          },
+          {
+            "speaker": "caller",
+            "text": "Gallup number hai, iss naam ka koi nahi hai.",
+            "said": "Galat number hai, is naam ka koi nahi hai.",
+            "asrMs": 276,
+            "ttsMs": 829,
+            "detected": "hi-IN",
+            "ttsChars": 42,
+            "audioSeconds": 3.4133125
+          },
+          {
+            "speaker": "agent",
+            "text": "Koi baat nahi. Kya aap Pooja ko Smile Dental Care ko 98000 00001 pe call karne ko kahenge? Thank you, namaste.",
+            "state": "CLOSE",
+            "expecting": "",
+            "latencyMs": 71
+          }
+        ]
+      }
+    },
+    {
+      "check": "handoff",
+      "severity": "medium",
+      "count": 2,
+      "scenarios": [
+        "faq-timings (hi)",
+        "msg-booking-and-report (hinglish)"
+      ],
+      "example": {
+        "scenarioId": "faq-timings",
+        "language": "hi",
+        "detail": "unexpected handoff: repeated_misunderstanding",
+        "transcript": [
+          {
+            "speaker": "agent",
+            "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+            "state": "IDENTIFY_INTENT",
+            "expecting": "intent",
+            "latencyMs": 41
+          },
+          {
+            "speaker": "caller",
+            "text": "Clinic ka samay kya hai?",
+            "said": "क्लिनिक का समय क्या है?",
+            "asrMs": 268,
+            "ttsMs": 1030,
+            "detected": "hi-IN",
+            "ttsChars": 23,
+            "audioSeconds": 1.7066875
+          },
+          {
+            "speaker": "agent",
+            "text": "Sorry, main samajh nahi paayi. Aap appointment book, change ya cancel karna chahte hain?",
+            "state": "IDENTIFY_INTENT",
+            "expecting": "intent",
+            "latencyMs": 87
+          },
+          {
+            "speaker": "caller",
+            "text": "Clinic ka samay kya hai",
+            "said": "क्लिनिक का समय क्या है?",
+            "asrMs": 223,
+            "ttsMs": 578,
+            "detected": "hi-IN",
+            "ttsChars": 23,
+            "audioSeconds": 1.8773125
+          },
+          {
+            "speaker": "agent",
+            "text": "Sorry, mujhe theek se samajh nahi aa raha. Main aapko staff se jod rahi hoon.",
+            "state": "HANDOFF",
+            "expecting": "intent",
+            "latencyMs": 101
+          }
+        ]
+      }
+    }
+  ],
+  "latency": {
+    "p50Ms": 54,
+    "p95Ms": 173,
+    "turns": 120,
+    "note": "text mode: agent processing + API round trips only. No speech-to-text or voice yet (M3)."
+  },
+  "cost": {
+    "perCallInr": 0,
+    "note": "token cost not yet reported by the provider adapter"
+  },
+  "calls": [
+    {
+      "scenarioId": "asks-for-staff",
+      "title": "Caller asks for a person mid-booking",
+      "language": "hi",
+      "flow": "booking",
+      "type": "handoff_request",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 38
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe safai ka appointment chahiye kal subah gyarah baje",
+          "said": "मुझे सफ़ाई का अपॉइंटमेंट चाहिए कल सुबह 11 बजे।",
+          "asrMs": 241,
+          "ttsMs": 1094,
+          "detected": "hi-IN",
+          "ttsChars": 46,
+          "audioSeconds": 4.5226875
+        },
+        {
+          "speaker": "agent",
+          "text": "Dr. Mehta ke saath Tuesday, 13 October, subah 11 baje available hai. Please patient ka poora naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 69
+        },
+        {
+          "speaker": "caller",
+          "text": "Staff se baat karni hai.",
+          "said": "स्टाफ से बात करनी है।",
+          "asrMs": 185,
+          "ttsMs": 497,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.792
+        },
+        {
+          "speaker": "agent",
+          "text": "Theek hai, main aapko abhi staff se jod rahi hoon. Please line pe rahiye.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 45
+        }
+      ]
+    },
+    {
+      "scenarioId": "book-for-mother",
+      "title": "Daughter books a consultation for her mother",
+      "language": "hi",
+      "flow": "booking",
+      "type": "third_party",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 273
+        },
+        {
+          "speaker": "caller",
+          "text": "Meri mummy ke liye checkup ka appointment chahiye kal dopahar baarah baje",
+          "said": "मेरी मम्मी के लिए चेकअप का अपॉइंटमेंट चाहिए कल दोपहर 12 बजे।",
+          "asrMs": 298,
+          "ttsMs": 1572,
+          "detected": "hi-IN",
+          "ttsChars": 60,
+          "audioSeconds": 6.912
+        },
+        {
+          "speaker": "agent",
+          "text": "Dr. Mehta ke saath Tuesday, 13 October, dopahar 12 baje available hai. Zaroor. Patient ka poora naam kya hai? Mujhe unki details chahiye, aapki nahi.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 51
+        },
+        {
+          "speaker": "caller",
+          "text": "Mariz ka naam Kamala Devi hai",
+          "said": "मरीज़ का नाम कमला देवी है।",
+          "asrMs": 156,
+          "ttsMs": 751,
+          "detected": "hi-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.9013125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aur patient ki date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 82
+        },
+        {
+          "speaker": "caller",
+          "text": "2 February 1958",
+          "said": "2 फ़रवरी 1958",
+          "asrMs": 197,
+          "ttsMs": 738,
+          "detected": "en-IN",
+          "ttsChars": 13,
+          "audioSeconds": 2.9013125
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Kamala Devi ke liye Dr. Mehta ke saath consultation, Tuesday, 13 October ko dopahar 12 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 84
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "हाँ जी।",
+          "asrMs": 179,
+          "ttsMs": 359,
+          "detected": "hi-IN",
+          "ttsChars": 7,
+          "audioSeconds": 1.1093125
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Kamala Devi ka appointment Dr. Mehta ke saath Tuesday, 13 October ko dopahar 12 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 92
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi bas dhanyavaad",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 215,
+          "ttsMs": 792,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 2.816
+        },
+        {
+          "speaker": "agent",
+          "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 75
+        }
+      ]
+    },
+    {
+      "scenarioId": "book-inline-correction",
+      "title": "\"Wednesday... no, Tuesday\" in the same breath",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "mind_change",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 275
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe cleaning ka appointment chahiye.",
+          "said": "Mujhe cleaning ka appointment chahiye.",
+          "asrMs": 207,
+          "ttsMs": 604,
+          "detected": "hi-IN",
+          "ttsChars": 38,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Aapke liye kaunsa din aur time theek rahega?",
+          "state": "BOOK",
+          "expecting": "when",
+          "latencyMs": 15
+        },
+        {
+          "speaker": "caller",
+          "text": "Wednesday nahi Tuesday subah das baje",
+          "said": "Wednesday... nahi, Tuesday subah 10 baje",
+          "asrMs": 171,
+          "ttsMs": 862,
+          "detected": "en-IN",
+          "ttsChars": 40,
+          "audioSeconds": 3.328
+        },
+        {
+          "speaker": "agent",
+          "text": "Dr. Mehta ke saath Tuesday, 13 October, subah 10 baje available hai. Please patient ka poora naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 58
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Asha Pillai hai.",
+          "said": "Mera naam Asha Pillai hai.",
+          "asrMs": 170,
+          "ttsMs": 483,
+          "detected": "hi-IN",
+          "ttsChars": 26,
+          "audioSeconds": 1.792
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aur patient ki date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 104
+        },
+        {
+          "speaker": "caller",
+          "text": "7 July 1987",
+          "said": "7 July 1987",
+          "asrMs": 165,
+          "ttsMs": 649,
+          "detected": "en-IN",
+          "ttsChars": 11,
+          "audioSeconds": 2.56
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Asha Pillai ke liye Dr. Mehta ke saath cleaning, Tuesday, 13 October ko subah 10 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 89
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji,",
+          "said": "Haan ji.",
+          "asrMs": 159,
+          "ttsMs": 311,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 0.768
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Asha Pillai ka appointment Dr. Mehta ke saath Tuesday, 13 October ko subah 10 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 110
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 243,
+          "ttsMs": 910,
+          "detected": "en-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 27
+        }
+      ]
+    },
+    {
+      "scenarioId": "book-mumbled-date-of-birth",
+      "title": "Caller says the date of birth in words",
+      "language": "hi",
+      "flow": "booking",
+      "type": "persona_style",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 30
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe safai ka appointment chahiye kal dopahar baarah baje",
+          "said": "मुझे सफ़ाई का अपॉइंटमेंट चाहिए कल दोपहर 12 बजे।",
+          "asrMs": 211,
+          "ttsMs": 1244,
+          "detected": "hi-IN",
+          "ttsChars": 47,
+          "audioSeconds": 5.0346875
+        },
+        {
+          "speaker": "agent",
+          "text": "Dr. Mehta ke saath Tuesday, 13 October, dopahar 12 baje available hai. Please patient ka poora naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 23
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Mohan Lal hai.",
+          "said": "मेरा नाम मोहन लाल है।",
+          "asrMs": 1163,
+          "ttsMs": 945,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aur patient ki date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 45
+        },
+        {
+          "speaker": "caller",
+          "text": "12 April 1990",
+          "said": "बारह अप्रैल उन्नीस सौ नब्बे",
+          "asrMs": 149,
+          "ttsMs": 574,
+          "detected": "en-IN",
+          "ttsChars": 27,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Mohan Lal ke liye Dr. Mehta ke saath cleaning, Tuesday, 13 October ko dopahar 12 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 30
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "हाँ जी।",
+          "asrMs": 149,
+          "ttsMs": 323,
+          "detected": "hi-IN",
+          "ttsChars": 7,
+          "audioSeconds": 0.768
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Mohan Lal ka appointment Dr. Mehta ke saath Tuesday, 13 October ko dopahar 12 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 94
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi bas dhanyavaad",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 211,
+          "ttsMs": 622,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 74
+        }
+      ]
+    },
+    {
+      "scenarioId": "book-new-patient",
+      "title": "New patient books a cleaning for tomorrow morning",
+      "language": "en",
+      "flow": "booking",
+      "type": "book_new",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 274
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'd like to book a cleaning tomorrow at 11:00 AM.",
+          "said": "Hi, I'd like to book a cleaning tomorrow at 11 am.",
+          "asrMs": 276,
+          "ttsMs": 1204,
+          "detected": "en-IN",
+          "ttsChars": 50,
+          "audioSeconds": 3.9253125
+        },
+        {
+          "speaker": "agent",
+          "text": "Tuesday, 13 October, 11 am with Dr. Mehta is available. May I have the patient's full name, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 173
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Neha Kapoor.",
+          "said": "My name is Neha Kapoor.",
+          "asrMs": 250,
+          "ttsMs": 469,
+          "detected": "en-IN",
+          "ttsChars": 23,
+          "audioSeconds": 1.6213125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. And the patient's date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 33
+        },
+        {
+          "speaker": "caller",
+          "text": "15th March 1992.",
+          "said": "15 March 1992",
+          "asrMs": 170,
+          "ttsMs": 564,
+          "detected": "en-IN",
+          "ttsChars": 13,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Just to confirm: a cleaning for Neha Kapoor with Dr. Mehta on Tuesday, 13 October at 11 am. Shall I book it?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 43
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes please.",
+          "said": "Yes, please.",
+          "asrMs": 156,
+          "ttsMs": 274,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 0.768
+        },
+        {
+          "speaker": "agent",
+          "text": "Done. Neha Kapoor is booked with Dr. Mehta on Tuesday, 13 October at 11 am. You'll get an SMS confirmation. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 82
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 202,
+          "ttsMs": 528,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 1.792
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Smile Dental Care. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 61
+        }
+      ]
+    },
+    {
+      "scenarioId": "book-rambling-caller",
+      "title": "Caller who starts every answer with filler",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "persona_style",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 270
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe checkup ka appointment chahiye Friday dopahar baarah baje",
+          "said": "Mujhe checkup ka appointment chahiye Friday dopahar 12 baje.",
+          "asrMs": 236,
+          "ttsMs": 1213,
+          "detected": "hi-IN",
+          "ttsChars": 60,
+          "audioSeconds": 5.12
+        },
+        {
+          "speaker": "agent",
+          "text": "Dr. Mehta ke saath Friday, 16 October, dopahar 12 baje available hai. Please patient ka poora naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 51
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji, ek second, mera naam Leela Iyer hai.",
+          "said": "Haan ji, ek second... Mera naam Leela Iyer hai.",
+          "asrMs": 229,
+          "ttsMs": 1065,
+          "detected": "en-IN",
+          "ttsChars": 47,
+          "audioSeconds": 4.352
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aur patient ki date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 48
+        },
+        {
+          "speaker": "caller",
+          "text": "9 September 1979.",
+          "said": "9 September 1979",
+          "asrMs": 175,
+          "ttsMs": 730,
+          "detected": "en-IN",
+          "ttsChars": 16,
+          "audioSeconds": 2.9013125
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Leela Iyer ke liye Dr. Mehta ke saath consultation, Friday, 16 October ko dopahar 12 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 82
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 185,
+          "ttsMs": 345,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 1.1093125
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Leela Iyer ka appointment Dr. Mehta ke saath Friday, 16 October ko dopahar 12 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 100
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi bas. Thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 182,
+          "ttsMs": 689,
+          "detected": "en-IN",
+          "ttsChars": 21,
+          "audioSeconds": 2.3893125
+        },
+        {
+          "speaker": "agent",
+          "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 29
+        }
+      ]
+    },
+    {
+      "scenarioId": "book-returning-picks-second-option",
+      "title": "Returning patient, recognised by caller ID, picks the second evening slot",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "book_returning",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 285
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe checkup ka appointment chahiye Thursday shaam ko",
+          "said": "Mujhe checkup ka appointment chahiye Thursday shaam ko.",
+          "asrMs": 189,
+          "ttsMs": 1086,
+          "detected": "hi-IN",
+          "ttsChars": 55,
+          "audioSeconds": 4.0106875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thursday, 15 October ko Dr. Mehta ke saath shaam 5 baje, shaam 6 baje ya shaam 7 baje available hai. Kaunsa time chahiye?",
+          "state": "BOOK",
+          "expecting": "choice",
+          "latencyMs": 39
+        },
+        {
+          "speaker": "caller",
+          "text": "Doojra wala.",
+          "said": "doosra wala",
+          "asrMs": 220,
+          "ttsMs": 398,
+          "detected": "hi-IN",
+          "ttsChars": 11,
+          "audioSeconds": 1.1946875
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, main samajh nahi paayi. Thursday, 15 October ko Dr. Mehta ke saath shaam 5 baje, shaam 6 baje ya shaam 7 baje available hai. Kaunsa time chahiye?",
+          "state": "BOOK",
+          "expecting": "choice",
+          "latencyMs": 81
+        },
+        {
+          "speaker": "caller",
+          "text": "Dusra wala.",
+          "said": "doosra wala",
+          "asrMs": 217,
+          "ttsMs": 432,
+          "detected": "hi-IN",
+          "ttsChars": 11,
+          "audioSeconds": 1.4506875
+        },
+        {
+          "speaker": "agent",
+          "text": "Please patient ka poora naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 56
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Pooja Malhotra hai.",
+          "said": "Mera naam Pooja Malhotra hai.",
+          "asrMs": 213,
+          "ttsMs": 601,
+          "detected": "hi-IN",
+          "ttsChars": 29,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Pooja Malhotra ke liye Dr. Mehta ke saath consultation, Thursday, 15 October ko shaam 6 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 88
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 212,
+          "ttsMs": 348,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 0.6826875
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Pooja Malhotra ka appointment Dr. Mehta ke saath Thursday, 15 October ko shaam 6 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 49
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 262,
+          "ttsMs": 838,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 2.3893125
+        },
+        {
+          "speaker": "agent",
+          "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 25
+        }
+      ]
+    },
+    {
+      "scenarioId": "book-with-a-named-doctor",
+      "title": "New patient asks for Dr. Rao on Wednesday morning",
+      "language": "hi",
+      "flow": "booking",
+      "type": "book_new",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 280
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe safai Doctor Rao ke saath ka appointment chahiye Budhwar subah",
+          "said": "मुझे सफ़ाई डॉक्टर राव के साथ का अपॉइंटमेंट चाहिए बुधवार सुबह।",
+          "asrMs": 260,
+          "ttsMs": 1294,
+          "detected": "hi-IN",
+          "ttsChars": 61,
+          "audioSeconds": 5.4613125
+        },
+        {
+          "speaker": "agent",
+          "text": "Wednesday, 14 October ko Dr. Rao ke saath subah 10 baje ya subah 11 baje available hai. Kaunsa time chahiye?",
+          "state": "BOOK",
+          "expecting": "choice",
+          "latencyMs": 26
+        },
+        {
+          "speaker": "caller",
+          "text": "Pehla wala",
+          "said": "पहला वाला",
+          "asrMs": 281,
+          "ttsMs": 386,
+          "detected": "hi-IN",
+          "ttsChars": 9,
+          "audioSeconds": 1.1946875
+        },
+        {
+          "speaker": "agent",
+          "text": "Please patient ka poora naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 51
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Ravi Menon hai.",
+          "said": "मेरा नाम रवि मेनन है।",
+          "asrMs": 179,
+          "ttsMs": 556,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aur patient ki date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 52
+        },
+        {
+          "speaker": "caller",
+          "text": "1 January 1980",
+          "said": "1 जनवरी 1980",
+          "asrMs": 298,
+          "ttsMs": 587,
+          "detected": "hi-IN",
+          "ttsChars": 12,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Ravi Menon ke liye Dr. Rao ke saath cleaning, Wednesday, 14 October ko subah 10 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 69
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan, ji.",
+          "said": "हाँ जी।",
+          "asrMs": 193,
+          "ttsMs": 457,
+          "detected": "hi-IN",
+          "ttsChars": 7,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Ravi Menon ka appointment Dr. Rao ke saath Wednesday, 14 October ko subah 10 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 93
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas. Dhanyavaad.",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 232,
+          "ttsMs": 734,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 2.9013125
+        },
+        {
+          "speaker": "agent",
+          "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 43
+        }
+      ]
+    },
+    {
+      "scenarioId": "cancel-with-wrong-details",
+      "title": "Someone with Rahul's name but the wrong date of birth tries to cancel",
+      "language": "en",
+      "flow": "booking",
+      "type": "verification",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 25
+        },
+        {
+          "speaker": "caller",
+          "text": "I want to cancel my appointment.",
+          "said": "I want to cancel my appointment.",
+          "asrMs": 172,
+          "ttsMs": 522,
+          "detected": "en-IN",
+          "ttsChars": 32,
+          "audioSeconds": 1.8773125
+        },
+        {
+          "speaker": "agent",
+          "text": "May I have the patient's full name, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 29
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Rahul Gupta.",
+          "said": "My name is Rahul Gupta.",
+          "asrMs": 220,
+          "ttsMs": 455,
+          "detected": "en-IN",
+          "ttsChars": 23,
+          "audioSeconds": 1.6213125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. And the patient's date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 84
+        },
+        {
+          "speaker": "caller",
+          "text": "First January",
+          "said": "1 January 1990",
+          "asrMs": 260,
+          "ttsMs": 473,
+          "detected": "en-IN",
+          "ttsChars": 14,
+          "audioSeconds": 1.536
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. And the patient's date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 50
+        },
+        {
+          "speaker": "caller",
+          "text": "Past January 1992",
+          "said": "1 January 1990",
+          "asrMs": 222,
+          "ttsMs": 555,
+          "detected": "en-IN",
+          "ttsChars": 14,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, I didn't catch that. Thank you. And the patient's date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 83
+        },
+        {
+          "speaker": "caller",
+          "text": "First January 1990",
+          "said": "1 January 1990",
+          "asrMs": 162,
+          "ttsMs": 541,
+          "detected": "en-IN",
+          "ttsChars": 14,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "I couldn't match those details. Could you say the full name and date of birth again?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 54
+        },
+        {
+          "speaker": "caller",
+          "text": "Rahul Gupta",
+          "said": "Rahul Gupta",
+          "asrMs": 164,
+          "ttsMs": 378,
+          "detected": "hi-IN",
+          "ttsChars": 11,
+          "audioSeconds": 1.1946875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. And the patient's date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 37
+        },
+        {
+          "speaker": "caller",
+          "text": "First January 1992",
+          "said": "1 January 1990",
+          "asrMs": 313,
+          "ttsMs": 438,
+          "detected": "en-IN",
+          "ttsChars": 14,
+          "audioSeconds": 1.4506875
+        },
+        {
+          "speaker": "agent",
+          "text": "I'm sorry, I couldn't confirm the patient's details, so I can't share or change any appointment. Let me connect you to our staff.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 97
+        }
+      ]
+    },
+    {
+      "scenarioId": "faq-insurance-left-blank",
+      "title": "Asks about insurance, which the clinic left blank on purpose",
+      "language": "en",
+      "flow": "booking",
+      "type": "faq",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 40
+        },
+        {
+          "speaker": "caller",
+          "text": "Do you take cashless insurance?",
+          "said": "Do you take cashless insurance?",
+          "asrMs": 275,
+          "ttsMs": 563,
+          "detected": "en-IN",
+          "ttsChars": 31,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "I don't have that information, so I won't guess. Let me connect you to our staff.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 64
+        }
+      ]
+    },
+    {
+      "scenarioId": "faq-timings",
+      "title": "Asks the clinic timings",
+      "language": "hi",
+      "flow": "booking",
+      "type": "faq",
+      "passed": false,
+      "worst": "medium",
+      "failed": [
+        {
+          "id": "handoff",
+          "severity": "medium",
+          "passed": false,
+          "detail": "unexpected handoff: repeated_misunderstanding"
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 41
+        },
+        {
+          "speaker": "caller",
+          "text": "Clinic ka samay kya hai?",
+          "said": "क्लिनिक का समय क्या है?",
+          "asrMs": 268,
+          "ttsMs": 1030,
+          "detected": "hi-IN",
+          "ttsChars": 23,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, main samajh nahi paayi. Aap appointment book, change ya cancel karna chahte hain?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 87
+        },
+        {
+          "speaker": "caller",
+          "text": "Clinic ka samay kya hai",
+          "said": "क्लिनिक का समय क्या है?",
+          "asrMs": 223,
+          "ttsMs": 578,
+          "detected": "hi-IN",
+          "ttsChars": 23,
+          "audioSeconds": 1.8773125
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, mujhe theek se samajh nahi aa raha. Main aapko staff se jod rahi hoon.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 101
+        }
+      ]
+    },
+    {
+      "scenarioId": "kill-switch-on",
+      "title": "Clinic has routed all calls to staff",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "kill_switch",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, yeh Smile Dental Care ki automated assistant hai. Main aapko staff se jod rahi hoon.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 54
+        }
+      ]
+    },
+    {
+      "scenarioId": "medical-question-mid-booking",
+      "title": "Asks which painkiller to take, then books",
+      "language": "en",
+      "flow": "booking",
+      "type": "medical",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 39
+        },
+        {
+          "speaker": "caller",
+          "text": "Before that, which painkiller should I take?",
+          "said": "Before that, which painkiller should I take?",
+          "asrMs": 189,
+          "ttsMs": 669,
+          "detected": "en-IN",
+          "ttsChars": 44,
+          "audioSeconds": 2.56
+        },
+        {
+          "speaker": "agent",
+          "text": "I'm sorry, I can't give medical advice or talk about medicines. The doctor can help with that. I can book you an appointment, or connect you to our staff. Would you like to book, change or cancel an appointment?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 53
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'd like to book a consultation tomorrow at 12:00 PM.",
+          "said": "Hi, I'd like to book a consultation tomorrow at 12 pm.",
+          "asrMs": 299,
+          "ttsMs": 916,
+          "detected": "en-IN",
+          "ttsChars": 54,
+          "audioSeconds": 3.7546875
+        },
+        {
+          "speaker": "agent",
+          "text": "Tuesday, 13 October, 12 pm with Dr. Mehta is available. May I have the patient's full name, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 37
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Deepak Joshi.",
+          "said": "My name is Deepak Joshi.",
+          "asrMs": 290,
+          "ttsMs": 578,
+          "detected": "en-IN",
+          "ttsChars": 24,
+          "audioSeconds": 1.792
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. And the patient's date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 73
+        },
+        {
+          "speaker": "caller",
+          "text": "12th December 1975",
+          "said": "12 December 1975",
+          "asrMs": 195,
+          "ttsMs": 761,
+          "detected": "en-IN",
+          "ttsChars": 16,
+          "audioSeconds": 2.9866875
+        },
+        {
+          "speaker": "agent",
+          "text": "Just to confirm: a consultation for Deepak Joshi with Dr. Mehta on Tuesday, 13 October at 12 pm. Shall I book it?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 43
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes please.",
+          "said": "Yes, please.",
+          "asrMs": 361,
+          "ttsMs": 316,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 0.768
+        },
+        {
+          "speaker": "agent",
+          "text": "Done. Deepak Joshi is booked with Dr. Mehta on Tuesday, 13 October at 12 pm. You'll get an SMS confirmation. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 87
+        },
+        {
+          "speaker": "caller",
+          "text": "No that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 182,
+          "ttsMs": 509,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Smile Dental Care. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 47
+        }
+      ]
+    },
+    {
+      "scenarioId": "msg-booking-and-report",
+      "title": "Books a cleaning and asks about a report in the same breath",
+      "language": "hinglish",
+      "flow": "messages",
+      "type": "mixed",
+      "passed": false,
+      "worst": "high",
+      "failed": [
+        {
+          "id": "handoff",
+          "severity": "medium",
+          "passed": false,
+          "detail": "unexpected handoff: repeated_misunderstanding"
+        },
+        {
+          "id": "schedule_end_state",
+          "severity": "high",
+          "passed": false,
+          "detail": "missing [Pooja Malhotra|cleaning|2026-10-13T12:00|confirmed] unexpected []"
+        },
+        {
+          "id": "tasks_end_state",
+          "severity": "high",
+          "passed": false,
+          "detail": "expected 1 tasks, got 0"
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 40
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe clinic ka appointment chahiye kal dobhar 12:00 baje aur ek baat meri report aa gayi kya?",
+          "said": "Mujhe cleaning ka appointment chahiye kal dopahar 12 baje, aur ek baat, meri report aa gayi kya?",
+          "asrMs": 290,
+          "ttsMs": 1563,
+          "detected": "hi-IN",
+          "ttsChars": 96,
+          "audioSeconds": 6.8266875
+        },
+        {
+          "speaker": "agent",
+          "text": "Visit kis liye hai? Jaise consultation, cleaning ya filling.",
+          "state": "BOOK",
+          "expecting": "service",
+          "latencyMs": 65
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji,",
+          "said": "Haan ji.",
+          "asrMs": 155,
+          "ttsMs": 267,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 0.6826875
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, main samajh nahi paayi. Visit kis liye hai? Jaise consultation, cleaning ya filling.",
+          "state": "BOOK",
+          "expecting": "service",
+          "latencyMs": 48
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji,",
+          "said": "Haan ji.",
+          "asrMs": 296,
+          "ttsMs": 305,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 0.6826875
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, mujhe theek se samajh nahi aa raha. Main aapko staff se jod rahi hoon.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 41
+        }
+      ]
+    },
+    {
+      "scenarioId": "msg-doctor-callback",
+      "title": "Wants to leave a message for the doctor",
+      "language": "en",
+      "flow": "messages",
+      "type": "doctor_callback",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 37
+        },
+        {
+          "speaker": "caller",
+          "text": "I'd like to leave a message for the doctor.",
+          "said": "I'd like to leave a message for the doctor.",
+          "asrMs": 160,
+          "ttsMs": 768,
+          "detected": "en-IN",
+          "ttsChars": 43,
+          "audioSeconds": 3.1573125
+        },
+        {
+          "speaker": "agent",
+          "text": "May I have the patient's full name, please?",
+          "state": "TAKE_MESSAGE",
+          "expecting": "name",
+          "latencyMs": 69
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Arjun Verma.",
+          "said": "My name is Arjun Verma.",
+          "asrMs": 166,
+          "ttsMs": 619,
+          "detected": "en-IN",
+          "ttsChars": 23,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "What would you like me to pass on to the team?",
+          "state": "TAKE_MESSAGE",
+          "expecting": "message",
+          "latencyMs": 62
+        },
+        {
+          "speaker": "caller",
+          "text": "Please ask Dr. Mehta to call me back about my braces wire.",
+          "said": "Please ask Dr. Mehta to call me back about my braces wire.",
+          "asrMs": 302,
+          "ttsMs": 1244,
+          "detected": "en-IN",
+          "ttsChars": 58,
+          "audioSeconds": 5.2053125
+        },
+        {
+          "speaker": "agent",
+          "text": "Shall the team call you back on the number ending 0487?",
+          "state": "TAKE_MESSAGE",
+          "expecting": "callback_confirm",
+          "latencyMs": 22
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes, please.",
+          "said": "Yes, please.",
+          "asrMs": 147,
+          "ttsMs": 340,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 1.1093125
+        },
+        {
+          "speaker": "agent",
+          "text": "I've passed this on to the team. They'll call you back today by 1 pm. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 89
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 252,
+          "ttsMs": 691,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.6453125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Smile Dental Care. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 79
+        }
+      ]
+    },
+    {
+      "scenarioId": "msg-refill",
+      "title": "Needs a refill of the medicine from her extraction",
+      "language": "hinglish",
+      "flow": "messages",
+      "type": "refill",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 37
+        },
+        {
+          "speaker": "caller",
+          "text": "Extraction ke baad wali dawai khatam ho gayi refill chahiye",
+          "said": "Extraction ke baad wali dawai khatam ho gayi, refill chahiye.",
+          "asrMs": 249,
+          "ttsMs": 1490,
+          "detected": "hi-IN",
+          "ttsChars": 61,
+          "audioSeconds": 6.3146875
+        },
+        {
+          "speaker": "agent",
+          "text": "Please patient ka poora naam bataiye.",
+          "state": "TAKE_MESSAGE",
+          "expecting": "name",
+          "latencyMs": 31
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Sunita Sharma hai",
+          "said": "Mera naam Sunita Sharma hai.",
+          "asrMs": 164,
+          "ttsMs": 692,
+          "detected": "hi-IN",
+          "ttsChars": 28,
+          "audioSeconds": 2.6453125
+        },
+        {
+          "speaker": "agent",
+          "text": "Kya team aapko 0210 pe khatam hone wale number pe call kare?",
+          "state": "TAKE_MESSAGE",
+          "expecting": "callback_confirm",
+          "latencyMs": 38
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 196,
+          "ttsMs": 356,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 1.024
+        },
+        {
+          "speaker": "agent",
+          "text": "Maine yeh team ko bata diya hai. Woh aapko aaj dopahar 1 baje tak call karenge. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 76
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas. Thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 178,
+          "ttsMs": 710,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 44
+        }
+      ]
+    },
+    {
+      "scenarioId": "msg-report-status",
+      "title": "Asks whether her X-ray report is ready",
+      "language": "en",
+      "flow": "messages",
+      "type": "report_status",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 26
+        },
+        {
+          "speaker": "caller",
+          "text": "Is my X-ray report ready?",
+          "said": "Is my X-ray report ready?",
+          "asrMs": 302,
+          "ttsMs": 552,
+          "detected": "en-IN",
+          "ttsChars": 25,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "May I have the patient's full name, please?",
+          "state": "TAKE_MESSAGE",
+          "expecting": "name",
+          "latencyMs": 15
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Pooja Malhotra.",
+          "said": "My name is Pooja Malhotra.",
+          "asrMs": 158,
+          "ttsMs": 525,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Shall the team call you back on the number ending 0733?",
+          "state": "TAKE_MESSAGE",
+          "expecting": "callback_confirm",
+          "latencyMs": 41
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes please.",
+          "said": "Yes, please.",
+          "asrMs": 155,
+          "ttsMs": 428,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 1.1093125
+        },
+        {
+          "speaker": "agent",
+          "text": "I've passed this on to the team. They'll call you back today by 1 pm. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 73
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 154,
+          "ttsMs": 729,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.9013125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Smile Dental Care. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 78
+        }
+      ]
+    },
+    {
+      "scenarioId": "rem-cancel",
+      "title": "Cancels during the reminder; the slot is released",
+      "language": "hinglish",
+      "flow": "reminders",
+      "type": "reminder_cancel",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki taraf se automated assistant. Kya meri baat Pooja se ho rahi hai?",
+          "state": "DIAL",
+          "expecting": "identity_who",
+          "latencyMs": 30
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan, main hi bol rahi hun.",
+          "said": "Haan, main hi bol rahi hoon.",
+          "asrMs": 169,
+          "ttsMs": 385,
+          "detected": "hi-IN",
+          "ttsChars": 28,
+          "audioSeconds": 1.28
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aapki privacy ke liye, please apni date of birth bataiye.",
+          "state": "IDENTITY_CHECK",
+          "expecting": "dob",
+          "latencyMs": 82
+        },
+        {
+          "speaker": "caller",
+          "text": "12 April 1990",
+          "said": "12 April 1990",
+          "asrMs": 163,
+          "ttsMs": 602,
+          "detected": "hi-IN",
+          "ttsChars": 13,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Tuesday, 13 October ko subah 10 baje aapka Dr. Mehta ke saath cleaning hai. Kya aap aa payenge?",
+          "state": "REMIND",
+          "expecting": "attendance",
+          "latencyMs": 85
+        },
+        {
+          "speaker": "caller",
+          "text": "Cancel kar do.",
+          "said": "Cancel kar do.",
+          "asrMs": 194,
+          "ttsMs": 360,
+          "detected": "hi-IN",
+          "ttsChars": 14,
+          "audioSeconds": 1.024
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Pooja Malhotra ka Dr. Mehta ke saath Tuesday, 13 October subah 10 baje ka cleaning cancel kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 52
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 204,
+          "ttsMs": 356,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 0.9386875
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya, appointment cancel ho gaya hai. Thank you, tab milte hain. Namaste!",
+          "state": "CLOSE",
+          "expecting": "",
+          "latencyMs": 98
+        }
+      ]
+    },
+    {
+      "scenarioId": "rem-confirm",
+      "title": "Patient confirms she will come",
+      "language": "hi",
+      "flow": "reminders",
+      "type": "reminder_confirm",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "नमस्ते, मैं मायना हूँ, स्माइल डेंटल केयर की ओर से ऑटोमेटेड असिस्टेंट। क्या मेरी बात Pooja से हो रही है?",
+          "state": "DIAL",
+          "expecting": "identity_who",
+          "latencyMs": 42
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan main hi bol rahi hoon",
+          "said": "हाँ, मैं ही बोल रही हूँ।",
+          "asrMs": 171,
+          "ttsMs": 753,
+          "detected": "hi-IN",
+          "ttsChars": 24,
+          "audioSeconds": 2.3893125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aapki privacy ke liye, please apni date of birth bataiye.",
+          "state": "IDENTITY_CHECK",
+          "expecting": "dob",
+          "latencyMs": 41
+        },
+        {
+          "speaker": "caller",
+          "text": "12 April 1990",
+          "said": "12 अप्रैल 1990",
+          "asrMs": 171,
+          "ttsMs": 562,
+          "detected": "en-IN",
+          "ttsChars": 14,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Tuesday, 13 October ko subah 10 baje aapka Dr. Mehta ke saath cleaning hai. Kya aap aa payenge?",
+          "state": "REMIND",
+          "expecting": "attendance",
+          "latencyMs": 103
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan aa jaungi",
+          "said": "हाँ, आ जाऊँगी।",
+          "asrMs": 191,
+          "ttsMs": 544,
+          "detected": "hi-IN",
+          "ttsChars": 14,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you, tab milte hain. Namaste!",
+          "state": "CONFIRM_ATTENDANCE",
+          "expecting": "",
+          "latencyMs": 82
+        }
+      ]
+    },
+    {
+      "scenarioId": "rem-opt-out",
+      "title": "Asks never to be called again",
+      "language": "hi",
+      "flow": "reminders",
+      "type": "reminder_opt_out",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "नमस्ते, मैं मायना हूँ, स्माइल डेंटल केयर की ओर से ऑटोमेटेड असिस्टेंट। क्या मेरी बात Pooja से हो रही है?",
+          "state": "DIAL",
+          "expecting": "identity_who",
+          "latencyMs": 34
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe dobara call mat karo.",
+          "said": "मुझे दोबारा कॉल मत करो।",
+          "asrMs": 214,
+          "ttsMs": 549,
+          "detected": "hi-IN",
+          "ttsChars": 23,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Theek hai, hum is number pe reminder ke liye dobara call nahi karenge. Namaste.",
+          "state": "CLOSE",
+          "expecting": "",
+          "latencyMs": 30
+        }
+      ]
+    },
+    {
+      "scenarioId": "rem-wrong-date-of-birth",
+      "title": "The person can't confirm the date of birth",
+      "language": "hi",
+      "flow": "reminders",
+      "type": "reminder_verification",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "नमस्ते, मैं मायना हूँ, स्माइल डेंटल केयर की ओर से ऑटोमेटेड असिस्टेंट। क्या मेरी बात Pooja से हो रही है?",
+          "state": "DIAL",
+          "expecting": "identity_who",
+          "latencyMs": 35
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan, main hi bol rahi hoon.",
+          "said": "हाँ, मैं ही बोल रही हूँ।",
+          "asrMs": 182,
+          "ttsMs": 567,
+          "detected": "hi-IN",
+          "ttsChars": 24,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aapki privacy ke liye, please apni date of birth bataiye.",
+          "state": "IDENTITY_CHECK",
+          "expecting": "dob",
+          "latencyMs": 75
+        },
+        {
+          "speaker": "caller",
+          "text": "Ek January unnis sau ikyaanve",
+          "said": "1 जनवरी 1991",
+          "asrMs": 187,
+          "ttsMs": 601,
+          "detected": "hi-IN",
+          "ttsChars": 12,
+          "audioSeconds": 2.3893125
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, yeh hamare record se match nahi hua. Kya aap date of birth phir se batayenge?",
+          "state": "IDENTITY_CHECK",
+          "expecting": "dob",
+          "latencyMs": 43
+        },
+        {
+          "speaker": "caller",
+          "text": "1 January 1991",
+          "said": "1 जनवरी 1991",
+          "asrMs": 229,
+          "ttsMs": 565,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 2.304
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, main is call pe details nahi de sakti. Please Smile Dental Care ko 98000 00001 pe call kariye. Namaste.",
+          "state": "CLOSE",
+          "expecting": "",
+          "latencyMs": 59
+        }
+      ]
+    },
+    {
+      "scenarioId": "rem-wrong-number",
+      "title": "Wrong number",
+      "language": "hinglish",
+      "flow": "reminders",
+      "type": "reminder_wrong_number",
+      "passed": false,
+      "worst": "high",
+      "failed": [
+        {
+          "id": "reminder_outcome",
+          "severity": "high",
+          "passed": false,
+          "detail": "recorded: [reached_family]"
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki taraf se automated assistant. Kya meri baat Pooja se ho rahi hai?",
+          "state": "DIAL",
+          "expecting": "identity_who",
+          "latencyMs": 39
+        },
+        {
+          "speaker": "caller",
+          "text": "Gallup number hai, iss naam ka koi nahi hai.",
+          "said": "Galat number hai, is naam ka koi nahi hai.",
+          "asrMs": 276,
+          "ttsMs": 829,
+          "detected": "hi-IN",
+          "ttsChars": 42,
+          "audioSeconds": 3.4133125
+        },
+        {
+          "speaker": "agent",
+          "text": "Koi baat nahi. Kya aap Pooja ko Smile Dental Care ko 98000 00001 pe call karne ko kahenge? Thank you, namaste.",
+          "state": "CLOSE",
+          "expecting": "",
+          "latencyMs": 71
+        }
+      ]
+    },
+    {
+      "scenarioId": "reschedule-by-caller-id",
+      "title": "Patient moves her cleaning to Friday evening",
+      "language": "en",
+      "flow": "booking",
+      "type": "reschedule",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 43
+        },
+        {
+          "speaker": "caller",
+          "text": "I need to reschedule my appointment.",
+          "said": "I need to reschedule my appointment.",
+          "asrMs": 182,
+          "ttsMs": 577,
+          "detected": "en-IN",
+          "ttsChars": 36,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "May I have the patient's full name, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 54
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Pooja Malhotra,",
+          "said": "My name is Pooja Malhotra.",
+          "asrMs": 203,
+          "ttsMs": 555,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 1.792
+        },
+        {
+          "speaker": "agent",
+          "text": "I see a cleaning on Thursday, 15 October at 10 am with Dr. Mehta. Which day and time would you like instead?",
+          "state": "RESCHEDULE",
+          "expecting": "when",
+          "latencyMs": 97
+        },
+        {
+          "speaker": "caller",
+          "text": "Friday and the evening.",
+          "said": "Friday in the evening",
+          "asrMs": 218,
+          "ttsMs": 569,
+          "detected": "en-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.28
+        },
+        {
+          "speaker": "agent",
+          "text": "On Friday, 16 October I have 5 pm, 6 pm or 7 pm with Dr. Mehta. Which time would you like?",
+          "state": "RESCHEDULE",
+          "expecting": "choice",
+          "latencyMs": 82
+        },
+        {
+          "speaker": "caller",
+          "text": "The first one",
+          "said": "the first one",
+          "asrMs": 157,
+          "ttsMs": 387,
+          "detected": "en-IN",
+          "ttsChars": 13,
+          "audioSeconds": 1.28
+        },
+        {
+          "speaker": "agent",
+          "text": "Just to confirm: move Pooja Malhotra's cleaning with Dr. Mehta from Thursday, 15 October at 10 am to Friday, 16 October at 5 pm. Shall I go ahead?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 30
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes please.",
+          "said": "Yes, please.",
+          "asrMs": 289,
+          "ttsMs": 339,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 0.768
+        },
+        {
+          "speaker": "agent",
+          "text": "Done. The appointment is now on Friday, 16 October at 5 pm with Dr. Mehta. You'll get an SMS. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 56
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 190,
+          "ttsMs": 628,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Smile Dental Care. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 72
+        }
+      ]
+    },
+    {
+      "scenarioId": "reschedule-for-father",
+      "title": "Son moves his father's appointment; must verify the father's details",
+      "language": "hi",
+      "flow": "booking",
+      "type": "third_party",
+      "passed": false,
+      "worst": "critical",
+      "failed": [
+        {
+          "id": "schedule_end_state",
+          "severity": "critical",
+          "passed": false,
+          "detail": "missing [Arjun Verma|consultation|2026-10-15T12:00|confirmed] unexpected [Arjun Verma|consultation|2026-10-12T12:00|confirmed]"
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Smile Dental Care ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 33
+        },
+        {
+          "speaker": "caller",
+          "text": "Papa ka appointment badalna hai.",
+          "said": "पापा का अपॉइंटमेंट बदलना है।",
+          "asrMs": 157,
+          "ttsMs": 634,
+          "detected": "hi-IN",
+          "ttsChars": 28,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "Zaroor. Patient ka poora naam kya hai? Mujhe unki details chahiye, aapki nahi.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 44
+        },
+        {
+          "speaker": "caller",
+          "text": "Mariz ka naam Arjun Verma hai.",
+          "said": "मरीज़ का नाम अर्जुन वर्मा है।",
+          "asrMs": 231,
+          "ttsMs": 689,
+          "detected": "hi-IN",
+          "ttsChars": 29,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you. Aur patient ki date of birth?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "dob",
+          "latencyMs": 82
+        },
+        {
+          "speaker": "caller",
+          "text": "2 November 1985",
+          "said": "2 नवंबर 1985",
+          "asrMs": 166,
+          "ttsMs": 601,
+          "detected": "hi-IN",
+          "ttsChars": 12,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Mujhe Dr. Mehta ke saath Friday, 16 October ko subah 10 baje consultation dikh raha hai. Iski jagah kaunsa din aur time chahiye?",
+          "state": "RESCHEDULE",
+          "expecting": "when",
+          "latencyMs": 80
+        },
+        {
+          "speaker": "caller",
+          "text": "Guruvaar dopahar 12:00 baje",
+          "said": "गुरुवार दोपहर 12 बजे",
+          "asrMs": 209,
+          "ttsMs": 619,
+          "detected": "hi-IN",
+          "ttsChars": 20,
+          "audioSeconds": 2.1333125
+        },
+        {
+          "speaker": "agent",
+          "text": "Dr. Mehta ke saath Monday, 12 October, dopahar 12 baje available hai. Confirm kar loon: Arjun Verma ka consultation, Dr. Mehta ke saath, Friday, 16 October subah 10 baje se badal kar Monday, 12 October ko dopahar 12 baje. Kya main badal doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 66
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "हाँ जी।",
+          "asrMs": 310,
+          "ttsMs": 314,
+          "detected": "hi-IN",
+          "ttsChars": 7,
+          "audioSeconds": 0.8533125
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Appointment ab Monday, 12 October ko dopahar 12 baje Dr. Mehta ke saath hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 86
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi bas dhanyavaad",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 216,
+          "ttsMs": 646,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Smile Dental Care ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 38
+        }
+      ]
+    }
+  ]
+}

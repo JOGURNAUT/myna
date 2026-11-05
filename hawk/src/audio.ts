@@ -47,7 +47,7 @@ export class SarvamAudio implements AudioChannel {
   retries = 0;
 
   constructor(opts: SarvamAudioOptions) {
-    this.opts = { ttsModel: 'bulbul:v3', sttModel: 'saaras:v4', sttMode: 'transcribe', ...opts };
+    this.opts = { ttsModel: 'bulbul:v3', sttModel: 'saaras:v3', sttMode: 'translit', ...opts };
   }
 
   async roundTrip(text: string, lang: Language, seed: string): Promise<Heard> {
