@@ -126,7 +126,29 @@
         },
         "vertical": {
           "type": "string",
-          "const": "clinic"
+          "enum": [
+            "clinic",
+            "restaurant"
+          ]
+        },
+        "verification": {
+          "default": {
+            "mode": "name_dob"
+          },
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "name_dob",
+                "name_phone"
+              ]
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
         },
         "name": {
           "type": "string",
@@ -363,13 +385,42 @@
                 "type": "integer",
                 "minimum": 5,
                 "maximum": 480
+              },
+              "partySize": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "max": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "min",
+                  "max"
+                ],
+                "additionalProperties": false
+              },
+              "aliases": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
               }
             },
             "required": [
               "id",
               "name",
               "spoken",
-              "durationMin"
+              "durationMin",
+              "aliases"
             ],
             "additionalProperties": false
           }
@@ -597,6 +648,7 @@
         "id",
         "tenantId",
         "vertical",
+        "verification",
         "name",
         "spokenName",
         "timezone",
@@ -1019,7 +1071,8 @@
             "kill_switch",
             "tool_failure",
             "verification_failed",
-            "unanswered_question"
+            "unanswered_question",
+            "party_too_large"
           ]
         },
         "summary": {

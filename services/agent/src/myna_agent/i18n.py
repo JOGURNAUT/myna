@@ -6,8 +6,11 @@ read out details it shouldn't. Hawk's soft-criteria judge grades how natural the
 
 from __future__ import annotations
 
+from contextvars import ContextVar
 from datetime import date
 from typing import Literal
+
+from .i18n_restaurant import LINES_RESTAURANT
 
 Lang = Literal["en", "hi", "hinglish"]
 
@@ -430,7 +433,18 @@ def say_phone(phone: str) -> str:
     return f"{digits[:5]} {digits[5:]}" if len(digits) == 10 else digits
 
 
+#: Which business the current call is for. Set by the conversation at the start of every turn,
+#: so `line()` can pick the restaurant wording without every caller passing it along.
+_vertical: ContextVar[str] = ContextVar("vertical", default="clinic")
+
+
+def set_vertical(vertical: str) -> None:
+    _vertical.set(vertical)
+
+
 def line(key: str, lang: Lang, **kwargs: str) -> str:
+    if _vertical.get() == "restaurant" and key in LINES_RESTAURANT:
+        return LINES_RESTAURANT[key][lang].format(**kwargs)
     return LINES[key][lang].format(**kwargs)
 
 

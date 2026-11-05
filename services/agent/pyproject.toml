@@ -51,6 +51,7 @@ ignore = ["RUF001", "RUF002", "RUF003"]  # Devanagari and typographic quotes are
 [tool.ruff.lint.per-file-ignores]
 # Reply templates and keyword regexes read best unbroken.
 "src/myna_agent/i18n.py" = ["E501"]
+"src/myna_agent/i18n_restaurant.py" = ["E501"]
 "src/myna_agent/nlu.py" = ["E501"]
 "src/myna_agent/dates.py" = ["E501"]
 "src/myna_agent/llm/sarvam.py" = ["E501"]

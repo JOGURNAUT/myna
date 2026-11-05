@@ -16,6 +16,16 @@ export type TimeRange = z.infer<typeof TimeRange>;
 const WeeklyHours = z.partialRecord(Weekday, z.array(TimeRange));
 export type WeeklyHours = z.infer<typeof WeeklyHours>;
 
+export const Vertical = z.enum(['clinic', 'restaurant']);
+export type Vertical = z.infer<typeof Vertical>;
+
+/**
+ * name_dob: full name plus date of birth, or name plus the registered phone (clinics).
+ * name_phone: full name plus the phone number the booking was made with (restaurants).
+ */
+export const VerificationMode = z.enum(['name_dob', 'name_phone']);
+export type VerificationMode = z.infer<typeof VerificationMode>;
+
 export const Resource = z.object({
   id: Slug,
   name: z.string().min(1),
@@ -34,6 +44,10 @@ export const Service = z.object({
   /** Spoken names per language, used by the agent when reading back. */
   spoken: z.partialRecord(Language, z.string()).default({}),
   durationMin: z.number().int().min(5).max(480),
+  /** Restaurants: this service is a table for this many guests (the agent asks "how many?"). */
+  partySize: z.object({ min: z.number().int().min(1), max: z.number().int().min(1) }).optional(),
+  /** Extra words callers use for this service, matched alongside the name. */
+  aliases: z.array(z.string().min(1)).default([]),
 });
 export type Service = z.infer<typeof Service>;
 
@@ -51,7 +65,9 @@ export const BusinessConfig = z
   .object({
     id: Slug,
     tenantId: Slug,
-    vertical: z.literal('clinic'),
+    vertical: Vertical,
+    /** How the agent proves the caller may see or change a booking (safety rule 4). */
+    verification: z.object({ mode: VerificationMode }).default({ mode: 'name_dob' }),
     name: z.string().min(1),
     /** Spoken name per language for the greeting. */
     spokenName: z.partialRecord(Language, z.string()).default({}),

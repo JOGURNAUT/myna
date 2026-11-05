@@ -50,6 +50,24 @@ class BookOutput(BaseModel):
     verification_id: Annotated[str | None, Field(alias="verificationId", min_length=8)] = None
 
 
+class Vertical(StrEnum):
+    clinic = "clinic"
+    restaurant = "restaurant"
+
+
+class Mode(StrEnum):
+    name_dob = "name_dob"
+    name_phone = "name_phone"
+
+
+class Verification(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    mode: Mode
+
+
 class Language(StrEnum):
     en = "en"
     hi = "hi"
@@ -107,6 +125,19 @@ class Resource(BaseModel):
     hours: dict[Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"], list[Hour]]
 
 
+class PartySize(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+    min: Annotated[int, Field(ge=1, le=9007199254740991)]
+    max: Annotated[int, Field(ge=1, le=9007199254740991)]
+
+
+class Alias(RootModel[str]):
+    root: Annotated[str, Field(min_length=1)]
+
+
 class Service1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -116,6 +147,8 @@ class Service1(BaseModel):
     name: Annotated[str, Field(min_length=1)]
     spoken: dict[Literal["en", "hi", "hinglish"], str]
     duration_min: Annotated[int, Field(alias="durationMin", ge=5, le=480)]
+    party_size: Annotated[PartySize | None, Field(alias="partySize")] = None
+    aliases: list[Alias]
 
 
 class Booking(BaseModel):
@@ -191,7 +224,8 @@ class BusinessConfig(BaseModel):
     )
     id: Annotated[str, Field(pattern="^[a-z0-9][a-z0-9-]{0,63}$")]
     tenant_id: Annotated[str, Field(alias="tenantId", pattern="^[a-z0-9][a-z0-9-]{0,63}$")]
-    vertical: Literal["clinic"]
+    vertical: Vertical
+    verification: Verification
     name: Annotated[str, Field(min_length=1)]
     spoken_name: Annotated[dict[Literal["en", "hi", "hinglish"], str], Field(alias="spokenName")]
     timezone: str
@@ -387,6 +421,7 @@ class Reason(StrEnum):
     tool_failure = "tool_failure"
     verification_failed = "verification_failed"
     unanswered_question = "unanswered_question"
+    party_too_large = "party_too_large"
 
 
 class HandoffToHumanInput(BaseModel):

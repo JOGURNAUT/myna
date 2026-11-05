@@ -21,16 +21,28 @@ export const DEMO_PATIENTS = [
   { name: 'Kavya Nair', phone: '9711100318', dob: '2015-09-21', booking: 'braces-review' },
 ] as const;
 
-/** Seeds demo patients and one upcoming appointment each (where set). Skips if already seeded. */
+/** Synthetic restaurant guests: name + phone only (no date of birth), as a booking would hold. */
+export const DEMO_GUESTS = [
+  { name: 'Ananya Kulkarni', phone: '9822200101', booking: 'table-2' },
+  { name: 'Imran Qureshi', phone: '9822200102', booking: 'table-4' },
+  { name: 'Deepa Menon', phone: '9822200103', booking: 'table-6' },
+  { name: 'Karthik Iyer', phone: '9822200104', booking: null },
+] as const;
+
+/** Seeds demo patients (or guests) and one upcoming booking each (where set). Skips if done. */
 export async function seedDemo(
   db: Db,
   config: BusinessConfig,
   now: Date = new Date(),
 ): Promise<number> {
+  const demo: readonly { name: string; phone: string; dob?: string; booking: string | null }[] =
+    config.vertical === 'restaurant' ? DEMO_GUESTS : DEMO_PATIENTS;
+  const first = demo[0];
+  if (!first) return 0;
   const existing = await db
     .select({ id: patients.id })
     .from(patients)
-    .where(and(eq(patients.tenantId, config.tenantId), eq(patients.phone, DEMO_PATIENTS[0].phone)));
+    .where(and(eq(patients.tenantId, config.tenantId), eq(patients.phone, first.phone)));
   if (existing.length > 0) return 0;
 
   const adapter = new SqliteSchedulingAdapter(db, config);
@@ -38,7 +50,7 @@ export async function seedDemo(
   const today = splitDateTime(localNow).date;
   let offsetDays = 3;
 
-  for (const p of DEMO_PATIENTS) {
+  for (const p of demo) {
     const patient = await adapter.createPatient(p);
     if (!p.booking) continue;
     const from = addDays(today, offsetDays);
@@ -65,7 +77,7 @@ export async function seedDemo(
     }
     offsetDays += 1;
   }
-  return DEMO_PATIENTS.length;
+  return demo.length;
 }
 
 // `pnpm db:seed`

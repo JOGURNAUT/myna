@@ -99,6 +99,7 @@ export const HandoffReason = z.enum([
   'tool_failure',
   'verification_failed',
   'unanswered_question',
+  'party_too_large',
 ]);
 export type HandoffReason = z.infer<typeof HandoffReason>;
 export const HandoffInput = z.object({

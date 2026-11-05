@@ -1,0 +1,129 @@
+# Spice Route Kitchen — demo / harness restaurant. Synthetic: not a real restaurant.
+# Second vertical, to prove the engine is not clinic-shaped (docs/plan-generalise.md).
+# Party size is expressed as services (a table for 2 / 4 / 6); a table "seats" a party by
+# listing the services it can host. Validated by BusinessConfig in packages/shared.
+
+id: spice-route
+tenantId: spice-route
+vertical: restaurant
+verification:
+  mode: name_phone
+name: Spice Route Kitchen
+spokenName:
+  en: Spice Route Kitchen
+  hi: स्पाइस रूट किचन
+  hinglish: Spice Route Kitchen
+timezone: Asia/Kolkata
+phone: '9800000011'
+humanHandoffNumber: '9800000012'
+languages: [en, hi, hinglish]
+greetingLanguage: hinglish
+schedulingMode: slots
+
+hours:
+  mon: &lunch-dinner
+    - { start: '12:00', end: '15:00' }
+    - { start: '19:00', end: '23:00' }
+  tue: *lunch-dinner
+  wed: *lunch-dinner
+  thu: *lunch-dinner
+  fri: *lunch-dinner
+  sat: *lunch-dinner
+  sun: *lunch-dinner
+
+closedDates:
+  - '2026-10-20' # Diwali
+  - '2026-10-21'
+
+resources:
+  - id: table-1
+    name: Table 1 (window)
+    kind: table
+    services: [table-2]
+    hours: &open-all
+      mon: *lunch-dinner
+      tue: *lunch-dinner
+      wed: *lunch-dinner
+      thu: *lunch-dinner
+      fri: *lunch-dinner
+      sat: *lunch-dinner
+      sun: *lunch-dinner
+  - id: table-2
+    name: Table 2
+    kind: table
+    services: [table-2]
+    hours: *open-all
+  - id: table-3
+    name: Table 3
+    kind: table
+    services: [table-2, table-4]
+    hours: *open-all
+  - id: table-4
+    name: Table 4
+    kind: table
+    services: [table-2, table-4]
+    hours: *open-all
+  - id: table-5
+    name: Table 5 (family)
+    kind: table
+    services: [table-4, table-6]
+    hours: *open-all
+
+services:
+  - id: table-2
+    name: Table for 2
+    spoken: { en: a table for two, hi: दो लोगों की मेज़, hinglish: 2 logon ki table }
+    durationMin: 75
+    partySize: { min: 1, max: 2 }
+    aliases: [couple, two people, 2 people, for two, do log, 2 log]
+  - id: table-4
+    name: Table for 4
+    spoken: { en: a table for four, hi: चार लोगों की मेज़, hinglish: 4 logon ki table }
+    durationMin: 90
+    partySize: { min: 3, max: 4 }
+    aliases: [three people, four people, for four, 4 people, 3 people, teen log, chaar log]
+  - id: table-6
+    name: Table for 6
+    spoken: { en: a table for six, hi: छह लोगों की मेज़, hinglish: 6 logon ki table }
+    durationMin: 120
+    partySize: { min: 5, max: 6 }
+    aliases: [five people, six people, for six, 5 people, 6 people, paanch log, chhe log]
+
+booking:
+  slotStepMin: 30
+  minNoticeMin: 60
+  maxDaysAhead: 30
+
+faq:
+  - id: timings
+    question: What are your timings?
+    answer: >-
+      Open every day, 12 noon to 3 pm for lunch and 7 to 11 pm for dinner.
+    answers:
+      hinglish: Roz khule hain, dopahar 12 se 3 baje lunch aur raat 7 se 11 baje dinner.
+      hi: रोज़ खुले हैं, दोपहर 12 से 3 बजे लंच और रात 7 से 11 बजे डिनर।
+  - id: address
+    question: Where are you?
+    answer: >-
+      [RESTAURANT ADDRESS — synthetic demo restaurant]
+  - id: fees
+    question: How much does a meal cost?
+    answer: A meal is about 900 rupees per person, without drinks.
+    answers:
+      hinglish: Ek vyakti ka khana lagbhag 900 rupees padta hai, drinks ke bina.
+      hi: एक व्यक्ति का खाना लगभग 900 रुपये पड़ता है, ड्रिंक्स के बिना।
+  - id: menu
+    question: Do you have a vegan or Jain menu?
+    answer: '' # left blank on purpose: Myna takes a message instead of guessing
+  - id: parking
+    question: Is there parking?
+    answer: Valet parking is free for diners.
+    answers:
+      hinglish: Diners ke liye valet parking free hai.
+      hi: डिनर करने वालों के लिए वैलेट पार्किंग मुफ़्त है।
+
+callbackPromiseHours: 2
+recordCalls: false
+killSwitch: false
+bookingApproval: none
+publicDemo: true

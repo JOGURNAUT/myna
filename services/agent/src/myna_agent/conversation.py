@@ -43,6 +43,7 @@ from .nlu import (
     extract_name_correction,
     mentions_booking,
 )
+from .party import parse_party_size
 from .text import has_devanagari, normalize
 from .tools import ApiClient, ToolError
 from .turn_kinds import classify_turn
@@ -223,6 +224,8 @@ class Conversation:
         self.reminder_outcome: str | None = None
         self.message: MessageDraft | None = None
         self.pending_message: MessageDraft | None = None
+        #: A party too big for any table, noticed while absorbing this turn (restaurants).
+        self._party_overflow: int | None = None
         self.lang: Lang = config.greeting_language.value  # type: ignore[assignment]
         self.state = State.GREETING
         self.expecting: Expecting = "intent"
@@ -243,6 +246,7 @@ class Conversation:
                     s.name.lower(),
                     s.id.replace("-", " "),
                     *(v.lower() for v in s.spoken.values()),
+                    *(a.root.lower() for a in s.aliases),
                 ]
                 for s in config.services
             },
@@ -256,9 +260,11 @@ class Conversation:
     # ================================================================ public
 
     async def start(self) -> Reply:
+        i18n.set_vertical(self.config.vertical.value)
         return await self._finish(await self._start())
 
     async def handle(self, text: str) -> Reply:
+        i18n.set_vertical(self.config.vertical.value)
         if self.ended:
             # Never resume a flow after an emergency, handoff or goodbye.
             key = "emergency" if self.handoff_reason == "emergency" else "call_over"
@@ -371,6 +377,15 @@ class Conversation:
         #    "I don't know it" is fine there.)
         optional_answer = self.message is not None and self.expecting == "dob"
         unclear = u is None or u.intent == Intent.unclear or u.confidence < 0.5
+        if (
+            unclear
+            and self.config.vertical == c.Vertical.restaurant
+            and self.expecting == "service"
+            and parse_party_size(text, bare=True) is not None
+        ):
+            # "How many?" — "4" is an answer, though no keyword says so.
+            u = Understanding(intent=Intent.provide_info, language=self.lang, confidence=0.9)
+            unclear = False
         if unclear and not optional_answer:
             return await self._not_understood()
         if u is None:  # only reachable for an optional answer: carry on without it
@@ -482,13 +497,15 @@ class Conversation:
         if not ident.verified:
             if u.third_party:
                 ident.third_party = True
-            if u.name:
+            if u.name and not self._is_party_statement(text):
                 ident.name = u.name
             if u.dob:
                 ident.dob = u.dob
         if u.phone:
             ident.phone = u.phone
         d = self.draft
+        if self.expecting not in ("phone", "dob"):
+            self._take_party_size(text, d)
         if self.expecting in ("name", "dob", "phone"):
             # "Kiran Rao" is a patient, not a request for Dr. Rao.
             return
@@ -520,9 +537,39 @@ class Conversation:
             if time_ref and time_ref != d.time_ref:
                 d.time_ref, d.offered, d.chosen = time_ref, [], None
 
+    def _is_party_statement(self, text: str) -> bool:
+        """ "Actually we are 4 people" while Myna waits for a name is not a name."""
+        if self.config.vertical != c.Vertical.restaurant or parse_party_size(text) is None:
+            return False
+        return re.search(r"(?:name|naam)|नाम", text, re.I) is None
+
+    def _take_party_size(self, text: str, d: Draft) -> None:
+        """Restaurants: "table for 4" picks the table size; a party no table fits is a handoff."""
+        self._party_overflow = None
+        if self.config.vertical != c.Vertical.restaurant or d.goal not in ("book", "reschedule"):
+            return
+        n = parse_party_size(text, bare=self.expecting == "service")
+        if n is None:
+            return
+        fits = next(
+            (
+                s
+                for s in self.config.services
+                if s.party_size and s.party_size.min <= n <= s.party_size.max
+            ),
+            None,
+        )
+        if fits is None:
+            self._party_overflow = n
+        elif fits.id != d.service_id:
+            d.offered, d.chosen = [], None
+            d.service_id = fits.id
+
     async def _advance(self) -> Reply:
         """Ask for the next missing thing, or move to read-back."""
         d = self.draft
+        if self._party_overflow is not None:
+            return await self._handoff("party_too_large", line("party_too_large", self.lang))
         if d.goal == "book":
             self.state = State.BOOK
             if d.service_id is None:
@@ -568,7 +615,12 @@ class Conversation:
         if await self._try_verify():
             return None
 
-        if ident.dob is None:
+        by_phone = self.config.verification.mode.value == "name_phone"
+        if by_phone:
+            # Restaurants: name + phone, never a date of birth.
+            if (ident.phone or self.caller_phone) is None:
+                return await self._ask("phone", line("ask_phone", self.lang))
+        elif ident.dob is None:
             return await self._ask("dob", line("ask_dob", self.lang))
 
         # Name + DOB didn't match anyone.
@@ -584,6 +636,8 @@ class Conversation:
                 "verification_failed", line("verify_failed_handoff", self.lang)
             )
         ident.name, ident.dob = None, None
+        if by_phone:
+            ident.phone = None
         return await self._ask("name", line("verify_failed_retry", self.lang))
 
     async def _try_verify(self) -> bool:
@@ -1106,6 +1160,7 @@ class Conversation:
     # ================================================================ flow (c): reminder calls
 
     async def start_outbound(self, reminder: c.DueReminder) -> Reply:
+        i18n.set_vertical(self.config.vertical.value)
         return await self._finish(await self._start_outbound(reminder))
 
     async def _start_outbound(self, reminder: c.DueReminder) -> Reply:

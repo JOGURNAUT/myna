@@ -51,7 +51,8 @@ export const HANDOFF_LABEL: Record<string, string> = {
   kill_switch: 'Kill switch on',
   tool_failure: 'System error',
   verification_failed: "Couldn't verify the patient",
-  unanswered_question: 'Question the clinic left blank',
+  unanswered_question: 'Question the business left blank',
+  party_too_large: 'Party too big for any table',
 };
 
 export const OUTCOME_LABEL: Record<string, string> = {
