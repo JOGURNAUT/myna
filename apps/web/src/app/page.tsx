@@ -36,7 +36,7 @@ export default async function HomePage({
               href="/login"
               className="flex h-11 items-center rounded-lg px-3 text-primary-ink hover:bg-sunken"
             >
-              Clinic sign in
+              Staff sign in
             </Link>
           </nav>
         </div>

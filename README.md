@@ -2,7 +2,9 @@
 
 **Myna talks, Hawk watches.**
 
-Myna is a multilingual (English, Hindi, Hinglish) AI phone receptionist for small Indian clinics.
+Myna is a multilingual (English, Hindi, Hinglish) AI phone receptionist for small Indian businesses: a general receptionist that books, answers
+from the business's own config, takes messages and calls back. Clinics (the pilot) and
+restaurants are the two verticals built so far.
 Hawk is the test harness that decides whether Myna is safe to go live.
 
 Built vertical-agnostic; validated on clinics (the pilot, hardest first) and on restaurant

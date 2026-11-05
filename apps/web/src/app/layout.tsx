@@ -4,7 +4,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: { default: 'Myna', template: '%s · Myna' },
-  description: 'Myna talks, Hawk watches. A multilingual AI receptionist for Indian clinics.',
+  description:
+    'Myna talks, Hawk watches. A multilingual AI receptionist for Indian businesses: clinics, restaurants and more.',
 };
 
 export const viewport: Viewport = {

@@ -22,7 +22,7 @@ export default async function LoginPage({
           </span>
           <div className="leading-tight">
             <p className="text-2xl font-extrabold">myna</p>
-            <p className="text-sm">Clinic dashboard</p>
+            <p className="text-sm">Staff dashboard</p>
           </div>
         </div>
         <h2 className="max-w-lg text-4xl font-extrabold tracking-tight text-balance">
@@ -34,9 +34,9 @@ export default async function LoginPage({
       <main className="flex items-center justify-center p-6">
         <div className="flex w-full max-w-sm flex-col gap-7">
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold">Sign in to your clinic</h1>
+            <h1 className="text-3xl font-bold">Sign in to your business</h1>
             <p className="text-ink-2">
-              One login per clinic. Use the clinic ID and password you got when Myna was set up.
+              One login per business. Use the business ID and password you got when Myna was set up.
             </p>
           </div>
           {expired && (
@@ -46,7 +46,7 @@ export default async function LoginPage({
           )}
           <LoginForm />
           <div className="flex flex-col gap-1 border-t border-line pt-5 text-sm text-ink-2">
-            <span>Not clinic staff?</span>
+            <span>Not staff?</span>
             <Link href="/" className="flex min-h-11 items-center font-semibold text-primary-ink">
               Try the public demo: talk to Myna
             </Link>

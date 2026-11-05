@@ -11,7 +11,7 @@ export async function signIn(_prev: { error: string; clinicId: string } | null, 
   };
   const clinicId = field('clinicId').trim();
   const password = field('password');
-  if (!clinicId || !password) return { error: 'Enter your clinic ID and password.', clinicId };
+  if (!clinicId || !password) return { error: 'Enter your business ID and password.', clinicId };
 
   try {
     const session = await login(clinicId, password);
@@ -27,7 +27,7 @@ export async function signIn(_prev: { error: string; clinicId: string } | null, 
       return {
         error: e.message.includes('too many')
           ? e.message
-          : 'That clinic ID and password don’t match. Check both and try again.',
+          : 'That business ID and password don’t match. Check both and try again.',
         clinicId,
       };
     }

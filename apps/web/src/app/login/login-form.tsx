@@ -20,7 +20,7 @@ export function LoginForm() {
       )}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="clinicId" className="text-sm font-semibold">
-          Clinic ID
+          Business ID
         </label>
         <input
           key={state?.clinicId ?? ''}

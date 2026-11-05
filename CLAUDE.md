@@ -1,4 +1,4 @@
-# Project: Myna + Hawk — Go-Live Kit for Clinic Voice Agents (India-first)
+# Project: Myna + Hawk — Go-Live Kit for Voice Receptionists (India-first; clinics pilot, restaurants second)
 
 **Myna** is the voice agent (named after the Indian bird that learns to talk).
 **Hawk** is the test harness that watches Myna and decides if it's safe to launch.
