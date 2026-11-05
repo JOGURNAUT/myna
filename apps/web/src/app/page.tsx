@@ -1,13 +1,20 @@
 import Link from 'next/link';
 import { Talk } from '@/components/talk';
 import { Card, HawkLogo, Icon, ICONS, Logo } from '@/components/ui';
-import { DEMO_CLINIC, publicApi } from '@/lib/api';
+import { demoBusiness, demoKind, publicApi } from '@/lib/api';
+import { VOCAB, type DemoKind } from '@/lib/vocab';
 import type { Demo } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
-  const demo = await publicApi<Demo>(`/clinics/${DEMO_CLINIC}/demo`).catch(() => null);
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ biz?: string }>;
+}) {
+  const biz = demoKind((await searchParams).biz);
+  const vocab = VOCAB[biz];
+  const demo = await publicApi<Demo>(`/clinics/${demoBusiness(biz)}/demo`).catch(() => null);
   return (
     <>
       <header className="border-b border-line bg-surface">
@@ -36,7 +43,25 @@ export default async function HomePage() {
       </header>
 
       <main className="mx-auto flex max-w-6xl min-w-0 flex-col gap-10 px-4 py-8 sm:px-8">
-        <Talk initialDemo={demo} />
+        <nav aria-label="Demo business" className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-ink-3">Try Myna as:</span>
+          {(Object.keys(VOCAB) as DemoKind[]).map((k) => (
+            <Link
+              key={k}
+              href={k === 'clinic' ? '/' : `/?biz=${k}`}
+              aria-current={k === biz ? 'page' : undefined}
+              className={`flex min-h-11 items-center rounded-full border px-4 font-semibold ${
+                k === biz
+                  ? 'border-primary bg-primary text-on-primary'
+                  : 'border-line-strong bg-surface text-ink-2 hover:bg-sunken'
+              }`}
+            >
+              {VOCAB[k].tab}
+            </Link>
+          ))}
+        </nav>
+
+        <Talk key={biz} initialDemo={demo} biz={biz} />
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="flex flex-col gap-2">
@@ -44,10 +69,9 @@ export default async function HomePage() {
               <Icon d={ICONS.check} size={18} /> She can
             </h2>
             <ul className="list-disc space-y-1 pl-5 text-ink-2">
-              <li>Book, move and cancel appointments</li>
-              <li>Answer clinic timings, fees and directions</li>
-              <li>Take a message and promise a staff call-back</li>
-              <li>Call patients the day before to confirm</li>
+              {vocab.can.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
             </ul>
           </Card>
           <Card className="flex flex-col gap-2">
@@ -55,10 +79,9 @@ export default async function HomePage() {
               <Icon d={ICONS.x} size={18} /> She won’t
             </h2>
             <ul className="list-disc space-y-1 pl-5 text-ink-2">
-              <li>Give medical advice or suggest medicines</li>
-              <li>Guess answers the clinic hasn’t given her</li>
-              <li>Share one patient’s details with another caller</li>
-              <li>Pretend to be a person: she says she’s an assistant</li>
+              {vocab.wont.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
             </ul>
           </Card>
           <div className="flex flex-col gap-2 rounded-[20px] bg-danger-soft p-5 text-danger-ink">
@@ -78,7 +101,7 @@ export default async function HomePage() {
         <p className="max-w-3xl text-[13px] text-ink-3">
           Myna says she’s an AI assistant at the start of every call. This demo doesn’t record
           audio. Chats are kept for 30 days with phone numbers masked, then deleted; ask us and
-          we’ll delete yours sooner. The demo clinic and its patients are fictional.
+          we’ll delete yours sooner. {vocab.disclaimer}
         </p>
       </main>
     </>

@@ -99,6 +99,7 @@ export interface PendingBooking {
 
 export interface Demo {
   name: string;
+  vertical: 'clinic' | 'restaurant';
   today: string;
   hours: Hours;
   closedDates: string[];

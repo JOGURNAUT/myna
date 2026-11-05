@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Demo } from '@/lib/types';
 import { latency } from '@/lib/format';
+import { VOCAB, type DemoKind } from '@/lib/vocab';
 import { useVoiceCall, type VoiceReply } from '@/lib/voice';
 import { Schedule } from './schedule';
 import { btnGhost, btnPrimary, Icon, ICONS, LangBadge } from './ui';
@@ -25,16 +26,10 @@ interface ChatResponse {
   };
 }
 
-const SUGGESTIONS = [
-  'Mujhe cleaning ka appointment chahiye kal subah',
-  'I need a consultation with Dr. Rao on Wednesday',
-  'मुझे अपना अपॉइंटमेंट बदलना है',
-  'What are your timings?',
-];
-
 const key = (b: Demo['busy'][number]) => `${b.resourceId}|${b.start}`;
 
-export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
+export function Talk({ initialDemo, biz }: { initialDemo: Demo | null; biz: DemoKind }) {
+  const vocab = VOCAB[biz];
   const [messages, setMessages] = useState<Message[]>([]);
   const [callId, setCallId] = useState<string | null>(null);
   const [ended, setEnded] = useState<{ handoffTo: string | null } | null>(null);
@@ -51,33 +46,36 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
   }, [messages]);
 
   const refreshSchedule = useCallback(async () => {
-    const res = await fetch('/api/demo', { cache: 'no-store' }).catch(() => null);
+    const res = await fetch(`/api/demo?biz=${biz}`, { cache: 'no-store' }).catch(() => null);
     if (res?.ok) setDemo((await res.json()) as Demo);
-  }, []);
+  }, [biz]);
 
-  const voice = useVoiceCall({
-    onGreeting: (reply: VoiceReply) => {
-      setMessages([{ who: 'myna', text: reply.text, lang: reply.language }]);
+  const voice = useVoiceCall(
+    {
+      onGreeting: (reply: VoiceReply) => {
+        setMessages([{ who: 'myna', text: reply.text, lang: reply.language }]);
+      },
+      onTurn: (caller, reply) => {
+        setMessages((prev) => [
+          ...prev,
+          { who: 'caller', text: caller, lang: reply.language },
+          { who: 'myna', text: reply.text, lang: reply.language },
+        ]);
+        if (reply.ended) setEnded({ handoffTo: reply.handoffTo });
+        void refreshSchedule();
+      },
+      onLatency: (l) => {
+        // What the caller felt: from the end of their sentence to the first sound of Myna's reply.
+        const ms = l.felt_ms ?? l.total_ms;
+        if (ms === null) return;
+        setMessages((prev) => {
+          const i = prev.findLastIndex((m) => m.who === 'myna');
+          return prev.map((m, j) => (j === i ? { ...m, latencyMs: ms } : m));
+        });
+      },
     },
-    onTurn: (caller, reply) => {
-      setMessages((prev) => [
-        ...prev,
-        { who: 'caller', text: caller, lang: reply.language },
-        { who: 'myna', text: reply.text, lang: reply.language },
-      ]);
-      if (reply.ended) setEnded({ handoffTo: reply.handoffTo });
-      void refreshSchedule();
-    },
-    onLatency: (l) => {
-      // What the caller felt: from the end of their sentence to the first sound of Myna's reply.
-      const ms = l.felt_ms ?? l.total_ms;
-      if (ms === null) return;
-      setMessages((prev) => {
-        const i = prev.findLastIndex((m) => m.who === 'myna');
-        return prev.map((m, j) => (j === i ? { ...m, latencyMs: ms } : m));
-      });
-    },
-  });
+    biz,
+  );
 
   const startVoice = () => {
     setMode('voice');
@@ -96,7 +94,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(text === null ? {} : { callId, text }),
+          body: JSON.stringify(text === null ? { biz } : { callId, text, biz }),
         });
         const body = (await res.json()) as ChatResponse | { error: string };
         if (!res.ok || 'error' in body) {
@@ -128,7 +126,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
         setBusy(false);
       }
     },
-    [callId, refreshSchedule],
+    [callId, biz, refreshSchedule],
   );
 
   const send = (text: string) => {
@@ -182,10 +180,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
         <div className="flex min-h-[420px] flex-1 flex-col gap-3 rounded-[20px] border border-line bg-surface p-4">
           {messages.length === 0 ? (
             <div className="m-auto flex max-w-md flex-col items-center gap-4 text-center">
-              <p className="text-ink-2">
-                She answers the phone for a small dental clinic. Speak or type in English, Hindi or
-                Hinglish. Try booking a cleaning with Dr. Mehta.
-              </p>
+              <p className="text-ink-2">{vocab.intro}</p>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
@@ -248,9 +243,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
             <Icon d={ended.handoffTo ? ICONS.person : ICONS.check} size={20} />
             <div className="flex-1">
               <p className="font-semibold">
-                {ended.handoffTo
-                  ? 'Myna passed this call to the clinic staff.'
-                  : 'The call has ended.'}
+                {ended.handoffTo ? vocab.handoff : 'The call has ended.'}
               </p>
               {ended.handoffTo && (
                 <p className="text-sm text-ink">
@@ -330,7 +323,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
             </form>
             {messages.length < 3 && (
               <div className="flex flex-wrap gap-2">
-                {SUGGESTIONS.map((s) => (
+                {vocab.suggestions.map((s) => (
                   <button
                     key={s}
                     type="button"
@@ -349,7 +342,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
         )}
       </section>
 
-      <section aria-label="The clinic's schedule" className="flex min-w-0 flex-col gap-4">
+      <section aria-label={vocab.scheduleLabel} className="flex min-w-0 flex-col gap-4">
         {demo ? (
           <Schedule demo={demo} fresh={fresh} />
         ) : (
@@ -364,7 +357,7 @@ export function Talk({ initialDemo }: { initialDemo: Demo | null }) {
           >
             <Icon d={ICONS.check} size={18} />
             <span>
-              <b>Booked.</b> Your appointment now shows on the schedule.
+              <b>Booked.</b> {vocab.booked}
             </span>
           </p>
         )}

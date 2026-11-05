@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { AGENT_URL, DEMO_CLINIC } from '@/lib/api';
+import { AGENT_URL, demoBusiness, demoKind } from '@/lib/api';
 import { limiter } from '@/lib/limiter';
 
 /**
@@ -8,7 +8,7 @@ import { limiter } from '@/lib/limiter';
  * browser and the agent once connected; a deployment behind a NAT needs a TURN server.)
  *
  * Voice calls are metered (Sarvam speech) so they are limited per IP like the text chat, and are
- * always tagged `manual_test` and pinned to the demo clinic.
+ * always tagged `manual_test` and pinned to one of the two demo businesses.
  */
 
 async function forward(method: 'POST' | 'PATCH', body: unknown): Promise<Response> {
@@ -37,10 +37,12 @@ export async function POST(req: Request) {
   if (!offer || typeof offer.sdp !== 'string') {
     return NextResponse.json({ error: 'Bad request.' }, { status: 400 });
   }
-  // The browser may not choose the clinic or the call source.
+  // The browser may pick the demo (clinic or restaurant) but never an arbitrary business id, and
+  // never the call source.
+  const business = demoBusiness(demoKind(new URL(req.url).searchParams.get('biz')));
   const res = await forward('POST', {
     ...offer,
-    request_data: { clinicId: DEMO_CLINIC, source: 'manual_test' },
+    request_data: { clinicId: business, source: 'manual_test' },
   });
   return new NextResponse(await res.text(), {
     status: res.status,

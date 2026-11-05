@@ -1,5 +1,6 @@
 import { clock, day } from '@/lib/format';
 import type { Demo } from '@/lib/types';
+import { VOCAB } from '@/lib/vocab';
 import { Icon, ICONS } from './ui';
 
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -24,6 +25,7 @@ const hhmm = (local: string) => local.slice(11, 16);
  */
 export function Schedule({ demo, fresh }: { demo: Demo; fresh: ReadonlySet<string> }) {
   const days = nextOpenDays(demo, 5);
+  const vocab = VOCAB[demo.vertical];
   const key = (b: Demo['busy'][number]) => `${b.resourceId}|${b.start}`;
   return (
     <div className="flex flex-1 flex-col gap-3">
@@ -35,7 +37,7 @@ export function Schedule({ demo, fresh }: { demo: Demo; fresh: ReadonlySet<strin
               <tr className="bg-sunken text-xs font-semibold tracking-wider text-ink-3 uppercase">
                 <th className="px-4 py-3">Day</th>
                 {demo.resources.map((r) => (
-                  <th key={r.id} className="px-4 py-3">
+                  <th key={r.id} className="px-4 py-3" title={vocab.resourceHeading}>
                     {r.name}
                   </th>
                 ))}

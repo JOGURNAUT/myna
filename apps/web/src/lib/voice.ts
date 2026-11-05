@@ -49,7 +49,7 @@ interface Client {
   disconnect: () => Promise<void>;
 }
 
-export function useVoiceCall(handlers: VoiceHandlers) {
+export function useVoiceCall(handlers: VoiceHandlers, biz: string = 'clinic') {
   const [status, setStatus] = useState<VoiceStatus>('idle');
   const [speaker, setSpeaker] = useState<'none' | 'you' | 'myna'>('none');
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +80,7 @@ export function useVoiceCall(handlers: VoiceHandlers) {
       ]);
       const pc = new PipecatClient({
         transport: new SmallWebRTCTransport({
-          webrtcRequestParams: { endpoint: '/api/voice/offer' },
+          webrtcRequestParams: { endpoint: `/api/voice/offer?biz=${encodeURIComponent(biz)}` },
         }),
         enableMic: true,
         enableCam: false,
@@ -135,7 +135,7 @@ export function useVoiceCall(handlers: VoiceHandlers) {
           : 'Could not start the voice call. You can still type to Myna.',
       );
     }
-  }, []);
+  }, [biz]);
 
   useEffect(
     () => () => {

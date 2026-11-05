@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { agentCall, ApiError, DEMO_CLINIC } from '@/lib/api';
+import { agentCall, ApiError, demoBusiness, demoKind } from '@/lib/api';
 import { limiter } from '@/lib/limiter';
 
 /**
@@ -24,7 +24,11 @@ async function limited(ip: string, kind: 'start' | 'turn'): Promise<boolean> {
 
 export async function POST(req: Request) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'local';
-  const body = (await req.json().catch(() => null)) as { callId?: unknown; text?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as {
+    callId?: unknown;
+    text?: unknown;
+    biz?: unknown;
+  } | null;
   const callId = typeof body?.callId === 'string' ? body.callId : null;
   const text = typeof body?.text === 'string' ? body.text.trim().slice(0, 500) : '';
 
@@ -44,7 +48,7 @@ export async function POST(req: Request) {
     const out = callId
       ? await agentCall<{ reply: Reply }>(`/v1/calls/${callId}/turns`, { text })
       : await agentCall<{ callId: string; reply: Reply }>('/v1/calls', {
-          clinicId: DEMO_CLINIC,
+          clinicId: demoBusiness(demoKind(body?.biz)),
           source: 'manual_test',
         });
     return NextResponse.json({

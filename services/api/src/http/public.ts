@@ -47,6 +47,7 @@ export function registerPublicRoutes(
       ok: true,
       data: {
         name: config.name,
+        vertical: config.vertical,
         today,
         hours: config.hours,
         closedDates: config.closedDates,

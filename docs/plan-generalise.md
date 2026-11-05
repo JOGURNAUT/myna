@@ -115,5 +115,9 @@ identified by the dialled number (name + phone), yes confirms the pending bookin
 wrong number releases it to the next guest, and a hold that runs out (default 15 minutes,
 `outboundReminders.waitlistHoldMin`) does the same. Nothing is held while outbound calls are
 off. Call window: a clinic must end by 19:00, a restaurant by 21:00.
+Web demo (2026-11-06): the public page has a Dental clinic / Restaurant switcher (`/?biz=restaurant`);
+copy comes from `apps/web/src/lib/vocab.ts`; chat, schedule and voice routes accept only the two
+allow-listed demo businesses (`DEMO_CLINIC`, `DEMO_RESTAURANT`). The staff dashboard still uses
+clinic words (Patient/Doctor).
 Not done: a staff view of the waitlist, a staff task when nobody can be called, and Hawk
 scenarios that run the offer call itself (the Python end-to-end tests cover it).

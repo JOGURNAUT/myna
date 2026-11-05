@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import type { DemoKind } from './vocab';
 
 /**
  * Server-side calls to the Myna API. The browser never sees the API or agent URLs, and the staff
@@ -8,7 +9,13 @@ import { redirect } from 'next/navigation';
 export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:4000';
 export const AGENT_URL = process.env.AGENT_URL ?? 'http://127.0.0.1:8000';
 export const DEMO_CLINIC = process.env.DEMO_CLINIC ?? 'smile-dental';
+export const DEMO_RESTAURANT = process.env.DEMO_RESTAURANT ?? 'spice-route';
 export const SESSION_COOKIE = 'myna_session';
+
+/** Which public demo a visitor sees. Only these two ids are ever reachable from the browser. */
+export const demoKind = (v: unknown): DemoKind => (v === 'restaurant' ? 'restaurant' : 'clinic');
+export const demoBusiness = (kind: DemoKind): string =>
+  kind === 'restaurant' ? DEMO_RESTAURANT : DEMO_CLINIC;
 
 interface Envelope<T> {
   ok: boolean;
