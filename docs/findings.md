@@ -152,3 +152,15 @@ Known, not fixed (candidates for Hawk scenarios):
 - FAQ answers are English-only in the clinic config, so a Hindi/Hinglish call gets one English line.
 - "Dr. X" spoken without a title, and "evening 5" (part of day + hour) lose the hour.
 - Frustration words end the call in a handoff on the first sighting (by design, rule 5).
+
+## 2026-11-06 — audio-mode Hawk, runs 06-09
+
+Rule-based understanding, 24 spoken calls per run (Bulbul → Saaras), 60% → 80% → 87% → 96% as each
+cause was fixed. Real causes: (1) the harness used Saaras `transcribe`, which writes Hindi in
+Devanagari and sometimes detects Punjabi ("Haan ji" → "ਹਾਂਜੀ"); the live voice uses `translit`, so
+the harness now does too. (2) A short English phrase ("thank you") flipped a Hindi call to English.
+(3) "Patient's name X" was stored with "Patient's Name" as part of the name (critical). (4) "Guruvaar"
+(long vowel) was not a weekday, so a reschedule was moved to today. (5) "Clinic ka samay kya hai"
+was not a timings question. Not agent bugs: "Verma" heard as "Vama" leaves a message unverified
+(correct, strict), "galat number" heard as "Gallup number". Not yet measured: the real model in
+audio mode, and variance between runs of the same sample.

@@ -11,6 +11,10 @@ self-contained HTML page. Regenerate with `pnpm hawk run` (offline) or
 | [03 first live try](run-03-live-first-attempt.md) | **Sarvam** (Hinglish only, 34 calls) | First contact with the real model | NOT SAFE 29% | NOT SAFE 0% | NOT SAFE 38% | – / 26 / – % |
 | [04 live, final](run-04-live-final.md) | **Sarvam** (all 103 calls) | Myna made robust to a noisy model (`docs/findings.md`) | SAFE 98% | SAFE 100% | SAFE 100% | 100 / 97 / 100 % |
 | [05 two instances](run-05-two-instances.md) | rules, **2 agent instances + shared Redis** | Every turn of every call hops to the other instance | SAFE 100% | SAFE 100% | SAFE 100% | 100 / 100 / 100 % |
+| [06 audio, first](run-06-audio-rules.md) | rules, **spoken callers** (Saaras `transcribe`) | First valid audio run, 24 calls | NOT SAFE 60% | NOT SAFE 50% | NOT SAFE 80% | – |
+| [07 audio, after fixes](run-07-audio-rules.md) | rules, spoken | Language no longer flips on a short English phrase; "Patient's name X" | NOT SAFE 80% | NOT SAFE 75% | SAFE 100% | – |
+| [08 audio, voice STT mode](run-08-audio-translit.md) | rules, spoken (Saaras `translit`, as in the live voice) | Harness now uses the same STT mode as the voice pipeline | NOT SAFE 87% | NOT SAFE 75% | NOT SAFE 80% | – |
+| [09 audio, final](run-09-audio-translit.md) | rules, spoken (`translit`) | Long-vowel weekdays ("Guruvaar"), Roman-Hindi timings question | SAFE 93% | SAFE 100% | SAFE 100% | – |
 
 Run 04: 370 model calls, 1 fell back to the keyword parser, p50 372 ms / p95 1.98 s per reply
 (understanding step only; speech comes with M3). The real model scored far below the offline
@@ -18,3 +22,5 @@ baseline at first (run 03); every cause became a fix and a regression test.
 
 **Read the caveat on each report**: patients are scripted and text-only. The next meaningful
 verdict needs LLM-played patients and audio mode.
+
+Runs 06-09: 24 spoken calls each (a sample of the 106 scenario runs, so the percentages move by 4 points per call). Run 09: 23/24 passed, recognition p50 225 ms / p95 666 ms, about ₹1.61 of speech per call. The one failure is a reply in English inside a Hindi call. Still scripted patients and rules understanding: the real model in audio mode has not been run.
