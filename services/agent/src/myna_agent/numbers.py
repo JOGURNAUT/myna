@@ -285,6 +285,7 @@ _HI_VARIANTS = {
     "sifar": 0,
     "शून्य": 0,
     "सिफर": 0,
+    "nav": 9,
     "छह": 6,
     "छै": 6,
     "पाँच": 5,
@@ -388,3 +389,18 @@ def words_to_digits(text: str) -> str:
             out.append(parts[i])
             i += 1
     return "".join(out)
+
+
+def mostly_number_words(text: str, *, minimum: int = 4) -> bool:
+    """True when the utterance is (nearly) just spoken digits, e.g. a phone number said in words.
+
+    Such a turn says nothing about the caller's language, however English "do" and "teen" look.
+    (Audio-mode Hawk run 12: Myna switched a Hinglish call to English after a spoken number.)
+    """
+    words = [w for w in re.findall(r"[\wऀ-ॿ]+", text.lower()) if not w.isdigit()]
+    digits = len(re.findall(r"\d", text))
+    numbers = sum(1 for w in words if _is_number_word(w))
+    total = len(words) + (1 if digits else 0)
+    return (
+        numbers + (1 if digits else 0) >= minimum and numbers + (1 if digits else 0) >= 0.6 * total
+    )

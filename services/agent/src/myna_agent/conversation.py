@@ -43,6 +43,7 @@ from .nlu import (
     extract_name_correction,
     mentions_booking,
 )
+from .numbers import mostly_number_words
 from .party import parse_party_size
 from .text import has_devanagari, normalize
 from .tools import ApiClient, ToolError
@@ -1546,6 +1547,8 @@ class Conversation:
             candidate = "hi"
         if candidate not in self._allowed_languages() or candidate == self.lang:
             return
+        if mostly_number_words(text):
+            return  # a phone number said in words is not a language
         if candidate == "en":
             words = set(re.findall(r"[a-z']+", text.lower()))
             # The model sometimes labels "Nahi, bas. Thank you." as English (Hawk run 3): Hinglish

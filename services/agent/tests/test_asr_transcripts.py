@@ -200,3 +200,19 @@ def test_clinic_timings_asked_in_roman_hindi(heard: str) -> None:
     context = TurnContext(expecting="intent", today=TODAY, facts=facts, language="hinglish")
     u = RuleBasedNLU().parse(heard, context)
     assert u.intent == Intent.faq and u.faq_id == "timings"
+
+
+@pytest.mark.parametrize(
+    "heard",
+    [
+        "Nau aath do do do shoonya shoonya teen shoonya do",
+        "nine eight two two two zero zero three zero two",
+        "nav aath do do do shoonya shoonya teen shoonya do",
+    ],
+)
+def test_a_phone_number_said_in_words_is_not_a_language(heard: str) -> None:
+    from myna_agent.numbers import mostly_number_words
+
+    assert mostly_number_words(heard)
+    assert not mostly_number_words("Is your paneer dish safe with a nut allergy")
+    assert not mostly_number_words("I would like two tables please")

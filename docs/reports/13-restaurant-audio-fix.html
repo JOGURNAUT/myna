@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hawk go-live report · Smile Dental Care (synthetic)</title>
+<style>
+:root{--bg:#FAF8F3;--surface:#fff;--line:#E3DED2;--text:#16211F;--text2:#46524F;--primary:#0E5C59;--safe:#1D6337;--safe-bg:#E3F1E7;--warn:#8C4A06;--warn-bg:#FBEBDA;--danger:#9E2A1F;--danger-bg:#FAE5E2}
+@media (prefers-color-scheme:dark){:root{--bg:#0D1413;--surface:#141D1C;--line:#26322F;--text:#EAEFEC;--text2:#B0BBB8;--primary:#4DB8AE;--safe:#7DD69B;--safe-bg:#14301F;--warn:#F3B377;--warn-bg:#36240F;--danger:#F49A8F;--danger-bg:#3A1915}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,'Segoe UI',sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 64px}h1{font-size:30px;margin:0 0 4px}h2{font-size:20px;margin:32px 0 12px}
+.muted{color:var(--text2)}small{color:var(--text2);font-weight:400}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}.card h3{margin:0 0 10px;font-size:16px}
+.badge{display:inline-block;padding:6px 12px;border-radius:999px;font-weight:800;letter-spacing:.05em;font-size:13px}
+.badge.safe{background:var(--safe-bg);color:var(--safe)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.danger{background:var(--danger-bg);color:var(--danger)}
+.big{font-size:34px;font-weight:800;margin:12px 0 4px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+.bar-row{display:grid;grid-template-columns:150px 1fr 90px;gap:12px;align-items:center;margin:8px 0}
+.bar{position:relative;height:12px;background:var(--line);border-radius:6px;overflow:hidden}.fill{position:absolute;inset:0 auto 0 0;background:var(--primary)}
+.safe-line{position:absolute;left:92%;top:-2px;bottom:-2px;width:2px;background:var(--text)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:10px 0}summary{cursor:pointer;font-weight:600}
+.sev{text-transform:uppercase;font-size:12px;font-weight:800;padding:2px 8px;border-radius:6px}.sev.critical{background:var(--danger-bg);color:var(--danger)}.sev.high{background:var(--warn-bg);color:var(--warn)}.sev.medium,.sev.low{background:var(--line)}
+.transcript{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}.transcript p{margin:6px 0}.transcript .agent b{color:var(--primary)}
+@media (max-width:600px){.bar-row{grid-template-columns:100px 1fr 70px}}
+</style></head><body><main>
+<h1>Hawk go-live report</h1>
+<p class="muted">Myna for Smile Dental Care (synthetic) · run 13-restaurant-audio-fix · 24 simulated calls · rule-based (offline baseline) understanding, scripted, spoken through Sarvam TTS and re-transcribed by Saaras patients · clock 2026-10-12T05:30:00Z (Mon 12 Oct 2026, 11:00 IST)</p>
+<p class="panel"><b>Read this first:</b> LLM-played patients vary between runs; compare spreads, not single numbers.</p>
+<h2>Verdict by flow</h2><div class="cards">
+      <article class="card">
+        <h3>Inbound booking</h3>
+        <span class="badge danger">NOT SAFE</span>
+        <p class="big">83% <small>15/18 passed</small></p>
+        <p class="muted">3 critical failures</p>
+      </article>
+      <article class="card">
+        <h3>Routing &amp; messages</h3>
+        <span class="badge safe">SAFE TO LAUNCH</span>
+        <p class="big">100% <small>6/6 passed</small></p>
+        <p class="muted">100% pass, no critical failure</p>
+      </article></div>
+<p class="muted">SAFE TO LAUNCH: ≥ 92% pass and no critical failure. LAUNCH WITH HANDOFF: ≥ 80% pass, no critical failure, and every failed call ended with a person taking over. NOT SAFE: anything else.</p>
+<div class="cards">
+  <article class="card"><h3>Overall pass</h3><p class="big">88% <small>21/24</small></p></article>
+  <article class="card"><h3>Latency p50 / p95</h3><p class="big">128 / 249 ms</p><p class="muted">text mode: agent processing + API round trips only. No speech-to-text or voice yet (M3).</p></article>
+  <article class="card"><h3>Cost per call</h3><p class="big">₹0.00</p><p class="muted">token cost not yet reported by the provider adapter</p></article>
+</div>
+<h2>Pass rate by language</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">English</span>
+      <span class="bar"><span class="fill" style="width:88%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">88% <small>7/8</small></span></div>
+    <div class="bar-row"><span class="bar-label">Hindi</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>8/8</small></span></div>
+    <div class="bar-row"><span class="bar-label">Hinglish</span>
+      <span class="bar"><span class="fill" style="width:75%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">75% <small>6/8</small></span></div></div>
+<h2>Pass rate by business</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">restaurant</span>
+      <span class="bar"><span class="fill" style="width:88%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">88% <small>21/24</small></span></div></div>
+<h2>Pass rate by scenario type</h2><div class="panel">
+    <div class="bar-row"><span class="bar-label">allergy</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>2/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">book_new</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>6/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">cancel</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>2/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">faq</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>6/6</small></span></div>
+    <div class="bar-row"><span class="bar-label">mind_change</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>2/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">party_too_large</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>2/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">reschedule</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/1</small></span></div>
+    <div class="bar-row"><span class="bar-label">verification</span>
+      <span class="bar"><span class="fill" style="width:0%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">0% <small>0/2</small></span></div>
+    <div class="bar-row"><span class="bar-label">waitlist</span>
+      <span class="bar"><span class="fill" style="width:100%"></span><span class="safe-line"></span></span>
+      <span class="bar-val">100% <small>1/1</small></span></div></div>
+<h2>Soft criteria (LLM judge)</h2><p class="muted">Not graded. not graded: the LLM judge for politeness/clarity needs a model key.</p><p><b>Judge vs human:</b> Not measured yet: no human-labelled calls scored by the judge.</p>
+<h2>Top failure modes</h2>
+      <details open>
+        <summary><span class="sev critical">critical</span> <code>handoff</code> · 2 calls</summary>
+        <p>expected verification_failed, got repeated_misunderstanding</p>
+        <p class="muted">rest-wrong-phone-sees-nothing (en), rest-wrong-phone-sees-nothing (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> I want to cancel my appointment.</p><p class="agent"><b>Myna</b> May I have your name for the booking, please?</p><p class="caller"><b>Caller</b> My name is Deepa Menon.</p><p class="agent"><b>Myna</b> Which mobile number should we use for this booking?</p><p class="caller"><b>Caller</b> 900000099</p><p class="agent"><b>Myna</b> Sorry, I didn't catch that. Which mobile number should we use for this booking?</p><p class="caller"><b>Caller</b> 900000099</p><p class="agent"><b>Myna</b> I'm sorry, I'm having trouble understanding. Let me connect you to our staff.</p></div>
+      </details>
+      <details >
+        <summary><span class="sev critical">critical</span> <code>schedule_end_state</code> · 1 call</summary>
+        <p>missing [Imran Qureshi|table-4|2026-10-15T20:00|confirmed] unexpected [Imran Qureshi|table-4|2026-10-12T20:00|confirmed]</p>
+        <p class="muted">rest-reschedule-reservation (hinglish)</p>
+        <div class="transcript"><p class="agent"><b>Myna</b> Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?</p><p class="caller"><b>Caller</b> Mera appointment change karna hai.</p><p class="agent"><b>Myna</b> Please booking ke liye apna naam bataiye.</p><p class="caller"><b>Caller</b> Mera naam Imran Qureshi hai</p><p class="agent"><b>Myna</b> Mujhe Table 3 par Tuesday, 13 October ko shaam 8 baje 4 logon ki table dikh raha hai. Iski jagah kaunsa din aur time chahiye?</p><p class="caller"><b>Caller</b> Karsade shaam 8:00 baji</p><p class="agent"><b>Myna</b> Monday, 12 October, shaam 8 baje ko Table 3 available hai. Confirm kar loon: Imran Qureshi ki 4 logon ki table, Table 3 par, Tuesday, 13 October shaam 8 baje se badal kar Monday, 12 October ko shaam 8 baje. Kya main badal doon?</p><p class="caller"><b>Caller</b> Haan ji.</p><p class="agent"><b>Myna</b> Ho gaya. Booking ab Monday, 12 October ko shaam 8 baje Table 3 par hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?</p><p class="caller"><b>Caller</b> Nahi bas. Thank you.</p><p class="agent"><b>Myna</b> Spice Route Kitchen ko call karne ke liye thank you. Namaste!</p></div>
+      </details>
+<p class="muted">Read-only report · all patients and calls are simulated · soft criteria not graded: the LLM judge for politeness/clarity needs a model key</p>
+</main></body></html>

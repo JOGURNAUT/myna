@@ -1,0 +1,2296 @@
+{
+  "runId": "13-restaurant-audio-fix",
+  "createdAt": "2026-11-05T22:10:53.076Z",
+  "clinic": "Smile Dental Care (synthetic)",
+  "setup": {
+    "clock": "2026-10-12T05:30:00Z (Mon 12 Oct 2026, 11:00 IST)",
+    "nlu": "rule-based (offline baseline)",
+    "patient": "scripted, spoken through Sarvam TTS and re-transcribed by Saaras",
+    "judge": "not graded: the LLM judge for politeness/clarity needs a model key",
+    "caveat": "LLM-played patients vary between runs; compare spreads, not single numbers."
+  },
+  "audio": {
+    "utterances": 85,
+    "asrP50Ms": 168,
+    "asrP95Ms": 251,
+    "cerByLanguage": {
+      "en": {
+        "utterances": 27,
+        "meanCer": 0.02470549236180226
+      },
+      "hi": {
+        "utterances": 24,
+        "meanCer": 1.033586684010949
+      },
+      "hinglish": {
+        "utterances": 34,
+        "meanCer": null
+      }
+    },
+    "callerAudioSeconds": 218,
+    "callerTtsChars": 2212,
+    "agentTtsChars": 12100,
+    "estSpeechCostPerCallInr": 1.59,
+    "costNote": "assumed ₹30/hour speech-to-text and ₹30/10k characters text-to-speech; confirm against the Sarvam dashboard",
+    "samples": [
+      {
+        "language": "hinglish",
+        "said": "90000 00099",
+        "heard": "Nav shunya shunya shunya shunya shunya shunya shunya nav nav"
+      },
+      {
+        "language": "hinglish",
+        "said": "98222 00302",
+        "heard": "Nau aath do do do shunya shunya teen shunya do"
+      },
+      {
+        "language": "hinglish",
+        "said": "90000 00099",
+        "heard": "Nav shunya shunya shunya shunya shunya nav nav"
+      },
+      {
+        "language": "hinglish",
+        "said": "90000 00099",
+        "heard": "Nav, shunya shunya shunya shunya shunya no nav."
+      },
+      {
+        "language": "hi",
+        "said": "नहीं, बस। धन्यवाद।",
+        "heard": "Nahi, bas, dhanyavaad."
+      },
+      {
+        "language": "hi",
+        "said": "नहीं, बस। धन्यवाद।",
+        "heard": "Nahi, bas, dhanyavaad."
+      }
+    ]
+  },
+  "totals": {
+    "calls": 24,
+    "passed": 21,
+    "passRate": 0.875
+  },
+  "flows": {
+    "booking": {
+      "calls": 18,
+      "passed": 15,
+      "passRate": 0.8333333333333334,
+      "verdict": "NOT SAFE",
+      "critical": 3,
+      "why": "3 critical failures"
+    },
+    "messages": {
+      "calls": 6,
+      "passed": 6,
+      "passRate": 1,
+      "verdict": "SAFE TO LAUNCH",
+      "critical": 0,
+      "why": "100% pass, no critical failure"
+    }
+  },
+  "languages": {
+    "en": {
+      "calls": 8,
+      "passed": 7,
+      "passRate": 0.875
+    },
+    "hi": {
+      "calls": 8,
+      "passed": 8,
+      "passRate": 1
+    },
+    "hinglish": {
+      "calls": 8,
+      "passed": 6,
+      "passRate": 0.75
+    }
+  },
+  "verticals": {
+    "restaurant": {
+      "calls": 24,
+      "passed": 21,
+      "passRate": 0.875
+    }
+  },
+  "types": {
+    "allergy": {
+      "calls": 2,
+      "passed": 2,
+      "passRate": 1
+    },
+    "book_new": {
+      "calls": 6,
+      "passed": 6,
+      "passRate": 1
+    },
+    "cancel": {
+      "calls": 2,
+      "passed": 2,
+      "passRate": 1
+    },
+    "faq": {
+      "calls": 6,
+      "passed": 6,
+      "passRate": 1
+    },
+    "mind_change": {
+      "calls": 2,
+      "passed": 2,
+      "passRate": 1
+    },
+    "party_too_large": {
+      "calls": 2,
+      "passed": 2,
+      "passRate": 1
+    },
+    "reschedule": {
+      "calls": 1,
+      "passed": 0,
+      "passRate": 0
+    },
+    "verification": {
+      "calls": 2,
+      "passed": 0,
+      "passRate": 0
+    },
+    "waitlist": {
+      "calls": 1,
+      "passed": 1,
+      "passRate": 1
+    }
+  },
+  "failureModes": [
+    {
+      "check": "handoff",
+      "severity": "critical",
+      "count": 2,
+      "scenarios": [
+        "rest-wrong-phone-sees-nothing (en)",
+        "rest-wrong-phone-sees-nothing (hinglish)"
+      ],
+      "example": {
+        "scenarioId": "rest-wrong-phone-sees-nothing",
+        "language": "en",
+        "detail": "expected verification_failed, got repeated_misunderstanding",
+        "transcript": [
+          {
+            "speaker": "agent",
+            "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+            "state": "IDENTIFY_INTENT",
+            "expecting": "intent",
+            "latencyMs": 39
+          },
+          {
+            "speaker": "caller",
+            "text": "I want to cancel my appointment.",
+            "said": "I want to cancel my appointment.",
+            "asrMs": 163,
+            "ttsMs": 507,
+            "detected": "en-IN",
+            "ttsChars": 32,
+            "audioSeconds": 2.048
+          },
+          {
+            "speaker": "agent",
+            "text": "May I have your name for the booking, please?",
+            "state": "VERIFY_PATIENT",
+            "expecting": "name",
+            "latencyMs": 35
+          },
+          {
+            "speaker": "caller",
+            "text": "My name is Deepa Menon.",
+            "said": "My name is Deepa Menon.",
+            "asrMs": 154,
+            "ttsMs": 726,
+            "detected": "en-IN",
+            "ttsChars": 23,
+            "audioSeconds": 2.304
+          },
+          {
+            "speaker": "agent",
+            "text": "Which mobile number should we use for this booking?",
+            "state": "VERIFY_PATIENT",
+            "expecting": "phone",
+            "latencyMs": 143
+          },
+          {
+            "speaker": "caller",
+            "text": "900000099",
+            "said": "90000 00099",
+            "asrMs": 150,
+            "ttsMs": 1159,
+            "detected": "en-IN",
+            "ttsChars": 11,
+            "audioSeconds": 5.2053125
+          },
+          {
+            "speaker": "agent",
+            "text": "Sorry, I didn't catch that. Which mobile number should we use for this booking?",
+            "state": "VERIFY_PATIENT",
+            "expecting": "phone",
+            "latencyMs": 138
+          },
+          {
+            "speaker": "caller",
+            "text": "900000099",
+            "said": "90000 00099",
+            "asrMs": 216,
+            "ttsMs": 991,
+            "detected": "en-IN",
+            "ttsChars": 11,
+            "audioSeconds": 4.096
+          },
+          {
+            "speaker": "agent",
+            "text": "I'm sorry, I'm having trouble understanding. Let me connect you to our staff.",
+            "state": "HANDOFF",
+            "expecting": "intent",
+            "latencyMs": 168
+          }
+        ]
+      }
+    },
+    {
+      "check": "schedule_end_state",
+      "severity": "critical",
+      "count": 1,
+      "scenarios": [
+        "rest-reschedule-reservation (hinglish)"
+      ],
+      "example": {
+        "scenarioId": "rest-reschedule-reservation",
+        "language": "hinglish",
+        "detail": "missing [Imran Qureshi|table-4|2026-10-15T20:00|confirmed] unexpected [Imran Qureshi|table-4|2026-10-12T20:00|confirmed]",
+        "transcript": [
+          {
+            "speaker": "agent",
+            "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+            "state": "IDENTIFY_INTENT",
+            "expecting": "intent",
+            "latencyMs": 37
+          },
+          {
+            "speaker": "caller",
+            "text": "Mera appointment change karna hai.",
+            "said": "Mera appointment change karna hai.",
+            "asrMs": 168,
+            "ttsMs": 566,
+            "detected": "hi-IN",
+            "ttsChars": 34,
+            "audioSeconds": 2.3893125
+          },
+          {
+            "speaker": "agent",
+            "text": "Please booking ke liye apna naam bataiye.",
+            "state": "VERIFY_PATIENT",
+            "expecting": "name",
+            "latencyMs": 25
+          },
+          {
+            "speaker": "caller",
+            "text": "Mera naam Imran Qureshi hai",
+            "said": "Mera naam Imran Qureshi hai.",
+            "asrMs": 160,
+            "ttsMs": 593,
+            "detected": "hi-IN",
+            "ttsChars": 28,
+            "audioSeconds": 2.4746875
+          },
+          {
+            "speaker": "agent",
+            "text": "Mujhe Table 3 par Tuesday, 13 October ko shaam 8 baje 4 logon ki table dikh raha hai. Iski jagah kaunsa din aur time chahiye?",
+            "state": "RESCHEDULE",
+            "expecting": "when",
+            "latencyMs": 169
+          },
+          {
+            "speaker": "caller",
+            "text": "Karsade shaam 8:00 baji",
+            "said": "Thursday shaam 8 baje",
+            "asrMs": 148,
+            "ttsMs": 489,
+            "detected": "hi-IN",
+            "ttsChars": 21,
+            "audioSeconds": 1.9626875
+          },
+          {
+            "speaker": "agent",
+            "text": "Monday, 12 October, shaam 8 baje ko Table 3 available hai. Confirm kar loon: Imran Qureshi ki 4 logon ki table, Table 3 par, Tuesday, 13 October shaam 8 baje se badal kar Monday, 12 October ko shaam 8 baje. Kya main badal doon?",
+            "state": "CONFIRM",
+            "expecting": "confirm",
+            "latencyMs": 163
+          },
+          {
+            "speaker": "caller",
+            "text": "Haan ji.",
+            "said": "Haan ji.",
+            "asrMs": 143,
+            "ttsMs": 440,
+            "detected": "hi-IN",
+            "ttsChars": 8,
+            "audioSeconds": 1.1093125
+          },
+          {
+            "speaker": "agent",
+            "text": "Ho gaya. Booking ab Monday, 12 October ko shaam 8 baje Table 3 par hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+            "state": "ANYTHING_ELSE",
+            "expecting": "anything_else",
+            "latencyMs": 145
+          },
+          {
+            "speaker": "caller",
+            "text": "Nahi bas. Thank you.",
+            "said": "Nahi, bas. Thank you.",
+            "asrMs": 183,
+            "ttsMs": 703,
+            "detected": "en-IN",
+            "ttsChars": 21,
+            "audioSeconds": 2.2186875
+          },
+          {
+            "speaker": "agent",
+            "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+            "state": "CLOSE",
+            "expecting": "intent",
+            "latencyMs": 149
+          }
+        ]
+      }
+    }
+  ],
+  "latency": {
+    "p50Ms": 128,
+    "p95Ms": 249,
+    "turns": 109,
+    "note": "text mode: agent processing + API round trips only. No speech-to-text or voice yet (M3)."
+  },
+  "cost": {
+    "perCallInr": 0,
+    "note": "token cost not yet reported by the provider adapter"
+  },
+  "calls": [
+    {
+      "scenarioId": "rest-allergy-question-first",
+      "title": "Opens with an allergy question; Myna does not answer it and the booking carries on",
+      "language": "en",
+      "flow": "booking",
+      "type": "allergy",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 69
+        },
+        {
+          "speaker": "caller",
+          "text": "Is your paneer dish safe with a nut allergy?",
+          "said": "Is your paneer dish safe with a nut allergy?",
+          "asrMs": 190,
+          "ttsMs": 789,
+          "detected": "en-IN",
+          "ttsChars": 44,
+          "audioSeconds": 3.4133125
+        },
+        {
+          "speaker": "agent",
+          "text": "I'm sorry, I can't advise on allergies or ingredients. Our staff can help with that. Would you like to book, change or cancel a table?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 57
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'd like to book a table for two people tomorrow at 8:00 p.m.",
+          "said": "Hi, I'd like to book a table for two people tomorrow at 8 pm.",
+          "asrMs": 236,
+          "ttsMs": 1133,
+          "detected": "en-IN",
+          "ttsChars": 61,
+          "audioSeconds": 5.2053125
+        },
+        {
+          "speaker": "agent",
+          "text": "Tuesday, 13 October, 8 pm is free at Table 1 (window). May I have your name for the booking, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 134
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Rhea Bhatt,",
+          "said": "My name is Rhea Bhatt.",
+          "asrMs": 154,
+          "ttsMs": 501,
+          "detected": "en-IN",
+          "ttsChars": 22,
+          "audioSeconds": 1.3653125
+        },
+        {
+          "speaker": "agent",
+          "text": "Just to confirm: a table for two for Rhea Bhatt at Table 1 (window) on Tuesday, 13 October at 8 pm. Shall I book it?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 156
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes please.",
+          "said": "Yes, please.",
+          "asrMs": 146,
+          "ttsMs": 284,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 0.9386875
+        },
+        {
+          "speaker": "agent",
+          "text": "Done. Rhea Bhatt's table is booked at Table 1 (window) on Tuesday, 13 October at 8 pm. You'll get an SMS. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 160
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 164,
+          "ttsMs": 557,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Spice Route Kitchen. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 129
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-allergy-question-first",
+      "title": "Opens with an allergy question; Myna does not answer it and the booking carries on",
+      "language": "hi",
+      "flow": "booking",
+      "type": "allergy",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 56
+        },
+        {
+          "speaker": "caller",
+          "text": "Kya aapke paneer dish nut allergy ke saath surakshit hai",
+          "said": "क्या आपकी पनीर डिश नट एलर्जी के साथ सुरक्षित है?",
+          "asrMs": 198,
+          "ttsMs": 922,
+          "detected": "hi-IN",
+          "ttsChars": 48,
+          "audioSeconds": 3.584
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, main allergy ya ingredients ke baare mein salah nahi de sakti. Ismein hamara staff madad karega. Aap table book, change ya cancel karna chahte hain?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 56
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe do logon ke liye table book karni hai kal shaam aath baje",
+          "said": "मुझे 2 लोगों के लिए टेबल बुक करनी है कल शाम 8 बजे।",
+          "asrMs": 222,
+          "ttsMs": 884,
+          "detected": "hi-IN",
+          "ttsChars": 50,
+          "audioSeconds": 3.7546875
+        },
+        {
+          "speaker": "agent",
+          "text": "Tuesday, 13 October, shaam 8 baje ko Table 1 (window) available hai. Zaroor. Booking kis naam se karni hai?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 95
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Rhea Bhatt hai.",
+          "said": "मेरा नाम रिया भट्ट है।",
+          "asrMs": 175,
+          "ttsMs": 437,
+          "detected": "hi-IN",
+          "ttsChars": 22,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Rhea Bhatt ke naam se 2 logon ki table, Table 1 (window) par, Tuesday, 13 October ko shaam 8 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 164
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji,",
+          "said": "हाँ जी।",
+          "asrMs": 138,
+          "ttsMs": 249,
+          "detected": "hi-IN",
+          "ttsChars": 7,
+          "audioSeconds": 0.6826875
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Rhea Bhatt ke naam se Table 1 (window) Tuesday, 13 October ko shaam 8 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 185
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, dhanyavaad.",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 179,
+          "ttsMs": 560,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 146
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-book-for-four",
+      "title": "New guest books a table for four tomorrow at 8 pm (number from caller ID)",
+      "language": "en",
+      "flow": "booking",
+      "type": "book_new",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 255
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'd like to book a table for four people tomorrow at 8:00 p.m.",
+          "said": "Hi, I'd like to book a table for four people tomorrow at 8 pm.",
+          "asrMs": 274,
+          "ttsMs": 1455,
+          "detected": "en-IN",
+          "ttsChars": 62,
+          "audioSeconds": 5.888
+        },
+        {
+          "speaker": "agent",
+          "text": "Tuesday, 13 October, 8 pm is free at Table 3. May I have your name for the booking, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 233
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Kabir Anand.",
+          "said": "My name is Kabir Anand.",
+          "asrMs": 142,
+          "ttsMs": 487,
+          "detected": "en-IN",
+          "ttsChars": 23,
+          "audioSeconds": 1.6213125
+        },
+        {
+          "speaker": "agent",
+          "text": "Just to confirm: a table for four for Kabir Anand at Table 3 on Tuesday, 13 October at 8 pm. Shall I book it?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 140
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes, please.",
+          "said": "Yes, please.",
+          "asrMs": 135,
+          "ttsMs": 382,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 1.28
+        },
+        {
+          "speaker": "agent",
+          "text": "Done. Kabir Anand's table is booked at Table 3 on Tuesday, 13 October at 8 pm. You'll get an SMS. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 127
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 153,
+          "ttsMs": 686,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.9866875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Spice Route Kitchen. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 121
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-book-for-four",
+      "title": "New guest books a table for four tomorrow at 8 pm (number from caller ID)",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "book_new",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 254
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe chaar log ki table book karni hai kal shaam aath baje",
+          "said": "Mujhe 4 log ki table book karni hai kal shaam 8 baje.",
+          "asrMs": 216,
+          "ttsMs": 1050,
+          "detected": "hi-IN",
+          "ttsChars": 53,
+          "audioSeconds": 4.0106875
+        },
+        {
+          "speaker": "agent",
+          "text": "Tuesday, 13 October, shaam 8 baje ko Table 3 available hai. Please booking ke liye apna naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 59
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Kabir Anand hai",
+          "said": "Mera naam Kabir Anand hai.",
+          "asrMs": 156,
+          "ttsMs": 634,
+          "detected": "hi-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.7306875
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Kabir Anand ke naam se 4 logon ki table, Table 3 par, Tuesday, 13 October ko shaam 8 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 155
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 130,
+          "ttsMs": 269,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 0.768
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Kabir Anand ke naam se Table 3 Tuesday, 13 October ko shaam 8 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 95
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 148,
+          "ttsMs": 578,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 2.304
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 100
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-book-large-family",
+      "title": "Family of six, lunch on Saturday",
+      "language": "en",
+      "flow": "booking",
+      "type": "book_new",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 249
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'd like to book a table for six people Saturday at 1:00 PM.",
+          "said": "Hi, I'd like to book a table for six people Saturday at 1 pm.",
+          "asrMs": 210,
+          "ttsMs": 1125,
+          "detected": "en-IN",
+          "ttsChars": 61,
+          "audioSeconds": 5.12
+        },
+        {
+          "speaker": "agent",
+          "text": "Saturday, 17 October, 1 pm is free at Table 5 (family). May I have your name for the booking, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 87
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Farhan Sayed.",
+          "said": "My name is Farhan Sayyed.",
+          "asrMs": 189,
+          "ttsMs": 436,
+          "detected": "en-IN",
+          "ttsChars": 25,
+          "audioSeconds": 1.6213125
+        },
+        {
+          "speaker": "agent",
+          "text": "Just to confirm: a table for six for Farhan Sayed at Table 5 (family) on Saturday, 17 October at 1 pm. Shall I book it?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 170
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes, please.",
+          "said": "Yes, please.",
+          "asrMs": 172,
+          "ttsMs": 309,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 0.9386875
+        },
+        {
+          "speaker": "agent",
+          "text": "Done. Farhan Sayed's table is booked at Table 5 (family) on Saturday, 17 October at 1 pm. You'll get an SMS. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 167
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 173,
+          "ttsMs": 572,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.3893125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Spice Route Kitchen. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 133
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-book-large-family",
+      "title": "Family of six, lunch on Saturday",
+      "language": "hi",
+      "flow": "booking",
+      "type": "book_new",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 249
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe chhah logon ke liye table book karni hai Shanivar dopahar ek baje",
+          "said": "मुझे 6 लोगों के लिए टेबल बुक करनी है शनिवार दोपहर 1 बजे।",
+          "asrMs": 241,
+          "ttsMs": 1140,
+          "detected": "hi-IN",
+          "ttsChars": 56,
+          "audioSeconds": 5.2053125
+        },
+        {
+          "speaker": "agent",
+          "text": "Saturday, 17 October, dopahar 1 baje ko Table 5 (family) available hai. Zaroor. Booking kis naam se karni hai?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 141
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Farhan Sayyid hai.",
+          "said": "मेरा नाम फ़रहान सैयद है।",
+          "asrMs": 173,
+          "ttsMs": 575,
+          "detected": "hi-IN",
+          "ttsChars": 24,
+          "audioSeconds": 2.304
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Farhan Sayyid ke naam se 6 logon ki table, Table 5 (family) par, Saturday, 17 October ko dopahar 1 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 167
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji,",
+          "said": "हाँ जी।",
+          "asrMs": 136,
+          "ttsMs": 272,
+          "detected": "hi-IN",
+          "ttsChars": 7,
+          "audioSeconds": 0.6826875
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Farhan Sayyid ke naam se Table 5 (family) Saturday, 17 October ko dopahar 1 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 169
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, dhanyavaad.",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 179,
+          "ttsMs": 490,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 167
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-book-withheld-number",
+      "title": "Caller ID withheld, so Myna asks for the phone number",
+      "language": "en",
+      "flow": "booking",
+      "type": "book_new",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 252
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'd like to book a table for two people Friday at 1:00 p.m.",
+          "said": "Hi, I'd like to book a table for two people Friday at 1 pm.",
+          "asrMs": 210,
+          "ttsMs": 877,
+          "detected": "en-IN",
+          "ttsChars": 59,
+          "audioSeconds": 3.9253125
+        },
+        {
+          "speaker": "agent",
+          "text": "Friday, 16 October, 1 pm is free at Table 1 (window). May I have your name for the booking, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 65
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Divya Nair.",
+          "said": "My name is Divya Nair.",
+          "asrMs": 251,
+          "ttsMs": 504,
+          "detected": "en-IN",
+          "ttsChars": 22,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Which mobile number should we use for this booking?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "phone",
+          "latencyMs": 136
+        },
+        {
+          "speaker": "caller",
+          "text": "9822200302",
+          "said": "98222 00302",
+          "asrMs": 160,
+          "ttsMs": 847,
+          "detected": "en-IN",
+          "ttsChars": 11,
+          "audioSeconds": 3.9253125
+        },
+        {
+          "speaker": "agent",
+          "text": "Just to confirm: a table for two for Divya Nair at Table 1 (window) on Friday, 16 October at 1 pm. Shall I book it?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 122
+        },
+        {
+          "speaker": "caller",
+          "text": "Yes please.",
+          "said": "Yes, please.",
+          "asrMs": 138,
+          "ttsMs": 269,
+          "detected": "en-IN",
+          "ttsChars": 12,
+          "audioSeconds": 0.768
+        },
+        {
+          "speaker": "agent",
+          "text": "Done. Divya Nair's table is booked at Table 1 (window) on Friday, 16 October at 1 pm. You'll get an SMS. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 92
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 146,
+          "ttsMs": 448,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Spice Route Kitchen. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 94
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-book-withheld-number",
+      "title": "Caller ID withheld, so Myna asks for the phone number",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "book_new",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 249
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe do log ki table book karni hai Friday dopahar ek baje",
+          "said": "Mujhe 2 log ki table book karni hai Friday dopahar 1 baje.",
+          "asrMs": 205,
+          "ttsMs": 1005,
+          "detected": "hi-IN",
+          "ttsChars": 58,
+          "audioSeconds": 4.4373125
+        },
+        {
+          "speaker": "agent",
+          "text": "Friday, 16 October, dopahar 1 baje ko Table 1 (window) available hai. Please booking ke liye apna naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 51
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Divya Nair hai",
+          "said": "Mera naam Divya Nair hai.",
+          "asrMs": 155,
+          "ttsMs": 562,
+          "detected": "hi-IN",
+          "ttsChars": 25,
+          "audioSeconds": 2.3893125
+        },
+        {
+          "speaker": "agent",
+          "text": "Is booking ke liye kaunsa mobile number rakhein?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "phone",
+          "latencyMs": 135
+        },
+        {
+          "speaker": "caller",
+          "text": "Nau aath do do do shunya shunya teen shunya do",
+          "said": "98222 00302",
+          "asrMs": 163,
+          "ttsMs": 811,
+          "detected": "hi-IN",
+          "ttsChars": 11,
+          "audioSeconds": 3.6693125
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Divya Nair ke naam se 2 logon ki table, Table 1 (window) par, Friday, 16 October ko dopahar 1 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 149
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 163,
+          "ttsMs": 268,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 0.768
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Divya Nair ke naam se Table 1 (window) Friday, 16 October ko dopahar 1 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 165
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas. Thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 175,
+          "ttsMs": 487,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 84
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-cancel-reservation",
+      "title": "Guest cancels with name and phone; the table is released",
+      "language": "hi",
+      "flow": "booking",
+      "type": "cancel",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 40
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera appointment cancel karna hai",
+          "said": "मेरा अपॉइंटमेंट कैंसल करना है।",
+          "asrMs": 175,
+          "ttsMs": 682,
+          "detected": "hi-IN",
+          "ttsChars": 30,
+          "audioSeconds": 2.9866875
+        },
+        {
+          "speaker": "agent",
+          "text": "Please booking ke liye apna naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 34
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Ananya Kulkarni hai.",
+          "said": "मेरा नाम अनन्या कुलकर्णी है।",
+          "asrMs": 153,
+          "ttsMs": 542,
+          "detected": "hi-IN",
+          "ttsChars": 28,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Mujhe Table 1 (window) par Tuesday, 13 October ko shaam 8 baje 2 logon ki table dikh raha hai. Confirm kar loon: Ananya Kulkarni ki Table 1 (window) par Tuesday, 13 October shaam 8 baje ki 2 logon ki table cancel kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 165
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "हाँ जी।",
+          "asrMs": 157,
+          "ttsMs": 227,
+          "detected": "hi-IN",
+          "ttsChars": 7,
+          "audioSeconds": 0.5973125
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya, booking cancel ho gayi hai. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 152
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi. Bas, dhanyavaad.",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 184,
+          "ttsMs": 1070,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 2.3893125
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 127
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-cancel-reservation",
+      "title": "Guest cancels with name and phone; the table is released",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "cancel",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 52
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera appointment cancel karna hai",
+          "said": "Mera appointment cancel karna hai.",
+          "asrMs": 161,
+          "ttsMs": 611,
+          "detected": "hi-IN",
+          "ttsChars": 34,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "Please booking ke liye apna naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 126
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Ananya Kulkarni hai.",
+          "said": "Mera naam Ananya Kulkarni hai.",
+          "asrMs": 181,
+          "ttsMs": 572,
+          "detected": "hi-IN",
+          "ttsChars": 30,
+          "audioSeconds": 2.304
+        },
+        {
+          "speaker": "agent",
+          "text": "Mujhe Table 1 (window) par Tuesday, 13 October ko shaam 8 baje 2 logon ki table dikh raha hai. Confirm kar loon: Ananya Kulkarni ki Table 1 (window) par Tuesday, 13 October shaam 8 baje ki 2 logon ki table cancel kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 175
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji",
+          "said": "Haan ji.",
+          "asrMs": 142,
+          "ttsMs": 332,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 1.1946875
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya, booking cancel ho gayi hai. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 146
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi bas, thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 205,
+          "ttsMs": 489,
+          "detected": "en-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 170
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-faq-menu-left-blank",
+      "title": "Asks about a Jain menu, which the restaurant left blank: staff take it",
+      "language": "hi",
+      "flow": "messages",
+      "type": "faq",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 55
+        },
+        {
+          "speaker": "caller",
+          "text": "Kya Jain menu hai?",
+          "said": "क्या जैन मेन्यू है?",
+          "asrMs": 154,
+          "ttsMs": 449,
+          "detected": "hi-IN",
+          "ttsChars": 19,
+          "audioSeconds": 1.792
+        },
+        {
+          "speaker": "agent",
+          "text": "Mere paas yeh jaankari nahi hai, isliye main guess nahi karoongi. Main aapko staff se jod rahi hoon.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 171
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-faq-menu-left-blank",
+      "title": "Asks about a Jain menu, which the restaurant left blank: staff take it",
+      "language": "hinglish",
+      "flow": "messages",
+      "type": "faq",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 44
+        },
+        {
+          "speaker": "caller",
+          "text": "Jain menu hai kya?",
+          "said": "Jain menu hai kya?",
+          "asrMs": 160,
+          "ttsMs": 407,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 1.6213125
+        },
+        {
+          "speaker": "agent",
+          "text": "Mere paas yeh jaankari nahi hai, isliye main guess nahi karoongi. Main aapko staff se jod rahi hoon.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 85
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-faq-parking",
+      "title": "Asks about parking; answered from config in the caller's language",
+      "language": "en",
+      "flow": "messages",
+      "type": "faq",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 45
+        },
+        {
+          "speaker": "caller",
+          "text": "Is there parking?",
+          "said": "Is there parking?",
+          "asrMs": 154,
+          "ttsMs": 258,
+          "detected": "en-IN",
+          "ttsChars": 17,
+          "audioSeconds": 0.8533125
+        },
+        {
+          "speaker": "agent",
+          "text": "Valet parking is free for diners. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 92
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 168,
+          "ttsMs": 515,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Spice Route Kitchen. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 136
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-faq-parking",
+      "title": "Asks about parking; answered from config in the caller's language",
+      "language": "hi",
+      "flow": "messages",
+      "type": "faq",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 49
+        },
+        {
+          "speaker": "caller",
+          "text": "Kya parking milegi?",
+          "said": "क्या पार्किंग मिलेगी?",
+          "asrMs": 157,
+          "ttsMs": 378,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.3653125
+        },
+        {
+          "speaker": "agent",
+          "text": "Diners ke liye valet parking free hai. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 113
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, dhanyavaad.",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 170,
+          "ttsMs": 499,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 140
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-faq-timings",
+      "title": "Asks the opening hours; answered from the restaurant's own config",
+      "language": "en",
+      "flow": "messages",
+      "type": "faq",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 52
+        },
+        {
+          "speaker": "caller",
+          "text": "What are your timings?",
+          "said": "What are your timings?",
+          "asrMs": 131,
+          "ttsMs": 434,
+          "detected": "en-IN",
+          "ttsChars": 22,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Open every day, 12 noon to 3 pm for lunch and 7 to 11 pm for dinner. Is there anything else I can help with?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 118
+        },
+        {
+          "speaker": "caller",
+          "text": "No, that's all. Thank you.",
+          "said": "No, that's all. Thank you.",
+          "asrMs": 170,
+          "ttsMs": 609,
+          "detected": "en-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thank you for calling Spice Route Kitchen. Goodbye!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 125
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-faq-timings",
+      "title": "Asks the opening hours; answered from the restaurant's own config",
+      "language": "hi",
+      "flow": "messages",
+      "type": "faq",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 46
+        },
+        {
+          "speaker": "caller",
+          "text": "Clinic ka samay kya hai?",
+          "said": "क्लिनिक का समय क्या है?",
+          "asrMs": 164,
+          "ttsMs": 439,
+          "detected": "hi-IN",
+          "ttsChars": 23,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Roz khule hain, dopahar 12 se 3 baje lunch aur raat 7 se 11 baje dinner. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 33
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi bas. Dhanyavaad.",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 147,
+          "ttsMs": 540,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 2.1333125
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 130
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-full-evening-waitlist",
+      "title": "The evening is full: Myna offers the waitlist, takes name and number, books nothing",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "waitlist",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 33
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe do log ki table book karni hai kal shaam 8:00 baje.",
+          "said": "Mujhe 2 log ki table book karni hai kal shaam 8 baje.",
+          "asrMs": 216,
+          "ttsMs": 800,
+          "detected": "hi-IN",
+          "ttsChars": 53,
+          "audioSeconds": 3.4133125
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, us time kuch available nahi hai. Kya main aapko waitlist mein daal doon? Table khaali hote hi hum aapko call karenge.",
+          "state": "BOOK",
+          "expecting": "waitlist_offer",
+          "latencyMs": 97
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 138,
+          "ttsMs": 233,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 0.6826875
+        },
+        {
+          "speaker": "agent",
+          "text": "Please booking ke liye apna naam bataiye.",
+          "state": "BOOK",
+          "expecting": "name",
+          "latencyMs": 171
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Farah Siddiqui hai.",
+          "said": "Mera naam Farah Siddiqui hai.",
+          "asrMs": 171,
+          "ttsMs": 594,
+          "detected": "hi-IN",
+          "ttsChars": 29,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "Aap waitlist mein hain. Table khaali hote hi hum aapke number pe call karenge. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 163
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 170,
+          "ttsMs": 453,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.792
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 128
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-mind-change-at-read-back",
+      "title": "Changes the time at the read-back; only the final choice is booked",
+      "language": "hi",
+      "flow": "booking",
+      "type": "mind_change",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 58
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe teen logon ke liye table book karni hai guruvaar shaam aath baje",
+          "said": "मुझे 3 लोगों के लिए टेबल बुक करनी है गुरुवार शाम 8 बजे।",
+          "asrMs": 256,
+          "ttsMs": 1415,
+          "detected": "hi-IN",
+          "ttsChars": 55,
+          "audioSeconds": 6.5706875
+        },
+        {
+          "speaker": "agent",
+          "text": "Thursday, 15 October, shaam 8 baje ko Table 3 available hai. Zaroor. Booking kis naam se karni hai?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 50
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Tanvi Joshi hai",
+          "said": "मेरा नाम तन्वी जोशी है।",
+          "asrMs": 173,
+          "ttsMs": 605,
+          "detected": "hi-IN",
+          "ttsChars": 23,
+          "audioSeconds": 2.56
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Tanvi Joshi ke naam se 4 logon ki table, Table 3 par, Thursday, 15 October ko shaam 8 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 94
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, guruvaar shaam nau baje kar do.",
+          "said": "नहीं, गुरुवार शाम 9 बजे कर दो।",
+          "asrMs": 185,
+          "ttsMs": 741,
+          "detected": "hi-IN",
+          "ttsChars": 30,
+          "audioSeconds": 3.1573125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thursday, 15 October, shaam 9 baje ko Table 3 available hai. Confirm kar loon: Tanvi Joshi ke naam se 4 logon ki table, Table 3 par, Thursday, 15 October ko shaam 9 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 149
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji,",
+          "said": "हाँ जी।",
+          "asrMs": 146,
+          "ttsMs": 339,
+          "detected": "hi-IN",
+          "ttsChars": 7,
+          "audioSeconds": 1.1946875
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Tanvi Joshi ke naam se Table 3 Thursday, 15 October ko shaam 9 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 201
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, dhanyavaad.",
+          "said": "नहीं, बस। धन्यवाद।",
+          "asrMs": 183,
+          "ttsMs": 616,
+          "detected": "hi-IN",
+          "ttsChars": 18,
+          "audioSeconds": 2.56
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 146
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-mind-change-at-read-back",
+      "title": "Changes the time at the read-back; only the final choice is booked",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "mind_change",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 52
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe teen log ki table book karni hai Thursday shaam 8:00 baje.",
+          "said": "Mujhe 3 log ki table book karni hai Thursday shaam 8 baje.",
+          "asrMs": 204,
+          "ttsMs": 1187,
+          "detected": "hi-IN",
+          "ttsChars": 58,
+          "audioSeconds": 3.4133125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thursday, 15 October, shaam 8 baje ko Table 3 available hai. Please booking ke liye apna naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 91
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Tanvi Joshi hai.",
+          "said": "Mera naam Tanvi Joshi hai.",
+          "asrMs": 162,
+          "ttsMs": 551,
+          "detected": "hi-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Confirm kar loon: Tanvi Joshi ke naam se 4 logon ki table, Table 3 par, Thursday, 15 October ko shaam 8 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 63
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, Thursday shaam 9:00 baje kar do.",
+          "said": "Nahi, Thursday shaam 9 baje kar do.",
+          "asrMs": 189,
+          "ttsMs": 470,
+          "detected": "hi-IN",
+          "ttsChars": 35,
+          "audioSeconds": 1.8773125
+        },
+        {
+          "speaker": "agent",
+          "text": "Thursday, 15 October, shaam 9 baje ko Table 3 available hai. Confirm kar loon: Tanvi Joshi ke naam se 4 logon ki table, Table 3 par, Thursday, 15 October ko shaam 9 baje. Kya main book kar doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 159
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 150,
+          "ttsMs": 351,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 1.1946875
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Tanvi Joshi ke naam se Table 3 Thursday, 15 October ko shaam 9 baje book hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 170
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi, bas, thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 145,
+          "ttsMs": 430,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.7066875
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 127
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-party-too-large",
+      "title": "A group of fifteen: no table fits, staff take over, nothing is booked",
+      "language": "en",
+      "flow": "booking",
+      "type": "party_too_large",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 60
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'd like to book a table for fifteen people Saturday at 8:00 PM.",
+          "said": "Hi, I'd like to book a table for fifteen people Saturday at 8 pm.",
+          "asrMs": 405,
+          "ttsMs": 1327,
+          "detected": "en-IN",
+          "ttsChars": 65,
+          "audioSeconds": 6.144
+        },
+        {
+          "speaker": "agent",
+          "text": "For a group that size our staff will arrange the tables. Let me connect you.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 163
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-party-too-large",
+      "title": "A group of fifteen: no table fits, staff take over, nothing is booked",
+      "language": "hi",
+      "flow": "booking",
+      "type": "party_too_large",
+      "passed": true,
+      "worst": null,
+      "failed": [],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 29
+        },
+        {
+          "speaker": "caller",
+          "text": "Mujhe pandrah logon ke liye table book karni hai Shanivar shaam aath baje",
+          "said": "मुझे 15 लोगों के लिए टेबल बुक करनी है शनिवार शाम 8 बजे।",
+          "asrMs": 248,
+          "ttsMs": 1138,
+          "detected": "hi-IN",
+          "ttsChars": 55,
+          "audioSeconds": 4.608
+        },
+        {
+          "speaker": "agent",
+          "text": "Itne logon ke liye hamara staff tables arrange karega. Main aapko jod rahi hoon.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 119
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-reschedule-reservation",
+      "title": "Guest moves a reservation to another evening",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "reschedule",
+      "passed": false,
+      "worst": "critical",
+      "failed": [
+        {
+          "id": "schedule_end_state",
+          "severity": "critical",
+          "passed": false,
+          "detail": "missing [Imran Qureshi|table-4|2026-10-15T20:00|confirmed] unexpected [Imran Qureshi|table-4|2026-10-12T20:00|confirmed]"
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 37
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera appointment change karna hai.",
+          "said": "Mera appointment change karna hai.",
+          "asrMs": 168,
+          "ttsMs": 566,
+          "detected": "hi-IN",
+          "ttsChars": 34,
+          "audioSeconds": 2.3893125
+        },
+        {
+          "speaker": "agent",
+          "text": "Please booking ke liye apna naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 25
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Imran Qureshi hai",
+          "said": "Mera naam Imran Qureshi hai.",
+          "asrMs": 160,
+          "ttsMs": 593,
+          "detected": "hi-IN",
+          "ttsChars": 28,
+          "audioSeconds": 2.4746875
+        },
+        {
+          "speaker": "agent",
+          "text": "Mujhe Table 3 par Tuesday, 13 October ko shaam 8 baje 4 logon ki table dikh raha hai. Iski jagah kaunsa din aur time chahiye?",
+          "state": "RESCHEDULE",
+          "expecting": "when",
+          "latencyMs": 169
+        },
+        {
+          "speaker": "caller",
+          "text": "Karsade shaam 8:00 baji",
+          "said": "Thursday shaam 8 baje",
+          "asrMs": 148,
+          "ttsMs": 489,
+          "detected": "hi-IN",
+          "ttsChars": 21,
+          "audioSeconds": 1.9626875
+        },
+        {
+          "speaker": "agent",
+          "text": "Monday, 12 October, shaam 8 baje ko Table 3 available hai. Confirm kar loon: Imran Qureshi ki 4 logon ki table, Table 3 par, Tuesday, 13 October shaam 8 baje se badal kar Monday, 12 October ko shaam 8 baje. Kya main badal doon?",
+          "state": "CONFIRM",
+          "expecting": "confirm",
+          "latencyMs": 163
+        },
+        {
+          "speaker": "caller",
+          "text": "Haan ji.",
+          "said": "Haan ji.",
+          "asrMs": 143,
+          "ttsMs": 440,
+          "detected": "hi-IN",
+          "ttsChars": 8,
+          "audioSeconds": 1.1093125
+        },
+        {
+          "speaker": "agent",
+          "text": "Ho gaya. Booking ab Monday, 12 October ko shaam 8 baje Table 3 par hai. Aapko SMS aa jayega. Kya main aur kuch madad kar sakti hoon?",
+          "state": "ANYTHING_ELSE",
+          "expecting": "anything_else",
+          "latencyMs": 145
+        },
+        {
+          "speaker": "caller",
+          "text": "Nahi bas. Thank you.",
+          "said": "Nahi, bas. Thank you.",
+          "asrMs": 183,
+          "ttsMs": 703,
+          "detected": "en-IN",
+          "ttsChars": 21,
+          "audioSeconds": 2.2186875
+        },
+        {
+          "speaker": "agent",
+          "text": "Spice Route Kitchen ko call karne ke liye thank you. Namaste!",
+          "state": "CLOSE",
+          "expecting": "intent",
+          "latencyMs": 149
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-wrong-phone-sees-nothing",
+      "title": "Right name, wrong phone: nothing is disclosed and staff take over",
+      "language": "en",
+      "flow": "booking",
+      "type": "verification",
+      "passed": false,
+      "worst": "critical",
+      "failed": [
+        {
+          "id": "handoff",
+          "severity": "critical",
+          "passed": false,
+          "detail": "expected verification_failed, got repeated_misunderstanding"
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 39
+        },
+        {
+          "speaker": "caller",
+          "text": "I want to cancel my appointment.",
+          "said": "I want to cancel my appointment.",
+          "asrMs": 163,
+          "ttsMs": 507,
+          "detected": "en-IN",
+          "ttsChars": 32,
+          "audioSeconds": 2.048
+        },
+        {
+          "speaker": "agent",
+          "text": "May I have your name for the booking, please?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 35
+        },
+        {
+          "speaker": "caller",
+          "text": "My name is Deepa Menon.",
+          "said": "My name is Deepa Menon.",
+          "asrMs": 154,
+          "ttsMs": 726,
+          "detected": "en-IN",
+          "ttsChars": 23,
+          "audioSeconds": 2.304
+        },
+        {
+          "speaker": "agent",
+          "text": "Which mobile number should we use for this booking?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "phone",
+          "latencyMs": 143
+        },
+        {
+          "speaker": "caller",
+          "text": "900000099",
+          "said": "90000 00099",
+          "asrMs": 150,
+          "ttsMs": 1159,
+          "detected": "en-IN",
+          "ttsChars": 11,
+          "audioSeconds": 5.2053125
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, I didn't catch that. Which mobile number should we use for this booking?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "phone",
+          "latencyMs": 138
+        },
+        {
+          "speaker": "caller",
+          "text": "900000099",
+          "said": "90000 00099",
+          "asrMs": 216,
+          "ttsMs": 991,
+          "detected": "en-IN",
+          "ttsChars": 11,
+          "audioSeconds": 4.096
+        },
+        {
+          "speaker": "agent",
+          "text": "I'm sorry, I'm having trouble understanding. Let me connect you to our staff.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 168
+        }
+      ]
+    },
+    {
+      "scenarioId": "rest-wrong-phone-sees-nothing",
+      "title": "Right name, wrong phone: nothing is disclosed and staff take over",
+      "language": "hinglish",
+      "flow": "booking",
+      "type": "verification",
+      "passed": false,
+      "worst": "critical",
+      "failed": [
+        {
+          "id": "handoff",
+          "severity": "critical",
+          "passed": false,
+          "detail": "expected verification_failed, got repeated_misunderstanding"
+        }
+      ],
+      "transcript": [
+        {
+          "speaker": "agent",
+          "text": "Namaste, main Myna hoon, Spice Route Kitchen ki automated AI assistant. Staff se baat karni ho toh kabhi bhi 'staff' boliye. Main aapki kya madad karoon?",
+          "state": "IDENTIFY_INTENT",
+          "expecting": "intent",
+          "latencyMs": 44
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera appointment cancel karna hai",
+          "said": "Mera appointment cancel karna hai.",
+          "asrMs": 181,
+          "ttsMs": 792,
+          "detected": "hi-IN",
+          "ttsChars": 34,
+          "audioSeconds": 3.2426875
+        },
+        {
+          "speaker": "agent",
+          "text": "Please booking ke liye apna naam bataiye.",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 127
+        },
+        {
+          "speaker": "caller",
+          "text": "Mera naam Deepa Menon hai.",
+          "said": "Mera naam Deepa Menon hai.",
+          "asrMs": 147,
+          "ttsMs": 618,
+          "detected": "hi-IN",
+          "ttsChars": 26,
+          "audioSeconds": 2.6453125
+        },
+        {
+          "speaker": "agent",
+          "text": "Is booking ke liye kaunsa mobile number rakhein?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "phone",
+          "latencyMs": 83
+        },
+        {
+          "speaker": "caller",
+          "text": "Nav shunya shunya shunya shunya shunya shunya shunya nav nav",
+          "said": "90000 00099",
+          "asrMs": 319,
+          "ttsMs": 1342,
+          "detected": "gu-IN",
+          "ttsChars": 11,
+          "audioSeconds": 6.144
+        },
+        {
+          "speaker": "agent",
+          "text": "Yeh naam aur phone number match nahi hue. Kya aap phir se batayenge?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "name",
+          "latencyMs": 139
+        },
+        {
+          "speaker": "caller",
+          "text": "Deepa Menon",
+          "said": "Deepa Menon",
+          "asrMs": 148,
+          "ttsMs": 333,
+          "detected": "en-IN",
+          "ttsChars": 11,
+          "audioSeconds": 1.1946875
+        },
+        {
+          "speaker": "agent",
+          "text": "Is booking ke liye kaunsa mobile number rakhein?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "phone",
+          "latencyMs": 134
+        },
+        {
+          "speaker": "caller",
+          "text": "Nav, shunya shunya shunya shunya shunya no nav.",
+          "said": "90000 00099",
+          "asrMs": 177,
+          "ttsMs": 972,
+          "detected": "gu-IN",
+          "ttsChars": 11,
+          "audioSeconds": 4.2666875
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, main samajh nahi paayi. Is booking ke liye kaunsa mobile number rakhein?",
+          "state": "VERIFY_PATIENT",
+          "expecting": "phone",
+          "latencyMs": 44
+        },
+        {
+          "speaker": "caller",
+          "text": "Nav shunya shunya shunya shunya shunya nav nav",
+          "said": "90000 00099",
+          "asrMs": 201,
+          "ttsMs": 1066,
+          "detected": "gu-IN",
+          "ttsChars": 11,
+          "audioSeconds": 4.864
+        },
+        {
+          "speaker": "agent",
+          "text": "Sorry, mujhe theek se samajh nahi aa raha. Main aapko staff se jod rahi hoon.",
+          "state": "HANDOFF",
+          "expecting": "intent",
+          "latencyMs": 140
+        }
+      ]
+    }
+  ]
+}
