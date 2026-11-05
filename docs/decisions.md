@@ -190,3 +190,32 @@ the number we dialled plus the confirmed name, not a date of birth. Outbound win
 19:00 to 21:00 for restaurants only (a clinic config above 19:00 is still rejected).
 Bug found on the way: "9:30 pm, 9:30 pm or 9:30 pm" when three tables were free at once; options
 are now distinct times.
+
+## 2026-11-06 — LiveKit spike, part 1 (docs only): keep Pipecat for now
+
+Question: is LiveKit Agents + Sarvam + an Indian SIP trunk a shorter path to a real phone number
+than Pipecat? This part was answered from the docs only. **Nothing was built or measured yet**, so
+there is no latency comparison.
+
+Findings (LiveKit docs, 2026-11-05/06):
+- Sarvam STT plugin exists. Python: `livekit-agents[sarvam]`, `STTRealtime` (realtime API, fixed
+  `saaras:v3-realtime`, needs realtime streaming access on the Sarvam plan) and legacy `STT`
+  (`saaras:v4` or `saaras:v3`, modes incl. `translit` and `codemix`). Node.js has only the legacy
+  `STT` (`saaras:v3`). Defaults differ by SDK, so always set model and language explicitly.
+- Sarvam TTS plugin exists: `bulbul:v3` and `bulbul:v2`, 8 kHz up to 48 kHz, `mulaw`/`alaw`
+  output codecs (useful for telephony). Docs contradict themselves on the Node.js default model.
+- Telephony: official LiveKit quickstart for Plivo (inbound trunk, LiveKit SIP URI as primary
+  URI). For calls to or from India the LiveKit project must be in the India region (stated as a
+  regulatory requirement). Exotel has no official LiveKit quickstart; community reports a 503 from
+  LiveKit's SIP gateway and custom bridges. Twilio's India coverage is disputed (vendor claims).
+- Pipecat already runs our loop with the same Sarvam models, so the models are not the difference.
+  Telephony is.
+
+Decision for now: do not migrate. Telephony via LiveKit + Plivo looks like the shorter path to a
+number, so it stays the candidate for Milestone 5. The swap would be confined to
+`services/agent/src/myna_agent/voice/`.
+
+Still to do before deciding (needs a LiveKit Cloud account in the India region and a Plivo number):
+build the smallest LiveKit agent that talks to our `Brain` over `/v1/calls/*`, then measure
+first-audio latency and barge-in against the Pipecat numbers (493 ms stage sum, about 0.95 s felt).
+Also confirm Pipecat's own Plivo/Exotel serializer support, which was not checked in this part.
