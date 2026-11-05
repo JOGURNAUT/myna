@@ -191,3 +191,17 @@ the whole week for the earliest match; Myna asks which day and keeps the time (b
 reschedule). Scripted Hawk run 14: 145/145, all three flows SAFE; the audio sample has not been
 re-run since. Name spell-back and phone read-back in pairs were not built: the read-back already
 says the name, and a short phone number is already rejected.
+
+## 2026-11-06 — Real model in audio mode, restaurant (run 15)
+
+24 spoken calls with the Sarvam model understanding the caller (94 model calls, 0 fallbacks,
+0 retries). Booking 15/18, messages 6/6, same three critical flags as the rules runs, all from
+speech recognition, none from the agent's logic: "Rhea" heard as "Riya" and "Sayyed" as "Said"
+(the table is booked under the heard name, and the caller's own correction is heard the same
+way again), and "9000000099" lost zeros so Myna handed over after two tries
+(`repeated_misunderstanding`, nothing disclosed). The agent never had a wrong day or a
+language flip this time. Conclusion: with the model or without, the weak spot is names and
+long digit strings in speech; the open decision is whether a restaurant needs a spelled-out
+name (probably not: the staff see the booking and the phone number) and whether a clinic does
+(yes: verification depends on it, and it already fails closed to staff).
+Not yet run in audio mode: the clinic vertical with the real model.
