@@ -157,3 +157,17 @@ def test_patient_sharing_a_doctors_surname_is_not_asking_for_that_doctor() -> No
     assert u.name is not None and u.resource_id is None
     # ...but "Dr. Mehta" still does.
     assert RuleBasedNLU().parse(f"I want to see Dr {surname}", ctx("when")).resource_id is not None
+
+
+@pytest.mark.parametrize(
+    ("heard", "name"),
+    [
+        ("Patient's name Kamala Devi", "Kamala Devi"),
+        ("patient name Rohan Mehta", "Rohan Mehta"),
+        ("name Neha Kapoor", "Neha Kapoor"),
+        ("Patient's name is Neha Kapoor", "Neha Kapoor"),
+    ],
+)
+def test_patient_name_written_the_way_saaras_writes_it(heard: str, name: str) -> None:
+    """Run 06 stored "Patient's Name Kamala Devi" as the patient's name."""
+    assert RuleBasedNLU().parse(heard, ctx("name")).name == name

@@ -669,6 +669,8 @@ _NAME_PATTERNS = [
         r"(?:mera naam|meri beti ka naam|mere bete ka naam|patient ka naam|unka naam|naam)\s+(.+?)(?:\s+hai\b|$)",
         re.I,
     ),
+    # Speech-to-text often writes "patient ka naam X" as "Patient's name X" (no "is").
+    re.compile(r"^(?:patient'?s?\s+name|name)\s+(?!is\b)(.+)", re.I),
     re.compile(r"^main\s+(.+?)\s+(?:bol rahi|bol raha|hoon|hu)\b", re.I),
     re.compile(r"(?:मैं|मै)\s+(.+?)\s+(?:बोल रही|बोल रहा|हूँ|हूं)"),
     re.compile(r"(?:मेरा नाम|नाम)\s+(.+?)(?:\s+है|$)"),

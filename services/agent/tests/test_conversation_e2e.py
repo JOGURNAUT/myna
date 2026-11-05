@@ -396,3 +396,15 @@ async def test_faq_answer_follows_the_callers_language(make_call) -> None:
     await call2.start()
     r2 = await call2.say("how much are your fees")
     assert "A consultation is 500 rupees" in r2.text
+
+
+async def test_a_short_english_phrase_does_not_switch_a_hinglish_call(make_call) -> None:
+    """Hindi/Hinglish callers say "thank you, bye"; Myna must not answer in English for it."""
+    call = await make_call()
+    await call.start()
+    await call.say("mujhe kal subah cleaning ka appointment chahiye")
+    assert call.conv.lang == "hinglish"
+    await call.say("thank you very much")
+    assert call.conv.lang == "hinglish"
+    await call.say("I would like to book it for tomorrow morning please")
+    assert call.conv.lang == "en"  # a real English sentence still switches

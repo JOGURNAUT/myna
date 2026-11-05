@@ -1390,8 +1390,11 @@ class Conversation:
             words = set(re.findall(r"[a-z']+", text.lower()))
             # The model sometimes labels "Nahi, bas. Thank you." as English (Hawk run 3): Hinglish
             # words in the caller's own text veto a switch to English.
+            # After the first turn a short English phrase ("thank you, bye") is not a switch:
+            # Hindi and Hinglish callers sprinkle those. (Audio-mode Hawk run 06.)
+            spoken = sum(1 for who, _ in self.transcript if who == "caller")
             if (
-                len(words) < 3
+                len(words) < (3 if spoken <= 1 else 5)
                 or not words & _ENGLISH_FUNCTION_WORDS
                 or detect_language(text) != "en"
             ):
