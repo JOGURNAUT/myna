@@ -31,9 +31,11 @@ outreach, prescriptions of any kind.
 
 ## Scope note
 Build the architecture vertical-agnostic (a "business" has staff/resources, services, hours and
-rules; a clinic is one kind of business), but ALL demos, configs, tests and the pilot are for
-clinics only. Do not build other verticals. README should say: "Built vertical-agnostic; clinics
-first because they're the hardest."
+rules; a clinic is one kind of business). Two verticals, no third: **clinics** (the pilot, built
+first because they're the hardest) and **restaurant reservations** (added 2026-11-05 to prove the
+engine is not clinic-shaped; includes a waitlist + "seat available" callback). See
+`docs/plan-generalise.md`. README should say: "Built vertical-agnostic; validated on clinics
+(pilot) and restaurants."
 
 ## Tech stack (TypeScript-first; Python only where Pipecat requires it)
 Most of the codebase is TypeScript, because the target employer's stack and interviews are

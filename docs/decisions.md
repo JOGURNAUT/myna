@@ -156,3 +156,12 @@ changes a verdict; a call it cannot score is reported as unscored, not as a pass
 agreement % against the labels staff put on calls (`hawk judge-labels`), shown in the report.
 The rubric exempts Myna's opening greeting, which the first smoke run wrongly flagged. See
 `docs/plan-judge.md`.
+
+## 2026-11-05 — One engine, two verticals; LiveKit to be evaluated
+
+Clinic-only reads as built for one employer, and the architecture is already vertical-agnostic, so
+restaurants (reservations, waitlist, "seat available" callback) become a second vertical in the
+same repo. No third vertical. Scope note in CLAUDE.md updated. Separately, a contact suggested
+LiveKit instead of Pipecat: not a migration yet, a one-day spike on telephony and latency, since
+the voice layer is isolated in `services/agent/src/myna_agent/voice/`. Plan and cut points in
+`docs/plan-generalise.md`.
