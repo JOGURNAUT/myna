@@ -5,7 +5,9 @@
 Myna is a multilingual (English, Hindi, Hinglish) AI phone receptionist for small Indian clinics.
 Hawk is the test harness that decides whether Myna is safe to go live.
 
-Built vertical-agnostic; clinics first because they're the hardest.
+Built vertical-agnostic; validated on clinics (the pilot, hardest first) and on restaurant
+reservations (tables by party size, name + phone verification, a waitlist callback to come).
+A business is a config file in `clinics/`; `vertical` and `verification` pick the wording and rules.
 
 ## The idea in one paragraph
 

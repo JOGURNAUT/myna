@@ -65,6 +65,8 @@ export interface Report {
   totals: Rate;
   flows: Record<string, FlowResult>;
   languages: Record<string, Rate>;
+  /** The same engine, different businesses: pass rate per vertical. */
+  verticals: Record<string, Rate>;
   types: Record<string, Rate>;
   failureModes: FailureMode[];
   latency: { p50Ms: number; p95Ms: number; turns: number; note: string };
@@ -260,6 +262,9 @@ export function buildReport(
   const languages = Object.fromEntries(
     [...groupBy(graded, (g) => g.record.language)].map(([k, v]) => [k, rate(v)]),
   );
+  const verticals = Object.fromEntries(
+    [...groupBy(graded, (g) => g.record.vertical)].map(([k, v]) => [k, rate(v)]),
+  );
   const types = Object.fromEntries(
     [...groupBy(graded, (g) => g.record.type)]
       .sort(([a], [b]) => a.localeCompare(b))
@@ -326,6 +331,7 @@ export function buildReport(
     totals: rate(graded),
     flows,
     languages,
+    verticals,
     types,
     failureModes,
     latency: {
@@ -470,6 +476,9 @@ export function renderMarkdown(r: Report): string {
   lines.push('## Pass rate by language', '', '| Language | Pass | Calls |', '|---|---|---|');
   for (const [lang, x] of Object.entries(r.languages))
     lines.push(`| ${LANG_NAMES[lang] ?? lang} | ${pct(x)} | ${x.passed}/${x.calls} |`);
+  lines.push('', '## Pass rate by business', '', '| Business | Pass | Calls |', '|---|---|---|');
+  for (const [v, x] of Object.entries(r.verticals))
+    lines.push(`| ${v} | ${pct(x)} | ${x.passed}/${x.calls} |`);
   lines.push('', '## Pass rate by scenario type', '', '| Type | Pass | Calls |', '|---|---|---|');
   for (const [type, x] of Object.entries(r.types))
     lines.push(`| ${type} | ${pct(x)} | ${x.passed}/${x.calls} |`);
@@ -576,6 +585,9 @@ details{background:var(--surface);border:1px solid var(--line);border-radius:14p
 </div>
 <h2>Pass rate by language</h2><div class="panel">${Object.entries(r.languages)
     .map(([k, v]) => bar(LANG_NAMES[k] ?? k, v))
+    .join('')}</div>
+<h2>Pass rate by business</h2><div class="panel">${Object.entries(r.verticals)
+    .map(([k, v]) => bar(k, v))
     .join('')}</div>
 <h2>Pass rate by scenario type</h2><div class="panel">${Object.entries(r.types)
     .map(([k, v]) => bar(k, v))

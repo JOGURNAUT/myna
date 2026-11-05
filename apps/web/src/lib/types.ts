@@ -157,6 +157,7 @@ export interface HawkReport {
   totals: Rate;
   flows: Record<string, Rate & { verdict: Verdict; why: string }>;
   languages: Record<string, Rate>;
+  verticals?: Record<string, Rate>;
   types: Record<string, Rate>;
   failureModes: {
     check: string;

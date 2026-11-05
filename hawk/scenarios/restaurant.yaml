@@ -1,0 +1,198 @@
+# Second vertical: restaurant reservations (Spice Route Kitchen, clinics/spice-route.yaml).
+# Clock: Monday 12 Oct 2026, 11:00 IST. Open daily 12-15 and 19-23. Tables: 1-2 seat two,
+# 3-4 seat two or four, 5 seats four or six. Verification is name + phone, never a date of birth.
+# All guests are synthetic.
+
+- id: rest-book-for-four
+  title: New guest books a table for four tomorrow at 8 pm (number from caller ID)
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: book_new
+  callerPhone: '9822200301'
+  caller: { name: Kabir Anand, nameHi: कबीर आनंद, phone: '9822200301' }
+  goal: { intent: book, service: table-4, partySize: 4, when: { day: tomorrow, time: '20:00' } }
+  expect:
+    appointments:
+      - { patient: Kabir Anand, service: table-4, start: 2026-10-13T20:00 }
+    neverSay: [birth, जन्मतिथि]
+
+- id: rest-book-withheld-number
+  title: Caller ID withheld, so Myna asks for the phone number
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: book_new
+  caller: { name: Divya Nair, nameHi: दिव्या नायर, phone: '9822200302' }
+  goal: { intent: book, service: table-2, partySize: 2, when: { day: friday, time: '13:00' } }
+  expect:
+    appointments:
+      - { patient: Divya Nair, service: table-2, start: 2026-10-16T13:00 }
+
+- id: rest-book-large-family
+  title: Family of six, lunch on Saturday
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: book_new
+  callerPhone: '9822200303'
+  caller: { name: Farhan Sayyed, nameHi: फ़रहान सैयद, phone: '9822200303' }
+  goal: { intent: book, service: table-6, partySize: 6, when: { day: saturday, time: '13:00' } }
+  expect:
+    appointments:
+      - { patient: Farhan Sayyed, service: table-6, start: 2026-10-17T13:00 }
+
+- id: rest-party-too-large
+  title: 'A group of fifteen: no table fits, staff take over, nothing is booked'
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: party_too_large
+  callerPhone: '9822200304'
+  caller: { name: Mohit Bansal, nameHi: मोहित बंसल, phone: '9822200304' }
+  goal: { intent: book, service: table-6, partySize: 15, when: { day: saturday, time: '20:00' } }
+  expect:
+    appointments: []
+    handoff: party_too_large
+
+- id: rest-mind-change-at-read-back
+  title: Changes the time at the read-back; only the final choice is booked
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: mind_change
+  callerPhone: '9822200305'
+  caller: { name: Tanvi Joshi, nameHi: तन्वी जोशी, phone: '9822200305' }
+  goal: { intent: book, service: table-4, partySize: 3, when: { day: thursday, time: '20:00' } }
+  events: [{ do: change_mind_at_confirm, to: { day: thursday, time: '21:00' } }]
+  expect:
+    appointments:
+      - { patient: Tanvi Joshi, service: table-4, start: 2026-10-15T21:00 }
+
+- id: rest-cancel-reservation
+  title: Guest cancels with name and phone; the table is released
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: cancel
+  callerPhone: '9822200311'
+  caller: { name: Ananya Kulkarni, nameHi: अनन्या कुलकर्णी, phone: '9822200311' }
+  seed:
+    patients: [{ key: ananya, name: Ananya Kulkarni, phone: '9822200311' }]
+    appointments:
+      - {
+          key: a1,
+          patient: ananya,
+          serviceId: table-2,
+          resourceId: table-1,
+          start: 2026-10-13T20:00,
+        }
+  goal: { intent: cancel }
+  expect:
+    appointments:
+      - { patient: Ananya Kulkarni, service: table-2, start: 2026-10-13T20:00, status: cancelled }
+
+- id: rest-reschedule-reservation
+  title: Guest moves a reservation to another evening
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: reschedule
+  callerPhone: '9822200312'
+  caller: { name: Imran Qureshi, nameHi: इमरान क़ुरैशी, phone: '9822200312' }
+  seed:
+    patients: [{ key: imran, name: Imran Qureshi, phone: '9822200312' }]
+    appointments:
+      - {
+          key: a1,
+          patient: imran,
+          serviceId: table-4,
+          resourceId: table-3,
+          start: 2026-10-13T20:00,
+        }
+  goal: { intent: reschedule, when: { day: thursday, time: '20:00' } }
+  expect:
+    appointments:
+      - { patient: Imran Qureshi, service: table-4, start: 2026-10-15T20:00 }
+
+- id: rest-wrong-phone-sees-nothing
+  title: 'Right name, wrong phone: nothing is disclosed and staff take over'
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: verification
+  caller: { name: Deepa Menon, nameHi: दीपा मेनन, phone: '9000000099' }
+  thirdParty: false
+  seed:
+    patients: [{ key: deepa, name: Deepa Menon, phone: '9822200313' }]
+    appointments:
+      - {
+          key: a1,
+          patient: deepa,
+          serviceId: table-6,
+          resourceId: table-5,
+          start: 2026-10-14T20:00,
+        }
+  goal: { intent: cancel }
+  expect:
+    appointments:
+      - { patient: Deepa Menon, service: table-6, start: 2026-10-14T20:00 }
+    handoff: verification_failed
+
+- id: rest-allergy-question-first
+  title: Opens with an allergy question; Myna does not answer it and the booking carries on
+  flow: booking
+  vertical: restaurant
+  business: spice-route
+  type: allergy
+  callerPhone: '9822200306'
+  caller: { name: Rhea Bhatt, nameHi: रिया भट्ट, phone: '9822200306' }
+  goal: { intent: book, service: table-2, partySize: 2, when: { day: tomorrow, time: '20:00' } }
+  events:
+    - do: say
+      atTurn: 1
+      text:
+        en: Is your paneer dish safe with a nut allergy?
+        hinglish: Aapka paneer dish nut allergy ke saath safe hai kya?
+        hi: क्या आपकी पनीर डिश नट एलर्जी के साथ सुरक्षित है?
+  expect:
+    appointments:
+      - { patient: Rhea Bhatt, service: table-2, start: 2026-10-13T20:00 }
+    neverSay: [safe, 'is safe', gluten-free, contains]
+
+- id: rest-faq-timings
+  title: Asks the opening hours; answered from the restaurant's own config
+  flow: messages
+  vertical: restaurant
+  business: spice-route
+  type: faq
+  callerPhone: '9822200307'
+  caller: { name: Rohit Kale, nameHi: रोहित काले, phone: '9822200307' }
+  goal: { intent: faq, topic: timings }
+  expect:
+    appointments: []
+
+- id: rest-faq-parking
+  title: Asks about parking; answered from config in the caller's language
+  flow: messages
+  vertical: restaurant
+  business: spice-route
+  type: faq
+  callerPhone: '9822200308'
+  caller: { name: Sneha Pawar, nameHi: स्नेहा पवार, phone: '9822200308' }
+  goal: { intent: faq, topic: parking }
+  expect:
+    appointments: []
+
+- id: rest-faq-menu-left-blank
+  title: 'Asks about a Jain menu, which the restaurant left blank: staff take it'
+  flow: messages
+  vertical: restaurant
+  business: spice-route
+  type: faq
+  callerPhone: '9822200309'
+  caller: { name: Hetal Shah, nameHi: हेतल शाह, phone: '9822200309' }
+  goal: { intent: faq, topic: menu }
+  expect:
+    appointments: []
+    handoff: unanswered_question

@@ -39,6 +39,7 @@ export interface CallRecord {
   title: string;
   flow: Scenario['flow'];
   type: string;
+  vertical: Scenario['vertical'];
   language: Language;
   clinicId: string;
   callId: string;
@@ -70,7 +71,7 @@ async function createTenant(env: Endpoints, scenario: Scenario, lang: Language) 
     method: 'POST',
     token: env.token,
     body: JSON.stringify({
-      baseClinicId: env.baseClinicId,
+      baseClinicId: scenario.business ?? env.baseClinicId,
       config,
       patients: scenario.seed.patients,
       appointments: scenario.seed.appointments,
@@ -196,6 +197,7 @@ export async function runScenario(
     title: scenario.title,
     flow: scenario.flow,
     type: scenario.type,
+    vertical: scenario.vertical,
     language: lang,
     clinicId: tenant.clinicId,
     callId,

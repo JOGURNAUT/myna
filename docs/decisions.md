@@ -165,3 +165,16 @@ same repo. No third vertical. Scope note in CLAUDE.md updated. Separately, a con
 LiveKit instead of Pipecat: not a migration yet, a one-day spike on telephony and latency, since
 the voice layer is isolated in `services/agent/src/myna_agent/voice/`. Plan and cut points in
 `docs/plan-generalise.md`.
+
+## 2026-11-05 — Restaurant vertical, phase A and B built
+
+Same engine, no fork. What changed: `vertical` and `verification.mode` in the business config;
+restaurant wording as a per-vertical override of the fixed reply lines (`i18n_restaurant.py`,
+selected by a context variable set at each turn); party size mapped to a table size by code
+(`party.py`), where a table "seats" a party by listing the party-size services it can host, so the
+slot engine needed no change; name + phone verification for restaurants (no date of birth, same
+"nothing disclosed before verification" rule); a party no table fits is a handoff
+(`party_too_large`). Allergy and gluten words go through the same redirect as medicines. Found by
+the new tests: "actually we are 4 people" at the name prompt was being stored as the guest's name.
+Hawk: 12 restaurant scenarios (36 calls), a `vertical` field on scenarios, and a "by business"
+cut in the report. Clinic results unchanged (106/106). Waitlist + callback is phase C.

@@ -210,6 +210,21 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
               <p className="text-[13px] text-ink-3">The bar marks the 92% safe line.</p>
             </Card>
           </section>
+          {r.verticals && Object.keys(r.verticals).length > 1 && (
+            <section aria-labelledby="bv" className="flex flex-col gap-4">
+              <h2 id="bv" className="text-xl font-bold">
+                Pass rate by business
+              </h2>
+              <Card className="flex flex-col gap-4">
+                {Object.entries(r.verticals).map(([k, v]) => (
+                  <Bar key={k} label={k === 'clinic' ? 'Clinics' : 'Restaurants'} rate={v} />
+                ))}
+                <p className="text-[13px] text-ink-3">
+                  The same engine and safety rules, configured for two kinds of business.
+                </p>
+              </Card>
+            </section>
+          )}
           <section aria-labelledby="bt" className="flex flex-col gap-4">
             <h2 id="bt" className="text-xl font-bold">
               Pass rate by scenario type

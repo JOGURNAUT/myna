@@ -62,6 +62,8 @@ export const Goal = z.discriminatedUnion('intent', [
     intent: z.literal('book'),
     service: z.string(),
     doctor: z.string().optional(),
+    /** Restaurants: how many guests (the caller says it, in words, when asked). */
+    partySize: z.number().int().min(1).optional(),
     when: When,
     pickOption: z.number().int().min(1).max(3).default(1),
   }),
@@ -82,7 +84,7 @@ export const Goal = z.discriminatedUnion('intent', [
   }),
   z.object({
     intent: z.literal('faq'),
-    topic: z.enum(['timings', 'address', 'fees', 'insurance']),
+    topic: z.enum(['timings', 'address', 'fees', 'insurance', 'parking', 'menu']),
   }),
   z.object({ intent: z.literal('chitchat') }),
   // Reminder calls (outbound): how the callee responds.
@@ -128,6 +130,10 @@ export const Scenario = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string(),
   flow: z.enum(['booking', 'messages', 'reminders']),
+  /** Which kind of business the call is to. The base config comes from `business`. */
+  vertical: z.enum(['clinic', 'restaurant']).default('clinic'),
+  /** Id of the business config to clone (a file in clinics/). Defaults to the run's clinic. */
+  business: z.string().optional(),
   /** Groups scenarios in the report ("reschedule", "emergency", "verification"…). */
   type: z.string(),
   persona: z.string().default('polite-adult'),

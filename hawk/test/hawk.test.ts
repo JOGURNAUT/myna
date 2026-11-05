@@ -29,6 +29,7 @@ function record(over: Partial<CallRecord> = {}): CallRecord {
     title: 'unit',
     flow: 'booking',
     type: 't',
+    vertical: 'clinic',
     language: 'en',
     clinicId: 'hawk-x',
     callId: 'call-x',

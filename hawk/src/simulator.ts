@@ -60,6 +60,9 @@ const SERVICES: Record<string, Phrases> = {
   filling: L('filling', 'filling', 'फिलिंग'),
   'root-canal': L('root canal', 'root canal', 'रूट कैनाल'),
   'braces-review': L('braces review', 'braces checkup', 'ब्रेसेस चेकअप'),
+  'table-2': L('a table', 'table', 'टेबल'),
+  'table-4': L('a table', 'table', 'टेबल'),
+  'table-6': L('a table', 'table', 'टेबल'),
 };
 const DOCTORS: Record<string, Phrases> = {
   'dr-mehta': L('with Dr. Mehta', 'Dr. Mehta ke saath', 'डॉक्टर मेहता के साथ'),
@@ -385,6 +388,11 @@ function sayDob(iso: string, style: Persona['dobStyle'], lang: Language): string
     : `${d} ${MONTHS_EN[mo - 1] ?? ''} ${y}`;
 }
 
+/** "4 people" in the caller's language: a number the agent must pick a table from. */
+function sayParty(n: number, lang: Language): string {
+  return L(`${enWords(n)} people`, `${n} log`, `${n} लोगों`)[lang];
+}
+
 function sayPhone(phone: string): string {
   const digits = phone.replace(/\D/g, '').slice(-10);
   return `${digits.slice(0, 5)} ${digits.slice(5)}`;
@@ -484,6 +492,8 @@ export class ScriptedPatient {
       case 'phone':
         return sayPhone(this.scenario.caller.phone ?? this.scenario.callerPhone ?? '9822299999');
       case 'service':
+        if (goal.intent === 'book' && goal.partySize !== undefined)
+          return sayParty(goal.partySize, lang);
         return 'service' in goal ? (SERVICES[goal.service]?.[lang] ?? goal.service) : YES[lang];
       case 'when':
         return this.style(this.whenAnswer());
@@ -576,11 +586,22 @@ export class ScriptedPatient {
     return said;
   }
 
+  private restaurantOpening(goal: Extract<Goal, { intent: 'book' }>, lang: Language): string {
+    const party = goal.partySize === undefined ? '' : ` ${sayParty(goal.partySize, lang)}`;
+    const when = this.event('correct_day_inline') ? '' : ` ${sayWhen(goal.when, lang)}`;
+    return L(
+      `Hi, I'd like to book a table for${party || ' two'}${when}.`,
+      `Mujhe${party} ki table book karni hai${when}.`,
+      `मुझे${party} के लिए टेबल बुक करनी है${when}।`,
+    )[lang];
+  }
+
   private opening(goal: Goal): string {
     const lang = this.lang;
     const third = this.scenario.thirdParty;
     switch (goal.intent) {
       case 'book': {
+        if (this.scenario.vertical === 'restaurant') return this.restaurantOpening(goal, lang);
         const service = SERVICES[goal.service]?.[lang] ?? goal.service;
         const doctor = goal.doctor ? ` ${DOCTORS[goal.doctor]?.[lang] ?? ''}` : '';
         const when = this.event('correct_day_inline') ? '' : ` ${sayWhen(goal.when, lang)}`;
@@ -645,6 +666,8 @@ export class ScriptedPatient {
             'Consultation ki fees kitni hai?',
             'परामर्श की फीस कितनी है?',
           ),
+          parking: L('Is there parking?', 'Parking milegi kya?', 'क्या पार्किंग मिलेगी?'),
+          menu: L('Do you have a Jain menu?', 'Jain menu hai kya?', 'क्या जैन मेन्यू है?'),
           insurance: L(
             'Do you take cashless insurance?',
             'Cashless insurance chalta hai kya?',
