@@ -592,7 +592,9 @@ class Conversation:
             if d.service_id is None:
                 return await self._ask("service", self._ask_service())
             if d.chosen is None:
-                if d.date_ref is None and (d.time_ref is None or d.time_ref.hour is None):
+                # A time with no day is not enough: guessing "the earliest day with that time"
+                # booked Monday for a caller whose "Thursday" was misheard (Hawk audio run 13).
+                if d.date_ref is None:
                     return await self._ask("when", line("ask_when", self.lang))
                 return await self._offer(d.service_id, d.resource_id)
             if not self.identity.verified and not d.new_patient:
@@ -615,7 +617,7 @@ class Conversation:
             if d.goal == "cancel":
                 return await self._confirm_cancel()
             if d.chosen is None:
-                if d.date_ref is None and (d.time_ref is None or d.time_ref.hour is None):
+                if d.date_ref is None:
                     return await self._ask("when", line("ask_new_when", self.lang))
                 return await self._offer(d.target.service_id, d.resource_id or d.target.resource_id)
             return await self._confirm_reschedule()

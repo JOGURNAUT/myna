@@ -185,3 +185,9 @@ read NOT SAFE (83%, 15/18 booking) because of critical flags; none was a disclos
   when a reply has a time but no recognisable day. Different failures appeared in each run (the
   recogniser is not deterministic), so a 24-call sample is a smoke test, not a verdict.
 - Still not run: the real model (`--nlu sarvam`) in audio mode.
+
+**Follow-up, same day (built):** a reply with a time but no day ("make it 9 pm") no longer searches
+the whole week for the earliest match; Myna asks which day and keeps the time (booking and
+reschedule). Scripted Hawk run 14: 145/145, all three flows SAFE; the audio sample has not been
+re-run since. Name spell-back and phone read-back in pairs were not built: the read-back already
+says the name, and a short phone number is already rejected.

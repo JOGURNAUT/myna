@@ -96,3 +96,27 @@ async def test_reply_wording_is_the_restaurants(make_call, make_tenant) -> None:
     call, _ = await _call(make_call, make_tenant)
     r = await call.say("mujhe table book karni hai")
     assert "kitne logon" in r.text.lower(), r.text
+
+
+async def test_a_time_without_a_day_asks_which_day(make_call, make_tenant) -> None:
+    call, _ = await _call(make_call, make_tenant, phone="9822233334")
+    r = await call.say("table for 2 at 8 pm")
+    assert call.conv.expecting == "when" and "free at" not in r.text, r.text
+    r = await call.say("tomorrow")
+    assert "8 pm" in r.text and "Table" in r.text, r.text  # the time was kept
+
+
+async def test_a_reschedule_with_only_a_time_asks_which_day(make_call, make_tenant) -> None:
+    call, _ = await _call(
+        make_call,
+        make_tenant,
+        phone=ANANYA["phone"],
+        patients=[ANANYA],
+        appointments=[ANANYA_TABLE],
+    )
+    await call.say("I want to change my booking")
+    await call.say("Ananya Kulkarni")
+    r = await call.say("make it 9 pm")
+    assert call.conv.expecting == "when", r.text
+    r = await call.say("Thursday")
+    assert "9 pm" in r.text and "Thursday" in r.text, r.text
