@@ -205,3 +205,12 @@ long digit strings in speech; the open decision is whether a restaurant needs a 
 name (probably not: the staff see the booking and the phone number) and whether a clinic does
 (yes: verification depends on it, and it already fails closed to staff).
 Not yet run in audio mode: the clinic vertical with the real model.
+
+## 2026-11-06 — Real model in audio mode, clinic (run 16)
+
+24 spoken calls (new `--vertical clinic|restaurant` flag on `hawk run`), Sarvam model
+understanding, 93 model calls, 0 fallbacks: 24/24 passed, booking 15/15, messages 4/4,
+reminders 5/5. The clinic sample did not hit a name or digit mis-hearing this time; run 15 shows
+the restaurant sample did, so one 24-call sample per vertical is a smoke test, not a rate
+(the recogniser is not deterministic and the sample is small). Both verticals now have a spoken,
+real-model run on record.

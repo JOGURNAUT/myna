@@ -33,6 +33,8 @@ async function main(): Promise<void> {
     allowPositionals: true,
     options: {
       filter: { type: 'string' },
+      /** Only scenarios of one vertical: clinic or restaurant. */
+      vertical: { type: 'string' },
       lang: { type: 'string' },
       concurrency: { type: 'string', default: '6' },
       out: { type: 'string', default: join(REPO_ROOT, 'docs', 'reports') },
@@ -76,6 +78,7 @@ async function main(): Promise<void> {
   const langs = values.lang ? values.lang.split(',').map((l) => Language.parse(l.trim())) : null;
   const jobs = suite.scenarios
     .filter((s) => !values.filter || s.id.includes(values.filter) || s.type.includes(values.filter))
+    .filter((s) => !values.vertical || s.vertical === values.vertical)
     .flatMap((s) =>
       s.languages.filter((l) => !langs || langs.includes(l)).map((lang) => ({ s, lang })),
     );
