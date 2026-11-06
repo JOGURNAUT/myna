@@ -12,6 +12,14 @@ LINES_RESTAURANT: dict[str, dict[str, str]] = {
         "hi": "क्या आप टेबल बुक करना, बदलना या कैंसल करना चाहते हैं?",
         "hinglish": "Aap table book, change ya cancel karna chahte hain?",
     },
+    "emergency": {
+        "en": "This sounds like an emergency. Please call 112 or 108 right now, or go to the "
+        "nearest emergency. I'm connecting you to our staff.",
+        "hi": "यह इमरजेंसी लग रही है। कृपया अभी 112 या 108 पर कॉल करें, या नज़दीकी इमरजेंसी में "
+        "जाएँ। मैं आपको स्टाफ़ से जोड़ रही हूँ।",
+        "hinglish": "Yeh emergency lag rahi hai. Please abhi 112 ya 108 pe call kariye, ya nazdeeki "
+        "emergency mein jaaiye. Main aapko staff se jod rahi hoon.",
+    },
     "medical": {
         "en": "I'm sorry, I can't advise on allergies or ingredients. Our staff can help with that.",
         "hi": "माफ़ कीजिए, मैं एलर्जी या सामग्री के बारे में सलाह नहीं दे सकती। इसमें हमारा स्टाफ़ मदद करेगा।",

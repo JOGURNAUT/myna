@@ -1153,7 +1153,9 @@ class Conversation:
         if not ident.verified:
             if ident.name is None:
                 return await self._ask("name", line("ask_name", self.lang))
-            if not await self._try_verify() and ident.dob is None and not m.asked_dob:
+            # A restaurant never asks for a date of birth: the message is taken, flagged for staff.
+            by_dob = self.config.verification.mode.value == "name_dob"
+            if not await self._try_verify() and by_dob and ident.dob is None and not m.asked_dob:
                 m.asked_dob = True
                 return await self._ask("dob", line("ask_dob_message", self.lang))
         # 2. What to pass on.

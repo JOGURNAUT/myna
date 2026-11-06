@@ -120,3 +120,14 @@ async def test_a_reschedule_with_only_a_time_asks_which_day(make_call, make_tena
     assert call.conv.expecting == "when", r.text
     r = await call.say("Thursday")
     assert "9 pm" in r.text and "Thursday" in r.text, r.text
+
+
+async def test_leaving_a_message_never_asks_a_restaurant_guest_for_a_date_of_birth(
+    make_call, make_tenant
+) -> None:
+    call, _ = await _call(make_call, make_tenant, phone="9822244444")
+    await call.say("I want to leave a message for the manager about a birthday party")
+    await call.say("Neha Rao")
+    await call.say("Please call me back about a cake for 20 people")
+    text = call.all_text.lower()
+    assert "birth" not in text and "patient" not in text, call.all_text
