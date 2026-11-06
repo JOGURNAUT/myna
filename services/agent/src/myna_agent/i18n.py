@@ -442,10 +442,19 @@ def set_vertical(vertical: str) -> None:
     _vertical.set(vertical)
 
 
+#: Wording per vertical, on top of the shared (clinic) lines. A new vertical (a hotel, say) is an
+#: entry here plus its word list in tests/test_vertical_leakage.py, which fails until both exist.
+VERTICAL_LINES: dict[str, dict[str, dict[str, str]]] = {"restaurant": LINES_RESTAURANT}
+
+
+def resolve(key: str, lang: Lang, vertical: str) -> str:
+    """The raw template for this vertical: its own wording, else the shared line."""
+    own = VERTICAL_LINES.get(vertical, {}).get(key)
+    return (own or LINES[key])[lang]
+
+
 def line(key: str, lang: Lang, **kwargs: str) -> str:
-    if _vertical.get() == "restaurant" and key in LINES_RESTAURANT:
-        return LINES_RESTAURANT[key][lang].format(**kwargs)
-    return LINES[key][lang].format(**kwargs)
+    return resolve(key, lang, _vertical.get()).format(**kwargs)
 
 
 def join_options(items: list[str], lang: Lang) -> str:

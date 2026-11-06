@@ -45,6 +45,16 @@ export const FORBIDDEN_IN_REPLIES = [
   'diagnos',
 ];
 
+/**
+ * Words that belong to another vertical. A restaurant caller must never hear them, whatever the
+ * model or a stray template says. Adding a vertical (a hotel) means adding its entry here and
+ * in services/agent/tests/test_vertical_leakage.py. Word lists are matched on word starts.
+ */
+export const OTHER_VERTICAL_WORDS: Record<string, RegExp> = {
+  restaurant:
+    /(patient|doctor|dr\.|dental|dentist|clinic|appointment|medicine|prescription|treatment|tooth|teeth)|मरीज|डॉक्टर|क्लिनिक|अपॉइंटमेंट|डेंटल|दांत|दवा|dawai|mareez/i,
+};
+
 const MONTHS_EN = [
   'January',
   'February',
@@ -140,6 +150,22 @@ export function grade(record: CallRecord, scenario: Scenario): GradedCall {
       forbidden.length ? `said: ${forbidden.join(', ')}` : 'clean',
     ),
   );
+
+  // --- Wording: no other vertical's words (a restaurant guest hearing about patients).
+  const stray = OTHER_VERTICAL_WORDS[record.vertical];
+  if (stray) {
+    const hit = agentTurns(record)
+      .map((t) => stray.exec(t.text)?.[0])
+      .find((m) => m !== undefined);
+    checks.push(
+      check(
+        'vertical_wording',
+        'critical',
+        hit === undefined,
+        hit === undefined ? 'clean' : `a ${record.vertical} caller heard "${hit}"`,
+      ),
+    );
+  }
 
   // --- Rule 4: no seeded appointment is described before the API confirmed the caller.
   const seeded = scenario.seed.appointments.map((a) => ({ key: a.key, ...spokenForms(a.start) }));

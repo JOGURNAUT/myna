@@ -162,3 +162,33 @@ async def test_code_fills_a_bare_answer_to_the_service_question() -> None:
         RuleBasedNLU(),
     )
     assert (await nlu.understand("cleaning", ctx)).service_id == "cleaning"
+
+
+def test_a_restaurant_prompt_never_describes_a_clinic() -> None:
+    """The model must not be told a restaurant caller is a dental patient."""
+    import dataclasses
+    from datetime import date
+
+    from myna_agent.llm.sarvam import SarvamNLU
+    from myna_agent.nlu import TurnContext
+
+    facts = dataclasses.replace(
+        FACTS,
+        vertical="restaurant",
+        services={"table-4": ["table for 4", "four people"]},
+        resources={"table-1": ["table 1"]},
+        faqs={"timings": "what are your opening hours?"},
+    )
+    nlu = SarvamNLU("test-key", clinic_name="Spice Route Kitchen")
+    for expecting in ("name", "service", "message", "appointment", "waitlist_offer", "intent"):
+        ctx = TurnContext(
+            expecting=expecting,  # type: ignore[arg-type]
+            today=date(2026, 10, 12),
+            facts=facts,
+            language="en",
+            history=[],
+        )
+        system = nlu._messages("hello", ctx)[0]["content"].lower()
+        for word in ("patient", "dental", "doctor", "clinic", "dentist", "tooth"):
+            assert word not in system, (expecting, word)
+        assert "restaurant" in system

@@ -160,6 +160,29 @@ LINES_RESTAURANT: dict[str, dict[str, str]] = {
         "hi": "कोई बात नहीं, धन्यवाद। नमस्ते!",
         "hinglish": "Koi baat nahi, thank you. Namaste!",
     },
+    "ask_dob": {
+        "en": "Thank you. And your date of birth?",
+        "hi": "धन्यवाद। और आपकी जन्मतिथि?",
+        "hinglish": "Thank you. Aur aapki date of birth?",
+    },
+    "ask_dob_message": {
+        "en": "And your date of birth, so the team can find your booking? If you'd rather not, "
+        "just say so.",
+        "hi": "और आपकी जन्मतिथि, ताकि टीम आपकी बुकिंग ढूँढ सके? अगर नहीं बताना चाहते तो बता दीजिए।",
+        "hinglish": "Aur aapki date of birth, taaki team aapki booking dhoondh sake? Agar nahi "
+        "batana chahte toh bata dijiye.",
+    },
+    "outbound_ask_dob": {
+        "en": "Thank you. For your privacy, could you please tell me your date of birth?",
+        "hi": "धन्यवाद। आपकी प्राइवेसी के लिए, कृपया अपनी जन्मतिथि बताइए।",
+        "hinglish": "Thank you. Aapki privacy ke liye, please apni date of birth bataiye.",
+    },
+    "outbound_dob_retry": {
+        "en": "Sorry, that doesn't match our records. Could you say your date of birth again?",
+        "hi": "माफ़ कीजिए, यह हमारे रिकॉर्ड से मेल नहीं खाता। क्या आप जन्मतिथि फिर से बताएँगे?",
+        "hinglish": "Sorry, yeh hamare record se match nahi hua. Kya aap date of birth phir se "
+        "batayenge?",
+    },
     "outbound_remind": {
         "en": "You have {service} at {doctor} on {date} at {time}. Will you be able to come?",
         "hi": "{date} को {time} {doctor} पर आपकी {service} है। क्या आप आ पाएँगे?",

@@ -214,3 +214,37 @@ reminders 5/5. The clinic sample did not hit a name or digit mis-hearing this ti
 the restaurant sample did, so one 24-call sample per vertical is a smoke test, not a rate
 (the recogniser is not deterministic and the sample is small). Both verticals now have a spoken,
 real-model run on record.
+
+## 2026-11-06 — Vertical leakage audit, and what the real model showed (runs 17 to 22)
+
+Prompted by a manual call: a restaurant chat asked for a "patient's date of birth". Looked at every
+place a business's words can reach a caller or the model:
+- **Caller-facing templates:** message-taking asked a restaurant guest for a patient's date of
+  birth (`ask_dob_message`), and the emergency line said "clinic staff". Fixed; every line now
+  resolves per vertical (`i18n.VERTICAL_LINES`).
+- **The prompt the model reads:** it said "a dental clinic", "the patient's name", "Doctors" for a
+  restaurant. Now a per-vertical vocabulary (`_VOCAB` in `llm/sarvam.py`).
+- **The output schema the model reads:** field descriptions ("patient's full name") and the task
+  categories (`medicine_refill_request`) went to restaurant calls too. Now rewritten per vertical.
+- **Guards, so it cannot come back:** `tests/test_vertical_leakage.py` (every template in 3
+  languages, the prompt, the schema, 12 call journeys, and a registry test that fails if a new
+  vertical lacks wording or a forbidden-word list) and a critical Hawk check `vertical_wording`
+  on every agent turn. Checklist for a hotel in `docs/plan-generalise.md`.
+- **Not fixed:** staff task category labels in the dashboard (`CATEGORY_LABEL`) still say
+  "Doctor call-back", "Medicine refill".
+
+Real model, text mode, first time on the restaurant vertical (run 20): 34/39. Three real bugs that
+the scripted (rules) runs had hidden, all fixed:
+- "हाँ जी" at the waitlist offer came back as `provide_info`, so Myna looped and then handed over.
+  This is the same bug a manual call hit ("haan daal do"). A very short plain yes/no now beats a
+  confused model label (never over emergency, medical, opt-out, wrong number, human), and never
+  when the reply carries a day, time or number. The waitlist question was also missing from the
+  closed-question list.
+- "नहीं, बस। धन्यवाद।" at "anything else?" came back as a new reschedule, which moved the booking
+  a second time. Same fix.
+- A phone number said as digits only ("90000 00099") flipped the call's language. Fixed.
+After the fixes: restaurant 37/39 (run 21), clinic 105/106 (run 22, 383 model calls, 12 fell back
+to rules). The remaining misses are one flow: after a failed name + phone (or date of birth) check,
+Myna asks for the details again; if the caller answers with the name only, the real model does not
+extract it, Myna says "samajh nahi paayi" twice and hands over. Safe (nothing disclosed) but wrong
+reason and poor experience. Not fixed.

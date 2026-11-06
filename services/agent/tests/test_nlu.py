@@ -146,3 +146,30 @@ def test_name_corrections_at_the_read_back() -> None:
     # Ordinary objections are not names.
     for text in ("no, this is wrong", "no thanks", "nahi, Wednesday kar do", "I am not sure"):
         assert extract_name_correction(text) is None
+
+
+@pytest.mark.parametrize(
+    ("said", "model_intent", "rules_intent", "expecting", "want"),
+    [
+        # Seen with the real model: a plain yes labelled provide_info, a "no, that's all" labelled
+        # as a new reschedule. Keywords win on a few plain words.
+        ("हाँ जी।", Intent.provide_info, Intent.yes, "waitlist_offer", Intent.yes),
+        ("Haan daal doon.", Intent.provide_info, Intent.yes, "waitlist_offer", Intent.yes),
+        ("नहीं, बस। धन्यवाद।", Intent.reschedule, Intent.no, "anything_else", Intent.no),
+        # But never over a safety label, and never when the answer carries a day or a time.
+        ("haan ji", Intent.emergency, Intent.yes, "confirm", Intent.emergency),
+        ("nahi, Thursday", Intent.reschedule, Intent.no, "confirm", Intent.reschedule),
+        ("no, make it 9 pm", Intent.reschedule, Intent.no, "confirm", Intent.reschedule),
+    ],
+)
+def test_a_short_plain_answer_beats_a_confused_model_label(
+    said, model_intent, rules_intent, expecting, want
+) -> None:
+    from datetime import date
+
+    from myna_agent.nlu import Understanding, settle_closed_answers
+
+    model = Understanding(intent=model_intent, language="en", confidence=0.9)
+    rules = Understanding(intent=rules_intent, language="en", confidence=0.9)
+    got = settle_closed_answers(model, rules, expecting, said, date(2026, 10, 12))
+    assert got.intent == want

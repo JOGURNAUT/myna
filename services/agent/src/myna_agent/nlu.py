@@ -114,6 +114,7 @@ class ClinicFacts:
     services: dict[str, list[str]]  # id → names/synonyms (lower-case)
     resources: dict[str, list[str]]  # id → names (lower-case)
     faqs: dict[str, str]  # id → question
+    vertical: str = "clinic"  # picks the wording the model is shown (llm/sarvam.py)
 
 
 @dataclass(frozen=True)
@@ -995,13 +996,41 @@ def settle_staff_requests(
 
 
 #: Questions whose answer is yes / no / goodbye / "that's all".
-_CLOSED_QUESTIONS = ("confirm", "anything_else", "callback_confirm", "attendance", "identity_who")
+_CLOSED_QUESTIONS = (
+    "confirm",
+    "anything_else",
+    "callback_confirm",
+    "attendance",
+    "identity_who",
+    "waitlist_offer",
+)
 #: Labels the model gives when it didn't recognise a simple answer.
 _CONFUSED = (Intent.provide_info, Intent.unclear, Intent.faq, Intent.other_request)
 
 
+#: What a model must not be talked out of, however short the caller's answer is.
+_PROTECTED = (
+    Intent.emergency,
+    Intent.medical_question,
+    Intent.opt_out,
+    Intent.wrong_number,
+    Intent.talk_to_human,
+)
+
+
+def _short_plain_answer(text: str, today: date | None) -> bool:
+    """ "Haan ji", "nahi, bas, thank you": a few words, no day, time or number in them."""
+    if not text or len(text.split()) > 4 or re.search(r"\d", text):
+        return False
+    return today is None or (parse_date(text, today) is None and parse_time(text) is None)
+
+
 def settle_closed_answers(
-    model: Understanding, rules: Understanding, expecting: str
+    model: Understanding,
+    rules: Understanding,
+    expecting: str,
+    text: str = "",
+    today: date | None = None,
 ) -> Understanding:
     """On a yes/no-style question, trust keywords over a confused model.
 
@@ -1019,7 +1048,15 @@ def settle_closed_answers(
         confused or model.intent == Intent.yes
     )
     says_yes = rules.intent == Intent.yes and confused
-    if says_no or says_yes:
+    # Real-model runs (restaurant, 2026-11-06): "हाँ जी" came back as provide_info and "नहीं, बस।
+    # धन्यवाद।" as a new reschedule, so Myna looped or started the booking over. A very short, plain
+    # yes/no beats any label except a safety one.
+    plain = (
+        rules.intent in (Intent.yes, Intent.no, Intent.goodbye)
+        and model.intent not in _PROTECTED
+        and _short_plain_answer(text, today)
+    )
+    if says_no or says_yes or plain:
         return model.model_copy(update={"intent": rules.intent, "confidence": 0.9})
     return model
 

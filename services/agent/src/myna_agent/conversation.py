@@ -270,6 +270,7 @@ class Conversation:
                 for r in config.resources
             },
             faqs={f.id: f.question for f in config.faq},
+            vertical=config.vertical.value,
         )
 
     # ================================================================ public

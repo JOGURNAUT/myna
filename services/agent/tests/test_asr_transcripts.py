@@ -208,6 +208,8 @@ def test_clinic_timings_asked_in_roman_hindi(heard: str) -> None:
         "Nau aath do do do shoonya shoonya teen shoonya do",
         "nine eight two two two zero zero three zero two",
         "nav aath do do do shoonya shoonya teen shoonya do",
+        "90000 00099",
+        "9822200301",
     ],
 )
 def test_a_phone_number_said_in_words_is_not_a_language(heard: str) -> None:

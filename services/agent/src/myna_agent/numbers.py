@@ -397,6 +397,8 @@ def mostly_number_words(text: str, *, minimum: int = 4) -> bool:
     Such a turn says nothing about the caller's language, however English "do" and "teen" look.
     (Audio-mode Hawk run 12: Myna switched a Hinglish call to English after a spoken number.)
     """
+    if re.fullmatch(r"[\d\s\-+,.()]+", text.strip()) and len(re.findall(r"\d", text)) >= minimum:
+        return True  # "90000 00099": digits only
     words = [w for w in re.findall(r"[\wऀ-ॿ]+", text.lower()) if not w.isdigit()]
     digits = len(re.findall(r"\d", text))
     numbers = sum(1 for w in words if _is_number_word(w))

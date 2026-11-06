@@ -121,3 +121,21 @@ allow-listed demo businesses (`DEMO_CLINIC`, `DEMO_RESTAURANT`). The staff dashb
 file, using `vertical` from `/me` and `/setup`; call detail and the labelling form stay neutral.
 Not done: a staff view of the waitlist, a staff task when nobody can be called, and Hawk
 scenarios that run the offer call itself (the Python end-to-end tests cover it).
+
+## Adding a vertical (a hotel, say): the leakage checklist
+Each step exists because the restaurant vertical leaked clinic words in a different place
+(2026-11-06: "patient's date of birth" in message-taking, "a dental clinic" in the model prompt,
+"clinic staff" in the emergency line). A new vertical is not done until all of these are:
+1. `clinics/<id>.yaml` with `vertical: <name>` and a `verification.mode` that fits (never inherit
+   date of birth by default).
+2. `Vertical` enum in `packages/shared` and the regenerated agent contracts.
+3. Wording: an entry in `i18n.VERTICAL_LINES` (override at least greeting-adjacent, ask, confirm,
+   emergency, medical and message lines, in all three languages).
+4. Model prompt: an entry in `_VOCAB` in `llm/sarvam.py` (business kind, person word, task
+   categories).
+5. Forbidden words: `FORBIDDEN` in `services/agent/tests/test_vertical_leakage.py` and
+   `OTHER_VERTICAL_WORDS` in `hawk/src/grader.ts`. The registry test fails until steps 3 and 5 exist.
+6. Hawk scenarios for the vertical; the grader's `vertical_wording` check (critical) scans every
+   agent turn of every call, text and spoken.
+7. Web: `VOCAB` and `DASH` in `apps/web/src/lib/vocab.ts`; the demo switcher.
+Known gap: staff task category labels in the dashboard (`CATEGORY_LABEL`) are still clinic words.

@@ -18,6 +18,9 @@ self-contained HTML page. Regenerate with `pnpm hawk run` (offline) or
 | [14 ask the day](14-ask-day.md) | rules, scripted | A time with no day now asks "which day?" (book and reschedule); 145 calls, two businesses | SAFE 100% | SAFE 100% | SAFE 100% | – |
 | [15 restaurant audio, real model](15-restaurant-audio-sarvam.md) | **Sarvam model** (sarvam-105b-conversations), spoken callers | First run with the real model in audio mode, 24 restaurant calls, 94 model calls, 0 fallbacks | NOT SAFE 83% | SAFE 100% | – | – |
 | [16 clinic audio, real model](16-clinic-audio-sarvam.md) | Sarvam model, spoken callers | Same as run 15 for the clinic vertical, 24 calls, 93 model calls, 0 fallbacks | SAFE 100% | SAFE 100% | SAFE 100% | – |
+| [20 restaurant, real model, text](20-restaurant-real-model.md) | Sarvam model, scripted callers | First real-model text run on the restaurant vertical, before the fixes | NOT SAFE 87% | SAFE 100% | – | – |
+| [21 restaurant, real model, fixed](21-restaurant-real-model-fixed.md) | Sarvam model | Short yes/no beats a confused label; digits-only turn is not a language | NOT SAFE 93% | SAFE 100% | – | – |
+| [22 clinic, real model, text](22-clinic-real-model.md) | Sarvam model | Same code, clinic vertical, 106 calls, 383 model calls | NOT SAFE 98% (1 call) | SAFE 100% | SAFE 100% | – |
 | [06 audio, first](run-06-audio-rules.md) | rules, **spoken callers** (Saaras `transcribe`) | First valid audio run, 24 calls | NOT SAFE 60% | NOT SAFE 50% | NOT SAFE 80% | – |
 | [07 audio, after fixes](run-07-audio-rules.md) | rules, spoken | Language no longer flips on a short English phrase; "Patient's name X" | NOT SAFE 80% | NOT SAFE 75% | SAFE 100% | – |
 | [08 audio, voice STT mode](run-08-audio-translit.md) | rules, spoken (Saaras `translit`, as in the live voice) | Harness now uses the same STT mode as the voice pipeline | NOT SAFE 87% | NOT SAFE 75% | NOT SAFE 80% | – |
